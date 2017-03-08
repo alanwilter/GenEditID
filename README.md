@@ -1,6 +1,6 @@
 # Genome Editing project
 
-## Technologies: Postgres, Python and R
+## Technologies used: Postgres, Python and R
 
 * DB schema to store all data
 * Database: Postgresql / SQLite
@@ -13,15 +13,18 @@
   - RStudio [https://www.rstudio.com/](https://www.rstudio.com/)
   - Atom [https://atom.io/](https://atom.io/) or any others you like!
 
-## Proposed First Modules
+## Project description
+
+See [docs/project_description.md](docs/project_description.md)
 
 * three modules: growth, western and NGS
 * three types of files so far:
   - PlatesLayout_270117.csv
   - 240117_ICW_Plate1.csv (possible to have 8 colours)
   - 180117_MCF7_luc-straw_clone3_CRISPR_plate1.txt
+*  one shiny app in `shinyapp` directory with instruction on how to run it in [docs/howto.md](howto.md#shinny-app)
 
-## People
+## People involved
 
 * Ruben Alvarez [@rubenalv](https://github.com/rubenalv)
 * Rich Bower [@rich7409](https://github.com/rich7409)
