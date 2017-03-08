@@ -1,0 +1,6 @@
+# config
+pyyaml
+
+# database
+sqlalchemy==1.1.6
+psycopg2==2.7

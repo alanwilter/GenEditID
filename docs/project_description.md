@@ -56,7 +56,7 @@ The assay works like this: a target is detected by a specific primary antibody, 
   - Ideally hover/click events on plot points show wells on plates, and areas can be zoomed in with the mouse. Tick-click to switch between images of 800/700 and 700 only.
   - (the ones below are also required for IncuCyte):
     - User-selected upper and lower thresholds for protein relative abundance (800/700)
-    - tick-select of cell lines on a plot selects them from a table in another frame, and viceversa (this is for data integration)
+    - tick-select of cell lines on a plot selects them from a table in another frame, and vice-versa (this is for data integration)
     - pointer hover/click shows data (cell line, position in the plate, value, experiment. Ideally, this could be configured to select which data to show)
 - processing:
   - Inter-plate normalisation. Each plate has Controls always in the same position.
@@ -85,7 +85,7 @@ Features:
 - data manipulation:
   - select the Controls (e.g. ‘Control parental line’, ‘Control KO’), the sgRNA’s and the Projects (therefore we could merge different Projects to integrate and compare data) to visualise.
   - Manual upper and lower thresholds for Confluence (%) and growth rates (so the user can filter out cell lines. This cannot be automatic because sometimes one will be interested in e.g. slow growers, but other times could be interested in faster growers).
-  - lick-select of cell lines on a plot selects them from a table in another frame, and viceversa. This is used for data integration.
+  - lick-select of cell lines on a plot selects them from a table in another frame, and vice-versa. This is used for data integration.
   - pointer hover shows data (cell line, position in the plate, value, experiment. Ideally, this could be configured to select which data to show)
 - data processing:
   - Inter-plate normalisation. Each plate has Controls always in the same position.
@@ -100,10 +100,10 @@ Features:
 
 - data visualisation:
   - Nucleic acid alignments of cell clones against Control (parent. If a parent is not available, against the corresponding amplicon in the genome)
-  - Aminoacid alignments of translated sequences to Control (or genome)
+  - Amino-acid alignments of translated sequences to Control (or genome)
   - Grouping in:
     - Silent mutations (note potential change in codon usage and protein abundance)
-    - Frameshifts
+    - Frame-shifts
     - In-frame mutations
     - Unchanged (grey out or discard)
     - QC of the data

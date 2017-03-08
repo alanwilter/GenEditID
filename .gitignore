@@ -1,3 +1,4 @@
+# RStudio
 *.Rproj
 *.Rproj.user
 *.Rhistory
@@ -5,3 +6,7 @@
 *.Ruserdata
 *.tar.gz
 .Rproj.user
+# Python
+venv
+__pycache__
+*.pyc

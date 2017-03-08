@@ -22,7 +22,8 @@ See [docs/project_description.md](docs/project_description.md)
   - PlatesLayout_270117.csv
   - 240117_ICW_Plate1.csv (possible to have 8 colours)
   - 180117_MCF7_luc-straw_clone3_CRISPR_plate1.txt
-*  one shiny app in `shinyapp` directory with instruction on how to run it in [docs/howto.md](docs/howto.md#shiny-app)
+* one shiny app in `shinyapp` directory with instruction on how to run it in [docs/howto.md](docs/howto.md#shiny-app)
+* database with instruction on how to create it in [docs/howto.md](docs/howto.md#create-database)
 
 ## People involved
 
