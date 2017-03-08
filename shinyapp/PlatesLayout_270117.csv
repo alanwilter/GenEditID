@@ -1,0 +1,64 @@
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate1	
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+C	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+D	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+E	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+F	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+G	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
+															
+															
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate2	
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+C	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+D	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+E	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+F	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+G	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
+															
+															
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate3	
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	-			
+C	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	-			
+D	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	-			
+E	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	-			
+F	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.1	-			
+G	-	STAT3.1	STAT3.1	STAT3.1	STAT3.1	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
+															
+															
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate4	
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	-			
+C	-	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	-			
+D	-	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	-			
+E	-	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	STAT3.2	-			
+F	-	STAT3.2	STAT3.2	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+G	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
+															
+															
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate5	Different acquisition on the incucyte
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.4	-			
+C	-	STAT3.4	STAT3.4	STAT3.4	STAT3.4	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+D	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+E	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+F	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-			
+G	-	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	STAT3.3	-	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
+															
+															
+	1	2	3	4	5	6	7	8	9	10	11	12		Plate6	
+A	Clone 3 - ctl	-	-	-	-	-	-	-	-	-	-	-			
+B	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+C	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+D	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+E	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+F	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+G	-	Clone3 - No Ab	Clone3 - second Ab only	Clone3	Clone3	MCF7_ctl - No Ab	MCF7_ctl - second Ab only	MCF7_ctl	MCF7_ctl	MCF7_ctl	MCF7_ctl	-			
+H	-	-	-	-	-	-	-	-	-	-	-	Clone 3 - ctl			
