@@ -27,8 +27,3 @@
 * Rich Bower [@rich7409](https://github.com/rich7409)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
-
-## Extra
-
-Hello from RStudio with Ruben
-hello
