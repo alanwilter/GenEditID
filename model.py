@@ -9,6 +9,8 @@ from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import DateTime
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
 
 Base = declarative_base()
 
@@ -22,6 +24,7 @@ class Project(Base):
 class Target(Base):
     __tablename__ = 'target'
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey('project.id'))
     # Propagate the deletion of a Project onto its targets
     project = relationship(
         Project,
@@ -33,6 +36,7 @@ class Target(Base):
 class Oligo(Base):
     __tablename__ = 'oligo'
     id = Column(Integer, primary_key=True)
+    target_id = Column(Integer, ForeignKey('target.id'))
     target = relationship(
         Target,
         backref=backref('oligos', uselist=True, cascade='delete,all'))
@@ -49,9 +53,11 @@ class CellLine(Base):
 class Clone(Base):
     __tablename__ = 'clone'
     id = Column(Integer, primary_key=True)
+    oligo_id = Column(Integer, ForeignKey('oligo.id'))
     oligo = relationship(
         Oligo,
         backref=backref('clones', uselist=True, cascade='delete,all'))
+    cell_line_id = Column(Integer, ForeignKey('cell_line.id'))
     cell_line = relationship(
         CellLine,
         backref=backref('clones', uselist=True, cascade='delete,all'))
@@ -69,9 +75,11 @@ class Plate(Base):
 class PlateLayout(Base):
     __tablename__ = 'plate_layout'
     id = Column(Integer, primary_key=True)
+    plate_id = Column(Integer, ForeignKey('plate.id'))
     plate = relationship(
         Plate,
         backref=backref('plate_layouts', uselist=True, cascade='delete,all'))
+    clone_id = Column(Integer, ForeignKey('clone.id'))
     clone = relationship(
         Clone,
         backref=backref('plate_layouts', uselist=True, cascade='delete,all'))
@@ -81,9 +89,11 @@ class PlateLayout(Base):
 class Measurement(Base):
     __tablename__ = 'measurement'
     id = Column(Integer, primary_key=True)
+    plate_layout_id = Column(Integer, ForeignKey('plate_layout.id'))
     plate_layout = relationship(
         PlateLayout,
         backref=backref('measurements', uselist=True, cascade='delete,all'))
     measurement_type = Column(String)
     unit = Column(String)
     date = Column(DateTime)
+    value = Column(Float)
