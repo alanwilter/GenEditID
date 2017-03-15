@@ -17,6 +17,8 @@
   - aa alignments
 1. Integration, clone selection based on user preferences
 
+![Experimental Pipeline](experimental_pipeline.png)
+
 ### Data inputs
 
 - Sanger sequencing of the target region for each sgRNA in the parental line (this is to verify that there are no SNPs or mutations before designing the sgRNAs). This will be also used as reference, and should match the NGS of the Control (parental line), facilitating detection of potential contaminations (e.g. spillages of cells from one well, or potential mixing of cell lines on the bench).
