@@ -81,5 +81,6 @@ python loadIncucyteCSV.py
 ### R script for plotting from DB
 - install these packages in RStudio
 ```R
-install.packages(c('dplyr', 'RSQLite'))
+install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit'))
 ```
+- run script `gediting.r` to plot protein abundance and clone growth curve.
