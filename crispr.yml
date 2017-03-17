@@ -1,6 +1,8 @@
 ################################################################################
 ### database
 ################################################################################
-DATABASE_URI: "sqlite:///crispr.sqlite"
+#DATABASE_URI: "sqlite:///crispr.sqlite"
 
 #DATABASE_URI: "mysql+mysqldb://mysql@localhost/geneediting"
+
+DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"

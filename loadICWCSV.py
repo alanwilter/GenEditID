@@ -12,12 +12,6 @@ DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
 
 session = DBSession()
 
-oligo = session.query(Oligo).first()
-
-cellline = session.query(CellLine).first()
-
-clonesByName = dict()
-
 def loadICW(plateName, fileName):
     
     plate = session.query(Plate).filter(Plate.name == plateName).first()

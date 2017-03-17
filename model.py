@@ -58,6 +58,7 @@ class Clone(Base):
         backref=backref('clones', uselist=True, cascade='delete,all'))
     name = Column(String, nullable = False, unique = True, index = True)
     description = Column(String)
+    control = Column(Boolean, nullable = False, default = False)
 
 class Plate(Base):
     __tablename__ = 'plate'
@@ -79,7 +80,6 @@ class Well(Base):
         backref=backref('wells', uselist=True, cascade='delete,all'))
     row = Column(String, nullable = False)
     column = Column(Integer, nullable = False)
-    empty = Column(Boolean, nullable = False, default = False)
     icw_700 = Column(Float)
     icw_800 = Column(Float)
     UniqueConstraint('plate_id', 'row', 'column', name='well_unique_in_plate')
@@ -97,3 +97,14 @@ class Measurement(Base):
     date = Column(DateTime)
     value = Column(Float)
 """
+
+class IncucyteGrowth(Base):
+    __tablename__ = 'incucyte'
+    id = Column(Integer, primary_key=True)
+    well_id = Column(Integer, ForeignKey('well.id', name='incucyte_well_fk', ondelete = 'cascade'), nullable = False)
+    well = relationship(
+        Well,
+        backref=backref('incucyte', uselist=True, cascade='delete,all'))
+    timestamp = Column(DateTime, nullable = False)
+    hours = Column(Integer, nullable = False)
+    phased_object_confluence = Column(Float, nullable = False)

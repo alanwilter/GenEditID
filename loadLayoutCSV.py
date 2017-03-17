@@ -41,11 +41,11 @@ def addWell(plate, row, column):
         if cell in clonesByName:
             clone = clonesByName[cell]
         else:
-            clone = Clone(name = cell, oligo = oligo, cell_line = cellline)
+            clone = Clone(name = cell, oligo = oligo, cell_line = cellline, control = "ctl" in cell)
             session.add(clone)
             clonesByName[clone.name] = clone
 
-    well = Well(plate = plate, clone = clone, row = row, column = column, empty = (clone == None))
+    well = Well(plate = plate, clone = clone, row = row, column = column)
     session.add(well)
 
 
