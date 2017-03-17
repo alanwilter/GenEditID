@@ -71,3 +71,10 @@ Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
 ## Load data
 
 Next step... load `data/PlatesLayout_270117.csv` into the database.
+
+
+### R script for plotting from DB
+- install these packages in RStudio
+```R
+install.packages(c('dplyr', 'RSQLite'))
+```
