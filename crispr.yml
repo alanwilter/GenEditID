@@ -2,3 +2,5 @@
 ### database
 ################################################################################
 DATABASE_URI: "sqlite:///crispr.sqlite"
+
+#DATABASE_URI: "mysql+mysqldb://mysql@localhost/geneediting"

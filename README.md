@@ -28,6 +28,6 @@ See [docs/project_description.md](docs/project_description.md)
 ## People involved
 
 * Ruben Alvarez [@rubenalv](https://github.com/rubenalv)
-* Rich Bower [@rich7409](https://github.com/rich7409)
+* Rich Bowers [@rich7409](https://github.com/rich7409)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
