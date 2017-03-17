@@ -13,7 +13,7 @@ Base = declarative_base()
 class Project(Base):
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique = True, nullable = False)
+    name = Column(String, unique = True, nullable = False, index = True)
 
 
 class Target(Base):
@@ -24,7 +24,7 @@ class Target(Base):
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False)
+    name = Column(String, nullable = False, index = True)
     description = Column(String)
 
 
@@ -35,14 +35,14 @@ class Oligo(Base):
     target = relationship(
         Target,
         backref=backref('oligos', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False)
+    name = Column(String, nullable = False, index = True)
     description = Column(String)
 
 
 class CellLine(Base):
     __tablename__ = 'cell_line'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    id = Column(Integer, primary_key = True)
+    name = Column(String, unique = True, nullable = False, index = True)
 
 
 class Clone(Base):
@@ -56,13 +56,13 @@ class Clone(Base):
     cell_line = relationship(
         CellLine,
         backref=backref('clones', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False, unique = True)
+    name = Column(String, nullable = False, unique = True, index = True)
     description = Column(String)
 
 class Plate(Base):
     __tablename__ = 'plate'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String, index = True)
     description = Column(String)
 
 
@@ -77,9 +77,12 @@ class Well(Base):
     clone = relationship(
         Clone,
         backref=backref('wells', uselist=True, cascade='delete,all'))
-    location = Column(String)
-    empty = Column(Boolean)
-    UniqueConstraint('plate_id', 'location', name='well_unique_in_plate')
+    row = Column(String, nullable = False)
+    column = Column(Integer, nullable = False)
+    empty = Column(Boolean, nullable = False, default = False)
+    icw_700 = Column(Float)
+    icw_800 = Column(Float)
+    UniqueConstraint('plate_id', 'row', 'column', name='well_unique_in_plate')
 
 """
 class Measurement(Base):

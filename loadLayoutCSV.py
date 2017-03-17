@@ -45,7 +45,7 @@ def addWell(plate, row, column):
             session.add(clone)
             clonesByName[clone.name] = clone
 
-    well = Well(plate = plate, clone = clone, location = '%s%s' % (row, column), empty = (clone == None))
+    well = Well(plate = plate, clone = clone, row = row, column = column, empty = (clone == None))
     session.add(well)
 
 
@@ -64,7 +64,7 @@ with open('data/PlatesLayout_270117.csv', 'r') as layoutFile:
             session.add(plate)
             
             row = line[0]
-            for column in range(1, 12):
+            for column in range(1, 13):
                 addWell(plate, row, column)
             
         elif line[0] == '':
@@ -75,7 +75,7 @@ with open('data/PlatesLayout_270117.csv', 'r') as layoutFile:
         elif plate:
             
             row = line[0]
-            for column in range(1, 12):
+            for column in range(1, 13):
                 addWell(plate, row, column)
         
         previousLine = line
