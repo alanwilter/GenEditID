@@ -70,8 +70,13 @@ Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
 
 ## Load data
 
-Next step... load `data/PlatesLayout_270117.csv` into the database.
+Three scripts for loading the plate layouts, ICW channels and Incucyte growth tracking.
 
+```
+python loadLayoutCSV.py
+python loadICWCSV.py
+python loadIncucyteCSV.py
+```
 
 ### R script for plotting from DB
 - install these packages in RStudio
