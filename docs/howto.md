@@ -56,6 +56,25 @@ pip install -r requirements.txt
   - [SQLAlchemy 1.1 Documentation](http://docs.sqlalchemy.org/en/rel_1_1/)
 - [Alembic](https://bitbucket.org/zzzeek/alembic) is an excellent solution for SQLAlchemy-based systems. It provides a methodical approach and supports auto-generation of migration scripts. See [article](https://www.compose.com/articles/schema-migrations-with-alembic-python-and-postgresql/).
 
+#### Postgres Drivers for R
+
+For R, you will need to install the development files for Postgres:
+
+  yum install postgresql-9.3-devel
+
+Then before starting R, you need to set variables as to where the development files are:
+
+```
+export PG_INCDIR=/usr/pgsql-9.3/include
+export PG_LIBDIR=/usr/pgsql-9.3/lib
+```
+
+Then start R and install:
+
+```
+install.packages(c('RPostgreSQL'))
+```
+
 ## Create database
 
 Install [dependencies](#dependencies) first.

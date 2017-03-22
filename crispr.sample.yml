@@ -1,6 +1,9 @@
 ################################################################################
 ### database
 ################################################################################
+
+# Copy this file as "crispr.yml" and set the URI appropriate for your database.
+
 DATABASE_URI: "sqlite:///crispr.sqlite"
 
 #DATABASE_URI: "mysql+mysqldb://mysql@localhost/geneediting"
