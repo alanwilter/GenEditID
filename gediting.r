@@ -61,6 +61,8 @@ print(clone_growth_curve)
 # TODO create one plot per well with plotly
 
 # calculate slope of growth curves with grofit
+# Moving average: https://en.wikipedia.org/wiki/Moving_average
+# Kernel smoother: https://en.wikipedia.org/wiki/Kernel_smoother
 # TODO
 
 # plot clone growth rate

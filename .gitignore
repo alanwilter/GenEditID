@@ -6,7 +6,11 @@
 *.Ruserdata
 *.tar.gz
 .Rproj.user
+
 # Python
 venv
 __pycache__
 *.pyc
+
+# Config files
+*.yml
