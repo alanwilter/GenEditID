@@ -13,7 +13,7 @@ Base = declarative_base()
 class Project(Base):
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique = True, nullable = False, index = True)
+    name = Column(String(64), unique = True, nullable = False, index = True)
 
 
 class Target(Base):
@@ -24,46 +24,50 @@ class Target(Base):
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False, index = True)
-    description = Column(String)
+    name = Column(String(32), nullable = False, index = True)
+    description = Column(String(1024))
+    start = Column(Integer, nullable = False)
+    end = Column(Integer, nullable = False)
 
 
-class Oligo(Base):
-    __tablename__ = 'oligo'
+class SGRNA(Base):
+    __tablename__ = 'sgrna'
     id = Column(Integer, primary_key=True)
-    target_id = Column(Integer, ForeignKey('target.id', name = 'oligo_target_fk', ondelete = 'cascade'))
+    target_id = Column(Integer, ForeignKey('target.id', name = 'sgrna_target_fk', ondelete = 'cascade'))
     target = relationship(
         Target,
-        backref=backref('oligos', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False, index = True)
-    description = Column(String)
+        backref=backref('sgrnas', uselist=True, cascade='delete,all'))
+    name = Column(String(32), nullable = False, index = True)
+    description = Column(String(1024))
+    location = Column(Integer, nullable = False)
 
 
 class CellLine(Base):
     __tablename__ = 'cell_line'
     id = Column(Integer, primary_key = True)
-    name = Column(String, unique = True, nullable = False, index = True)
+    name = Column(String(32), unique = True, nullable = False, index = True)
 
 
 class Clone(Base):
     __tablename__ = 'clone'
     id = Column(Integer, primary_key=True)
-    oligo_id = Column(Integer, ForeignKey('oligo.id', name='clone_oligo_fk', ondelete = 'cascade'))
-    oligo = relationship(
-        Oligo,
+    sgrna_id = Column(Integer, ForeignKey('sgrna.id', name='clone_sgrna_fk', ondelete = 'cascade'))
+    sgrna = relationship(
+        SGRNA,
         backref=backref('clones', uselist=True, cascade='delete,all'))
     cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cellline_fk', ondelete = 'cascade'))
     cell_line = relationship(
         CellLine,
         backref=backref('clones', uselist=True, cascade='delete,all'))
-    name = Column(String, nullable = False, unique = True, index = True)
-    description = Column(String)
+    name = Column(String(32), nullable = False, unique = True, index = True)
+    description = Column(String(1024))
     control = Column(Boolean, nullable = False, default = False)
+
 
 class Plate(Base):
     __tablename__ = 'plate'
     id = Column(Integer, primary_key=True)
-    name = Column(String, index = True)
+    name = Column(String(32), index = True)
     description = Column(String)
 
 
@@ -78,25 +82,15 @@ class Well(Base):
     clone = relationship(
         Clone,
         backref=backref('wells', uselist=True, cascade='delete,all'))
-    row = Column(String, nullable = False)
+    row = Column(String(1), nullable = False)
     column = Column(Integer, nullable = False)
     icw_700 = Column(Float)
     icw_800 = Column(Float)
     UniqueConstraint('plate_id', 'row', 'column', name='well_unique_in_plate')
+    
+    def isEmpty(self):
+        return self.clone == None
 
-"""
-class Measurement(Base):
-    __tablename__ = 'measurement'
-    id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name = 'measurement_well_fk', ondelete = 'cascade'))
-    well = relationship(
-        Well,
-        backref=backref('measurements', uselist=True, cascade='delete,all'))
-    measurement_type = Column(String)
-    unit = Column(String)
-    date = Column(DateTime)
-    value = Column(Float)
-"""
 
 class IncucyteGrowth(Base):
     __tablename__ = 'incucyte'
