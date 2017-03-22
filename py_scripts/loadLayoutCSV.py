@@ -1,8 +1,8 @@
 import csv
 import sqlalchemy
 
-from config import cfg
-from model import *
+from dnascissors.config import cfg
+from dnascissors.model import *
 
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
 
@@ -33,10 +33,10 @@ session.add(cellline)
 clonesByName = dict()
 
 def addWell(plate, row, column):
-    
+
     cell = line[column]
     clone = None
-    
+
     if cell != '' and cell != '-':
         if cell in clonesByName:
             clone = clonesByName[cell]
@@ -52,33 +52,32 @@ def addWell(plate, row, column):
 with open('data/PlatesLayout_270117.csv', 'r') as layoutFile:
     reader = csv.reader(layoutFile, delimiter = '\t')
     previousLine = []
-    
+
     plate = None
-    
+
     for line in reader:
-        
+
         if line[0] == 'A':
             # This cell indicates the start of a new layout.
-            
+
             plate = Plate(name = previousLine[14])
             session.add(plate)
-            
+
             row = line[0]
             for column in range(1, 13):
                 addWell(plate, row, column)
-            
+
         elif line[0] == '':
             # Indicates the end of a table. May also get it at the start.
-            
+
             plate = None
-            
+
         elif plate:
-            
+
             row = line[0]
             for column in range(1, 13):
                 addWell(plate, row, column)
-        
-        previousLine = line
-        
-session.commit()
 
+        previousLine = line
+
+session.commit()

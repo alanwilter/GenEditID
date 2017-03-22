@@ -82,7 +82,8 @@ Install [dependencies](#dependencies) first.
 
 ```bash
 source venv/bin/activate
-python create_db.py
+export PYTHONPATH=`pwd`
+python py_scripts/create_db.py
 ```
 
 Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
@@ -91,10 +92,12 @@ Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
 
 Three scripts for loading the plate layouts, ICW channels and Incucyte growth tracking.
 
-```
-python loadLayoutCSV.py
-python loadICWCSV.py
-python loadIncucyteCSV.py
+```bash
+source venv/bin/activate
+export PYTHONPATH=`pwd`
+python py_scripts/loadLayoutCSV.py
+python py_scripts/loadICWCSV.py
+python py_scripts/loadIncucyteCSV.py
 ```
 
 ### R script for plotting from DB
@@ -102,4 +105,4 @@ python loadIncucyteCSV.py
 ```R
 install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit'))
 ```
-- run script `gediting.r` to plot protein abundance and clone growth curve.
+- run script `r_scripts/genome_editing.r` to plot protein abundance and clone growth curve.
