@@ -23,10 +23,10 @@ R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contain
   ```
 - Run the app
 ```R
-source('shinyapp/global.R')
-runApp('shinyapp/.')
+source('r/shinyapp/global.R')
+runApp('r/shinyapp/.')
 ```
-- Choose CSV File, click on 'Browse...' and select all 13 data files in `data` directory.
+- Choose CSV File, click on 'Browse...' and select all 13 data files in `data/20170127_Experiment0001/` directory.
 
 ## Dependencies
 
@@ -43,7 +43,7 @@ python3 -m venv venv
 # activate your virtual environment
 source venv/bin/activate
 # install all requirements
-pip install -r requirements.txt
+pip install -r python/requirements.txt
 ```
 
 ### Database
@@ -82,8 +82,8 @@ Install [dependencies](#dependencies) first.
 
 ```bash
 source venv/bin/activate
-export PYTHONPATH=`pwd`
-python py_scripts/create_db.py
+export PYTHONPATH=`pwd`/python
+python python/scripts/create_db.py
 ```
 
 Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
@@ -94,10 +94,10 @@ Three scripts for loading the plate layouts, ICW channels and Incucyte growth tr
 
 ```bash
 source venv/bin/activate
-export PYTHONPATH=`pwd`
-python py_scripts/loadLayoutCSV.py
-python py_scripts/loadICWCSV.py
-python py_scripts/loadIncucyteCSV.py
+export PYTHONPATH=`pwd`/python
+python python/scripts/loadLayoutCSV.py
+python python/scripts/loadICWCSV.py
+python python/scripts/loadIncucyteCSV.py
 ```
 
 ### R script for plotting from DB
@@ -105,4 +105,4 @@ python py_scripts/loadIncucyteCSV.py
 ```R
 install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit'))
 ```
-- run script `r_scripts/genome_editing.r` to plot protein abundance and clone growth curve.
+- run script `r/scripts/genome_editing.r` to plot protein abundance and clone growth curve.
