@@ -5,7 +5,7 @@ Created by Anne Pajon @pajanne on 08/03/2017
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
-from sqlalchemy import Table, Column, Integer, String, DateTime, Float, Boolean, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import Table, Column, Integer, String, Date, DateTime, Float, Boolean, Enum, ForeignKey, UniqueConstraint
 
 Base = declarative_base()
 
@@ -14,6 +14,10 @@ class Project(Base):
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
     name = Column(String(64), unique=True, nullable=False, index=True)
+    group = Column(String(64))
+    group_leader = Column(String(64))
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
     description = Column(String(1024))
 
 
