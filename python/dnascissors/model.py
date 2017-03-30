@@ -13,7 +13,10 @@ Base = declarative_base()
 class Project(Base):
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
+    geid = Column(String(8), unique=True, nullable=False, index=True)
     name = Column(String(64), unique=True, nullable=False, index=True)
+    scientist = Column(String(64))
+    institute = Column(String(64))
     group = Column(String(64))
     group_leader = Column(String(64))
     start_date = Column(Date, nullable=False)
@@ -39,12 +42,15 @@ class Target(Base):
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
-    species = Column(String(32), nullable=False, index=True)
-    chromosome = Column(String(32), nullable=False, index=True)
     name = Column(String(32), nullable=False, index=True)
-    description = Column(String(1024))
+    species = Column(String(32), nullable=False, index=True)
+    assembly = Column(String(32), nullable=False, index=True)
+    chromosome = Column(String(32), nullable=False, index=True)
+    gene_id = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
+    strand = Column(Enum('forward', 'reverse'), nullable=False, index=True)
+    description = Column(String(1024))
 
 
 class Guide(Base):
@@ -56,12 +62,11 @@ class Guide(Base):
         backref=backref('guides', uselist=True, cascade='delete,all'))
     amplicons = relationship("Amplicon", back_populates="guide")
     name = Column(String(32), nullable=False, index=True)
-    description = Column(String(1024))
-    location = Column(Integer, nullable=False)
-    strand = Column(String(1), nullable=False)
     guide_sequence = Column(String(250), nullable=False)
     pam_sequence = Column(String(6), nullable=False)
     nuclease = Column(String(250), nullable=False)
+    activity = Column(Integer, nullable=False)
+    exon = Column(Integer, nullable=False)
 
 
 class AmpliconSelection(Base):
@@ -70,11 +75,10 @@ class AmpliconSelection(Base):
     guide = relationship("Guide", back_populates="amplicons")
     amplicon_id = Column(Integer, ForeignKey('amplicon.id'), primary_key=True)
     amplicon = relationship("Amplicon", back_populates="guides")
-    name = Column(String(32), unique=True, nullable=False, index=True)
-    description = Column(String(1024))
-    score = Column(Integer)
     experiment_type = Column(String(32))
-    donor_sequence = Column(String(250), nullable=True)
+    #guide_location =
+    #guide_strand = 
+    score = Column(Integer)
 
 
 class Amplicon(Base):
@@ -82,12 +86,11 @@ class Amplicon(Base):
     id = Column(Integer, primary_key=True)
     guides = relationship("Guide", back_populates="amplicon")
     name = Column(String(32), unique=True, nullable=False, index=True)
-    description = Column(String(1024))
-    target = Column(Enum('On', 'Off'))
-    target_type = Column(Enum('gene', 'precursor', 'non-coding'))
+    is_on_target = Column(Boolean, nullable=False)
+    dna_feature = Column(Enum('gene', 'precursor', 'non-coding'))
     chromosome = Column(String(32), nullable=False, index=True)
-    start = Column(Integer, nullable=False)
-    end = Column(Integer, nullable=False)
+    start = Column(Integer, nullable=True)
+    end = Column(Integer, nullable=True)
 
 
 class Primer(Base):
