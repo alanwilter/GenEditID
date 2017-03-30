@@ -46,7 +46,7 @@ class Target(Base):
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
-    strand = Column(Enum('forward', 'reverse'), nullable=False)
+    strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False, index=True)
     description = Column(String(1024))
 
 
@@ -82,7 +82,7 @@ class AmpliconSelection(Base):
     amplicon = relationship("Amplicon", back_populates="guides")
     experiment_type = Column(String(32))
     guide_location = Column(Integer, nullable=False)
-    guide_strand = Column(Enum('forward', 'reverse'), nullable=False)
+    guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     score = Column(Integer)
 
 
@@ -92,7 +92,7 @@ class Amplicon(Base):
     guides = relationship("Guide", back_populates="amplicon")
     name = Column(String(32), unique=True, nullable=False, index=True)
     is_on_target = Column(Boolean, nullable=False)
-    dna_feature = Column(Enum('gene', 'precursor', 'non-coding'))
+    dna_feature = Column(Enum('gene', 'precursor', 'non-coding', name='dna_feature'))
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=True) # should be calculate when loading primers
     end = Column(Integer, nullable=True) # should be calculate when loading primers
@@ -107,7 +107,7 @@ class Primer(Base):
         backref=backref('primers', uselist=True, cascade='delete,all'))
     geid = Column(String(8), unique=True, nullable=False, index=True)
     sequence = Column(String(250), nullable=False)
-    strand = Column(Enum('forward', 'reverse'), nullable=False)
+    strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
 
@@ -171,7 +171,7 @@ class WellContent(Base):
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association)
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample'), nullable=False)
+    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
 
 
@@ -217,7 +217,7 @@ class SequencingLibraryContent(Base):
     sequencing_library = relationship(
         SequencingLibrary,
         backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
-    dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells'), nullable=False)
+    dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', name='dna_source'), nullable=False)
     sequencing_barcode = Column(String(20), nullable=False)
     sequencing_sample_name = Column(String(32), nullable=True)
 
