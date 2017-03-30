@@ -49,7 +49,7 @@ class Target(Base):
     gene_id = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
-    strand = Column(Enum('forward', 'reverse'), nullable=False, index=True)
+    strand = Column(Enum('forward', 'reverse', 'any', name='strand'), nullable=False, index=True)
     description = Column(String(1024))
 
 
@@ -87,7 +87,7 @@ class Amplicon(Base):
     guides = relationship("Guide", back_populates="amplicon")
     name = Column(String(32), unique=True, nullable=False, index=True)
     is_on_target = Column(Boolean, nullable=False)
-    dna_feature = Column(Enum('gene', 'precursor', 'non-coding'))
+    dna_feature = Column(Enum('gene', 'precursor', 'non-coding', name='dna_feature'))
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=True)
     end = Column(Integer, nullable=True)
@@ -144,7 +144,7 @@ class WellContent(Base):
     __tablename__ = 'well_content'
     id = Column(Integer, primary_key=True) # is this id the replicate goup?
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample'), nullable=False)
+    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample', name='well_content_type'), nullable=False)
     clone_id = Column(Integer, ForeignKey('clone.id', name='well_content_clone_fk', ondelete='cascade'))
     clone = relationship(
         Clone,
