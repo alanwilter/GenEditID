@@ -61,7 +61,7 @@ class Guide(Base):
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
-    amplicons = relationship("Amplicon", back_populates="guide")
+    #amplicon_selections = relationship('Amplicon', back_populates="guide")
     name = Column(String(32), nullable=False, index=True)
     guide_sequence = Column(String(250), nullable=False)
     pam_sequence = Column(String(6), nullable=False)
@@ -70,32 +70,37 @@ class Guide(Base):
     nuclease = Column(String(250), nullable=False)
 
 
-class AmpliconSelection(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_AmpliconSelection.csv
-    guide_name	experiment_type	guide_location	guide_strand	score	amplicon_name	is_on_target	dna_feature	chromosome	primer_geid	primer_sequence	primer_strand	primer_start	primer_end
-    """
-    __tablename__ = 'amplicon_selection'
-    guide_id = Column(Integer, ForeignKey('guide.id'), primary_key=True)
-    guide = relationship("Guide", back_populates="amplicons")
-    amplicon_id = Column(Integer, ForeignKey('amplicon.id'), primary_key=True)
-    amplicon = relationship("Amplicon", back_populates="guides")
-    experiment_type = Column(String(32))
-    guide_location = Column(Integer, nullable=False)
-    guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
-    score = Column(Integer)
-
-
 class Amplicon(Base):
     __tablename__ = 'amplicon'
     id = Column(Integer, primary_key=True)
-    guides = relationship("Guide", back_populates="amplicon")
+    #amplicon_selections = relationship('AmpliconSelection', back_populates="amplicon")
     name = Column(String(32), unique=True, nullable=False, index=True)
     is_on_target = Column(Boolean, nullable=False)
     dna_feature = Column(Enum('gene', 'precursor', 'non-coding', name='dna_feature'))
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=True) # should be calculate when loading primers
     end = Column(Integer, nullable=True) # should be calculate when loading primers
+
+
+class AmpliconSelection(Base):
+    """
+    template file: data/templates/YYYYMMDD_GEPXXXXX_AmpliconSelection.csv
+    guide_name	experiment_type	guide_location	guide_strand	score	amplicon_name	is_on_target	dna_feature	chromosome	primer_geid	primer_sequence	primer_strand	primer_start	primer_end
+    """
+    __tablename__ = 'amplicon_selection'
+    id = Column(Integer, primary_key=True)
+    guide_id = Column(Integer, ForeignKey('guide.id', name="ampliconselection_guide_fk", ondelete='cascade'))
+    guide = relationship(
+        Guide,
+        backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
+    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name="ampliconselection_amplicon_fk", ondelete='cascade'))
+    amplicon = relationship(
+        Amplicon,
+        backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
+    experiment_type = Column(String(32))
+    guide_location = Column(Integer, nullable=False)
+    guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
+    score = Column(Integer)
 
 
 class Primer(Base):
