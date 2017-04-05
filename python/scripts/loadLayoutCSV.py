@@ -13,6 +13,7 @@ class LayoutLoader:
     projectsFile = None
     targetsFile = None
     guidesFile = None
+    selectionFile = None
     layoutFile = None
     
     def toNone(self, str):
@@ -25,6 +26,20 @@ class LayoutLoader:
             return None
         
         return str
+    
+    def toStrand(self, str, lineNumber):
+        str = self.toNone(str)
+        
+        if not str:
+            return None
+        
+        if str in ['+', 'positive', 'p', 'forward', 'f']:
+            return 'forward'
+        
+        if str in ['-', 'negative', 'n', 'reverse', 'r']:
+            return 'reverse'
+        
+        raise ValueError('Strand must be "forward" or "reverse", not "%s" (line %d)' % (str, lineNumber))
 
     
     def loadAll(self, session):
@@ -34,6 +49,8 @@ class LayoutLoader:
         session.commit()
         self.loadGuides(session)
         session.commit()
+        self.loadAmpliconSelection(session)
+        session.commit()
 
     
     def loadProjects(self, session):
@@ -42,7 +59,7 @@ class LayoutLoader:
 
             headers = next(reader)
             
-            lineNumber = 0
+            lineNumber = 1
             
             for line in reader:
                 ++lineNumber
@@ -75,7 +92,7 @@ class LayoutLoader:
             
             headers = next(reader)
             
-            lineNumber = 0
+            lineNumber = 1
             
             for line in reader:
                 
@@ -104,13 +121,7 @@ class LayoutLoader:
                 target.chromosome = self.toNone(line[5])
                 target.start = int(line[6])
                 target.end = int(line[7])
-                
-                if line[8] in ['+', 'positive', 'p', 'forward', 'f']:
-                    target.strand = 'negative'
-                elif line[8] in ['-', 'negative', 'n', 'reverse', 'r']:
-                    target.strand = 'reverse'
-                else:
-                    raise ValueError('Strand must be "forward" or "reverse", not "%s" (line %d)' % (line[8], lineNumber))
+                target.strand = self.toStrand(line[8], lineNumber)
                     
                 target.description = line[9]
                 
@@ -159,6 +170,112 @@ class LayoutLoader:
                 print('Created guide %s' % guide.name)
 
 
+    def loadAmpliconSelection(self, session):
+        with open(self.selectionFile, 'r') as fileReader:
+            reader = csv.reader(fileReader, delimiter=self.columnSeparator)
+            
+            headers = next(reader)
+            
+            lineNumber = 1
+            previous_strand = None
+            
+            for line in reader:
+                
+                ++lineNumber
+                
+                # Need the guide first.
+                
+                guideName = self.toNone(line[0])
+                
+                if not guideName:
+                    raise Exception('Guide name is required on line %d' % lineNumber)
+                
+                guide = session.query(Guide).filter(Guide.name == guideName).first()
+                
+                if not guide:
+                    raise Exception('Guide "%s" does not exist (line %d)' % (projectId, lineNumber))
+                
+                
+                # Find or create the amplicon
+                
+                ampliconName = self.toNone(line[5])
+                
+                if not ampliconName:
+                    raise Exception('Amplicon name is required on line %d' % lineNumber)
+
+                amplicon = session.query(Amplicon).filter(Amplicon.name == ampliconName).first()
+                
+                if not amplicon:
+                    amplicon = Amplicon()
+                    amplicon.name = ampliconName
+                    amplicon.is_on_target = bool(line[6])
+                    amplicon.dna_feature = self.toNone(line[7])
+                    amplicon.chromosome = self.toNone(line[8])
+                    
+                    session.add(amplicon);
+
+                    print('Created amplicon %s' % amplicon.name)
+                
+                
+                # Find or create the amplicon selection
+                
+                guideLocation = int(line[2])
+                
+                strand = self.toStrand(line[3], lineNumber)
+                if strand:
+                    previous_strand = strand
+                else:
+                    if previous_strand:
+                        strand = previous_strand
+                    else:
+                        raise Exception("Have no guide strand on line %d" % lineNumber)
+                
+                
+                selection = session.query(AmpliconSelection).filter(AmpliconSelection.amplicon == amplicon)\
+                                                            .filter(AmpliconSelection.guide_location == guideLocation)\
+                                                            .filter(AmpliconSelection.guide_strand == strand).first()
+                
+                if not selection:
+                    
+                    selection = AmpliconSelection(guide=guide, amplicon=amplicon)
+                    selection.experiment_type = self.toNone(line[1])
+                    selection.guide_location = guideLocation
+                    selection.guide_strand = strand
+                    
+                    scoreStr = self.toNone(line[4])
+                    if scoreStr != None and scoreStr != 'NA':
+                        selection.score = int(scoreStr)
+                    
+                    session.add(selection)
+                    
+                    print('Created amplicon selection of amplicon %s at %d' % (amplicon.name, selection.guide_location))
+
+                geid = self.toNone(line[9])
+                
+                if not geid:
+                    raise Exception('Primer GEID is required on line %d' % lineNumber)
+                
+                primer = session.query(Primer).filter(Primer.geid == geid).first()
+                
+                if not primer:
+                    primer = Primer()
+                    primer.geid = self.toNone(line[9])
+                    primer.sequence = self.toNone(line[10])
+                    primer.strand = self.toStrand(line[11], lineNumber)
+                    primer.start = int(line[12])
+                    primer.end = int(line[13])
+                    primer.description = self.toNone(line[14])
+                    
+                    session.add(primer)
+                
+                    print('Created primer %s' % primer.geid)
+                    
+                
+                primer.amplicons.append(amplicon)
+                
+                print('Linked amplicon %s with primer %s' % (amplicon.name, primer.geid))
+
+
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
 
 Base.metadata.bind = engine
@@ -167,8 +284,14 @@ DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
 
 session = DBSession()
 
+deleteCount = session.query(Primer).delete()
+print('Deleted %d primers' % deleteCount)
+
+deleteCount = session.query(Amplicon).delete()
+print('Deleted %d amplicons' % deleteCount)
+
 deleteCount = session.query(Project).delete()
-print('Deleted %s projects' % deleteCount)
+print('Deleted %d projects' % deleteCount)
 
 # This is a temporary hack.
 
@@ -178,6 +301,8 @@ loader = LayoutLoader()
 loader.projectsFile = datadir + 'project.csv'
 loader.targetsFile = datadir + 'targets.csv'
 loader.guidesFile = datadir + 'guides.csv'
+loader.selectionFile = datadir + 'ampliconselection.csv'
+loader.layoutFile = datadir + 'platelayout.csv'
 
 loader.loadAll(session)
 
