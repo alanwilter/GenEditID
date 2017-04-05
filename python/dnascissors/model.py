@@ -150,7 +150,7 @@ class ExperimentLayout(Base):
     project = relationship(
         Project,
         backref=backref('experiment_layouts', uselist=True, cascade='delete,all'))
-    geid = Column(String(8), unique=True, nullable=False, index=True)
+    geid = Column(String(12), unique=True, nullable=False, index=True)
 
 
 class Plate(Base):
@@ -161,7 +161,7 @@ class Plate(Base):
         ExperimentLayout,
         backref=backref('plates', uselist=True, cascade='delete,all'))
     barcode = Column(String(32), index=True)
-    geid = Column(String(8), unique=True, nullable=False, index=True)
+    geid = Column(String(12), unique=True, nullable=False, index=True)
     description = Column(String)
 
 
@@ -180,7 +180,7 @@ class WellContent(Base):
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association)
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample', name='content_type'), nullable=False)
+    content_type = Column(Enum('WT', 'KO', 'BG', 'NM', 'SM', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
 
 

@@ -51,6 +51,8 @@ class LayoutLoader:
         session.commit()
         self.loadAmpliconSelection(session)
         session.commit()
+        self.loadExperimentLayout(session)
+        session.commit()
 
     
     def loadProjects(self, session):
@@ -206,9 +208,12 @@ class LayoutLoader:
                 amplicon = session.query(Amplicon).filter(Amplicon.name == ampliconName).first()
                 
                 if not amplicon:
+                    
+                    onTarget = self.toNone(line[6])
+                    
                     amplicon = Amplicon()
                     amplicon.name = ampliconName
-                    amplicon.is_on_target = bool(line[6])
+                    amplicon.is_on_target = onTarget and 'true' == onTarget.casefold()
                     amplicon.dna_feature = self.toNone(line[7])
                     amplicon.chromosome = self.toNone(line[8])
                     
@@ -276,6 +281,171 @@ class LayoutLoader:
                 print('Linked amplicon %s with primer %s' % (amplicon.name, primer.geid))
 
 
+    def loadExperimentLayout(self, session):
+        with open(self.layoutFile, 'r') as fileReader:
+            reader = csv.reader(fileReader, delimiter=self.columnSeparator)
+            
+            headers = next(reader)
+            
+            lineNumber = 1
+            plate = None
+            
+            for line in reader:
+                
+                ++lineNumber
+                
+                # Need to find project.
+                
+                projectId = self.toNone(line[0])
+                
+                if not projectId:
+                    raise Exception('Project identifier is required on line %d' % lineNumber)
+                
+                project = session.query(Project).filter(Project.geid == projectId).first()
+                
+                if not project:
+                    raise Exception('Project "%s" does not exist (line %d)' % (projectId, lineNumber))
+
+                # May also need to find a guide.
+                
+                guide = None
+                
+                guideName = self.toNone(line[5])
+                
+                if guideName:
+                    guide = session.query(Guide).filter(Guide.name == guideName).first()
+                    
+                    if not guide:
+                        raise("There is no guide with the name %s" % guideName)
+
+                # Experiment layout
+
+                layoutGeid = self.toNone(line[1])
+                
+                if not layoutGeid:
+                    raise Exception('Experiment layout GEID is required on line %d' % lineNumber)
+                
+                layout = session.query(ExperimentLayout).filter(ExperimentLayout.geid == layoutGeid).first()
+                
+                if not layout:
+                    layout = ExperimentLayout(project=project)
+                    layout.geid = layoutGeid
+                    
+                    session.add(layout)
+                    
+                    print('Created experiment layout %s in project %s' % (layout.geid, project.geid))
+
+                # Cell line
+                
+                celllineName = self.toNone(line[3])
+                
+                cellline = None
+                
+                if celllineName:
+                    cellline = session.query(CellLine).filter(CellLine.name == celllineName).first()
+                    
+                    if not cellline:
+                        cellline = CellLine(name=celllineName)
+                        
+                        session.add(cellline)
+                        
+                        print('Created cell line %s' % cellline.name)
+                
+                # Clone.
+                
+                cloneName = self.toNone(line[4])
+                
+                clone = None
+                
+                if cloneName:
+                    
+                    if not cellline:
+                        raise Exception('Cannot have a clone without a cell line on line %d' % lineNumber)
+                    
+                    clone = session.query(Clone).filter(Clone.cell_line == cellline).filter(Clone.name == cloneName).first()
+                    
+                    if not clone:
+                        clone = Clone(cell_line=cellline)
+                        clone.name = cloneName
+                        
+                        session.add(clone)
+                        
+                        print('Created clone %s from cell line %s' % (clone.name, clone.cell_line.name))
+
+                # Plate
+                
+                plate = session.query(Plate).filter(Plate.geid == layoutGeid).first()
+                
+                if not plate:
+                    plate = Plate(experiment_layout=layout)
+                    plate.geid = layout.geid
+                    
+                    session.add(plate)
+                    
+                    print('Created plate %s' % plate.geid)
+
+                
+                # Well content
+                
+                content = None
+                
+                if clone:
+                    
+                    contentType = self.toNone(line[8])
+                    if contentType:
+                        contentType = contentType.lower()
+                        
+                        if contentType in ['wt', 'wildtype', 'wild-type']:
+                            contentType = 'WT'
+                        elif contentType in ['ko', 'knockout', 'knock-out']:
+                            contentType = 'KO'
+                        elif contentType in ['bg', 'background']:
+                            contentType = 'BG'
+                        elif contentType in ['nm', 'normalisation', 'normaliser']:
+                            contentType = 'NM'
+                        elif contentType in ['sm', 'sample']:
+                            contentType = 'SM'
+                        elif contentType == 'empty':
+                            contentType = None
+                        else:
+                            raise Exception("Well content type not recognised: %s" % contentType)
+                    
+                    
+                    content = WellContent(clone=clone)
+                    
+                    if guide:
+                        content.guides.append(guide)
+                    
+                    controlFlag = self.toNone(line[7])
+                    
+                    content.replicate_group = int(line[6])
+                    content.is_control = controlFlag and 'true' == controlFlag.casefold()
+                    content.content_type = contentType
+                    
+                    session.add(content)
+                    
+                    print("Created well content for clone %s" % content.clone.name)
+
+                
+                # Well
+                
+                wellPos = self.toNone(line[2])
+                
+                if not wellPos:
+                    raise('Well position is required on line %d' % lineNumber)
+                
+                well = Well(experiment_layout=layout)
+                well.row = wellPos[0]
+                well.column = int(wellPos[1:])
+                well.well_content = content
+                
+                session.add(well)
+                
+                print('Created well %s%d in layout %s' % (well.row, well.column, well.experiment_layout.geid))
+                      
+                
+                
+
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
 
 Base.metadata.bind = engine
@@ -283,6 +453,9 @@ Base.metadata.bind = engine
 DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
 
 session = DBSession()
+
+deleteCount = session.query(CellLine).delete()
+print('Deleted %d cell lines' % deleteCount)
 
 deleteCount = session.query(Primer).delete()
 print('Deleted %d primers' % deleteCount)
@@ -302,7 +475,7 @@ loader.projectsFile = datadir + 'project.csv'
 loader.targetsFile = datadir + 'targets.csv'
 loader.guidesFile = datadir + 'guides.csv'
 loader.selectionFile = datadir + 'ampliconselection.csv'
-loader.layoutFile = datadir + 'platelayout.csv'
+loader.layoutFile = datadir + 'experimentlayout.csv'
 
 loader.loadAll(session)
 
