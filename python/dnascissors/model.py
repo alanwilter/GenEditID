@@ -103,18 +103,22 @@ class AmpliconSelection(Base):
     score = Column(Integer)
 
 
+primer_amplicon_association = Table('primer_amplicon_association', Base.metadata,
+    Column('amplicon_id', Integer, ForeignKey('amplicon.id', ondelete='cascade')),
+    Column('primer_id', Integer, ForeignKey('primer.id', ondelete='cascade'))
+)
+
+
 class Primer(Base):
     __tablename__ = 'primer'
     id = Column(Integer, primary_key=True)
-    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name='primer_amplicon_fk', ondelete='cascade'))
-    amplicon = relationship(
-        Amplicon,
-        backref=backref('primers', uselist=True, cascade='delete,all'))
+    amplicons = relationship('Amplicon', secondary=primer_amplicon_association)
     geid = Column(String(8), unique=True, nullable=False, index=True)
     sequence = Column(String(250), nullable=False)
     strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
+    description = Column(String(1024))
 
 
 class CellLine(Base):
@@ -146,7 +150,7 @@ class ExperimentLayout(Base):
     project = relationship(
         Project,
         backref=backref('experiment_layouts', uselist=True, cascade='delete,all'))
-    geid = Column(String(8), unique=True, nullable=False, index=True)
+    geid = Column(String(12), unique=True, nullable=False, index=True)
 
 
 class Plate(Base):
@@ -157,7 +161,7 @@ class Plate(Base):
         ExperimentLayout,
         backref=backref('plates', uselist=True, cascade='delete,all'))
     barcode = Column(String(32), index=True)
-    geid = Column(String(8), unique=True, nullable=False, index=True)
+    geid = Column(String(12), unique=True, nullable=False, index=True)
     description = Column(String)
 
 
@@ -176,7 +180,7 @@ class WellContent(Base):
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association)
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild_type', 'knockout', 'background', 'normaliser', 'empty', 'sample', name='content_type'), nullable=False)
+    content_type = Column(Enum('WT', 'KO', 'BG', 'NM', 'SM', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
 
 
