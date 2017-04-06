@@ -1,23 +1,18 @@
 import csv
 import sqlalchemy
+import sys
 
 from dnascissors.config import cfg
 from dnascissors.model import *
 
-engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+def loadICW(plateId, fileName):
 
-Base.metadata.bind = engine
-
-DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-
-session = DBSession()
-
-def loadICW(plateName, fileName):
-
-    plate = session.query(Plate).filter(Plate.name == plateName).first()
+    plate = session.query(Plate).filter(Plate.geid == plateId).first()
 
     if not plate:
-        raise Exception('No plate %s' % plateName)
+        raise Exception('No plate %s' % plateId)
+
+    print("Loading InCell Western signal for plate %s from %s" % (plateId, fileName))
 
     with open(fileName, 'r') as icwFile:
         reader = csv.reader(icwFile, delimiter = '\t')
@@ -41,26 +36,53 @@ def loadICW(plateName, fileName):
                 rowchar = chr(a + row)
 
                 for column in range(1, 13):
-                    well = session.query(Well).filter(Well.plate == plate).filter(Well.row == rowchar).filter(Well.column == column).first()
-
-                    print("Setting well %s%s on %s for ICW %s" % (well.row, well.column, well.plate.name, channel))
+                    well = session.query(Well)\
+                                  .filter(Well.experiment_layout == plate.experiment_layout)\
+                                  .filter(Well.row == rowchar)\
+                                  .filter(Well.column == column)\
+                                  .first()
 
                     if not well:
-                        raise Exception('No well %s%s in plate' % (rowchar, column, plateName))
+                        raise Exception("There is no well at %s%d on plate %s" % (rowchar, column, plate.geid))
+
+                    print("Setting well %s%s on %s for ICW %s" % (well.row, well.column, plate.geid, channel))
+
+                    abundance = session.query(ProteinAbundance)\
+                                       .filter(ProteinAbundance.well == well)\
+                                       .filter(ProteinAbundance.plate == plate)\
+                                       .first()
+
+                    if not abundance:
+                        abundance = ProteinAbundance(well=well, plate=plate)
+                        session.add(abundance)
 
                     if channel == 700:
-                        well.icw_700 = float(line[column - 1])
+                        abundance.intensity_channel_700 = float(line[column - 1])
                     elif channel == 800:
-                        well.icw_800 = float(line[column - 1])
+                        abundance.intensity_channel_800 = float(line[column - 1])
 
                 row = row + 1
 
+    session.commit()
 
-loadICW("Plate1", "data/240117_ICW_Plate1.csv")
-loadICW("Plate2", "data/240117_ICW_Plate2.csv")
-loadICW("Plate3", "data/240117_ICW_Plate3.csv")
-loadICW("Plate4", "data/240117_ICW_Plate4.csv")
-loadICW("Plate5", "data/240117_ICW_Plate5.csv")
-loadICW("Plate6", "data/240117_ICW_Plate6.csv")
 
-session.commit()
+
+if len(sys.argv) < 3:
+    print("Need the plate id and at least one InCell Western file.", file=sys.stderr)
+    sys.exit(1)
+
+plateId = sys.argv[1]
+
+engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+
+Base.metadata.bind = engine
+
+DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
+
+session = DBSession()
+
+for fileIndex in range(2, len(sys.argv)):
+    try:
+        loadICW(plateId, sys.argv[fileIndex])
+    except Exception as e:
+        print(e, file=sys.stderr)
