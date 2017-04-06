@@ -195,8 +195,8 @@ class Well(Base):
     column = Column(Integer, nullable=False)
     UniqueConstraint('experiment_layout_id', 'row', 'column', name='well_unique_in_layout')
 
-    def isEmpty(self):
-        return self.clone == None
+    def is_empty(self):
+        return self.well_content == None
 
 
 class SequencingLibrary(Base):
