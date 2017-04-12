@@ -1,5 +1,6 @@
 import sqlalchemy
 import openpyxl
+import sys
 
 from dnascissors.config import cfg
 from dnascissors.model import *
@@ -455,6 +456,10 @@ class LayoutLoader(ExcelLoader):
             print('Created well %s%d in layout %s' % (well.row, well.column, well.experiment_layout.geid))
 
 
+if len(sys.argv) < 2:
+    print("Need the layout Excel file.", file=sys.stderr)
+    sys.exit(1)
+
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
 
 Base.metadata.bind = engine
@@ -475,11 +480,9 @@ print('Deleted %d amplicons' % deleteCount)
 deleteCount = session.query(Project).delete()
 print('Deleted %d projects' % deleteCount)
 
-# This is a temporary hack.
-
-datadir = '../../data/20170127_GEP00001/'
-
 loader = LayoutLoader()
-loader.loadAll(session, datadir + "20170118_GEP00001.xlsx")
 
-session.commit()
+try:
+    loader.loadAll(session, sys.argv[2])
+except Exception as e:
+    print(e, file=sys.stderr)
