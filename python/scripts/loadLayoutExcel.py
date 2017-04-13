@@ -71,6 +71,12 @@ class LayoutLoader(ExcelLoader):
             if not projectId:
                 raise Exception('Project identifier is required on row %d' % rowNumber)
             
+            project = session.query(Project).filter(Project.geid == projectId).first()
+            
+            if project:
+                print("Already have a project %s (%s)." % (project.geid, project.name))
+                return
+            
             project = Project()
             project.geid = projectId
             project.name = self.get_string(row[1])
@@ -78,7 +84,7 @@ class LayoutLoader(ExcelLoader):
             project.group = self.get_string(row[4])
             project.group_leader = self.get_string(row[5])
             project.start_date = self.get_date(row[6])
-            project.description = self.get_string(row[7])
+            project.description = self.get_string(row[7], 1024)
             
             session.add(project)
             
@@ -114,6 +120,12 @@ class LayoutLoader(ExcelLoader):
             if not targetName:
                 raise Exception('Target name is required on row %d' % rowNumber)
             
+            target = session.query(Target).filter(Target.name == targetName).first()
+            
+            if target:
+                print("Already have a target called %s. It's from the project %s." % (target.name, target.project.name))
+                return
+            
             target = Target(project=project)
             target.name = targetName
             target.species = self.get_string(row[2])
@@ -123,16 +135,7 @@ class LayoutLoader(ExcelLoader):
             target.start = self.get_int(row[6])
             target.end = self.get_int(row[7])
             target.strand = self.toStrand(row[8], rowNumber)
-            
-            strandStr = self.get_string(row[8])
-            if strandStr in ['+', 'positive', 'p', 'forward', 'f']:
-                target.strand = 'negative'
-            elif strandStr in ['-', 'negative', 'n', 'reverse', 'r']:
-                target.strand = 'reverse'
-            else:
-                raise ValueError('Strand must be "forward" or "reverse", not "%s" (row %d)' % (strandStr, rowNumber))
-                
-            target.description = self.get_string(row[9])
+            target.description = self.get_string(row[9], 1024)
             
             session.add(target)
             
@@ -279,7 +282,7 @@ class LayoutLoader(ExcelLoader):
                 primer.strand = self.toStrand(row[11], rowNumber)
                 primer.start = self.get_int(row[12])
                 primer.end = self.get_int(row[13])
-                primer.description = self.get_string(row[14])
+                primer.description = self.get_string(row[14], 1024)
                 
                 session.add(primer)
             
@@ -444,7 +447,7 @@ class LayoutLoader(ExcelLoader):
             wellPos = self.get_string(row[2])
             
             if not wellPos:
-                raise('Well position is required on row %d' % rowNumber)
+                raise Exception('Well position is required on row %d' % rowNumber)
             
             well = Well(experiment_layout=layout)
             well.row = wellPos[0]
@@ -468,6 +471,7 @@ DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
 
 session = DBSession()
 
+"""
 deleteCount = session.query(CellLine).delete()
 print('Deleted %d cell lines' % deleteCount)
 
@@ -479,12 +483,11 @@ print('Deleted %d amplicons' % deleteCount)
 
 deleteCount = session.query(Project).delete()
 print('Deleted %d projects' % deleteCount)
+"""
 
 loader = LayoutLoader()
 
 try:
-    loader.loadAll(session, sys.argv[2])
-except Exception as e:
-    print(e, file=sys.stderr)
-
-session.close()
+    loader.loadAll(session, sys.argv[1])
+finally:
+    session.close()

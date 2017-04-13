@@ -4,7 +4,7 @@ from datetime import datetime
 
 class ExcelLoader:
     
-    def get_string(self, cell):
+    def get_string(self, cell, max_length=-1):
         if not cell:
             return None
         
@@ -15,6 +15,12 @@ class ExcelLoader:
         
         if value == '':
             return None
+        
+        if max_length >= 0 and len(value) > max_length:
+            if max_length > 20:
+                return value[:max_length - 3] + "..."
+            else:
+                return value[:max_length]
         
         return value
 
