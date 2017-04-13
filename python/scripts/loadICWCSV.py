@@ -86,3 +86,5 @@ for fileIndex in range(2, len(sys.argv)):
         loadICW(plateId, sys.argv[fileIndex])
     except Exception as e:
         print(e, file=sys.stderr)
+
+session.close()

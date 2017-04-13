@@ -479,4 +479,4 @@ loader.layoutFile = datadir + 'experimentlayout.csv'
 
 loader.loadAll(session)
 
-session.commit()
+session.close()

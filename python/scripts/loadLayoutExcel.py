@@ -486,3 +486,5 @@ try:
     loader.loadAll(session, sys.argv[2])
 except Exception as e:
     print(e, file=sys.stderr)
+
+session.close()
