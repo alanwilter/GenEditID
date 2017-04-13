@@ -4,8 +4,11 @@
 
 # Copy this file as "crispr.yml" and set the URI appropriate for your database.
 
-DATABASE_URI: "sqlite:///crispr.sqlite"
+# Local SQLite database
+#DATABASE_URI: "sqlite:///crispr.sqlite"
 
-#DATABASE_URI: "mysql+mysqldb://mysql@localhost/geneediting"
-
+# Local Postgres database
 #DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"
+
+# Shared Postgres database on bioinf-srv003
+#DATABASE_URI: "postgresql://gene:gene@bioinf-srv003.cri.camres.org/geneediting"

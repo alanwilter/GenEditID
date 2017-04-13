@@ -411,15 +411,15 @@ class LayoutLoader(ExcelLoader):
                     contentType = contentType.lower()
                     
                     if contentType in ['wt', 'wildtype', 'wild-type']:
-                        contentType = 'WT'
+                        contentType = 'wild-type'
                     elif contentType in ['ko', 'knockout', 'knock-out']:
-                        contentType = 'KO'
+                        contentType = 'knock-out'
                     elif contentType in ['bg', 'background']:
-                        contentType = 'BG'
+                        contentType = 'background'
                     elif contentType in ['nm', 'normalisation', 'normaliser']:
-                        contentType = 'NM'
+                        contentType = 'normalisation'
                     elif contentType in ['sm', 'sample']:
-                        contentType = 'SM'
+                        contentType = 'sample'
                     elif contentType == 'empty':
                         contentType = None
                     else:
