@@ -1,0 +1,114 @@
+---
+title: "GEsubmissionForms_annotations"
+author: "Ruben Alvarez"
+date: "12 April 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+[//]: Comments here
+
+# Documentation of the Genome Editing submission forms  
+### Project  
+The *Project* corresponds to a purchase code. Therefore one scientist can have several projects in an interval of time, all costed independently. Filling all fields is required.  
+**geid: ** Unique ID for the project, in the format GEP-5digits (e.g. GEP00001).  
+**name: ** Project name (e.g. STAT3_KO).  
+**scientist: ** Name of the scientist submitting the job (e.g. 'Mary', who asks to make a KO line in STAT3).  
+**affiliation: ** Affiliation of the scientist.  
+**group: ** Group the scientist belongs to.  
+**group_leader: ** Group leader in charge of the scientist.  
+**start_date: ** Date the project is submitted to Genome Editing.  
+**description: ** Brief description of the goals of the project.  
+
+### Target  
+The *Target* refers to the gene or region to be edited.  
+**project_geid: ** This ID must match Project@geid.  
+**name: ** *Target* name, e.g. the 'STAT3' gene.  
+**species: ** Species name, e.g. 'Human'.  
+**assembly: ** Genome assembly of the *species*, e.g. 'GRCh37.p13'.  
+**gene_id: ** *Target* ID in the *assembly*, e.g. 'NC_000017.10'.  
+**chromosome: ** Chromosome where the *Target* is located.  
+**start: ** Start location of the *Target* in the *assembly*.   
+**end: ** End location of the *Target* in the *assembly*.   
+**strand: ** Strand location of the *Target* in the *assembly*.   
+**description: ** Brief description of the *Target*.  
+
+### Guide  
+The *Guide* refers to the sgRNA used in the editing.  
+**target_name: ** This ID must match Target@name.  
+**name: ** Name of the guide, in the format: *Target@name.digit*, e.g. STAT3.1.  
+**guide_sequence: ** Nucleotide sequence of the guide, e.g. GAGATTATGAAACACCAAAG.  
+**pam_sequence: ** Protospacer-adjacent motif (PAM) of the guide.  
+**activity: ** Activity (%) of the guide as described in the Deskgen website, e.g. 73.  
+**exon: ** Exon targeted by the guide (optional).  
+**nuclease: ** Nuclease used for the editing, e.g. *Sp*Cas9.  
+
+### OffTargetinformation  
+Metadata information about off targets, as provided by Deskgen.  
+**guide_name: ** This must match Guide@name.  
+**is_off_target_coding_region: ** Is the off target in a coding region? Boolean value (TRUE/FALSE).  
+**regions** and **mismatches: ** Number of locations for which the guide has *n* mismatches, as provided by Deskgen.  
+```{r kable, echo = F}
+df <- data.frame('guide_name' = rep('STAT3.1', 6),
+           'is_off_target_coding_region' = rep(c('TRUE', 'FALSE'), 3),
+           'regions' = rep(1:3, each = 2),
+           'mismatches' = c(0,0,0,1,3,46)
+)
+library(knitr)
+kable(df)
+```
+
+### AmpliconSelection  
+The *Amplicon* is the DNA sequence amplified in PCR by a primer pair. All sequences and sequence locations input here must be in the forward DNA strand.  
+**guide_strand: ** The DNA strand that contains the guide sequence, either *forward* or *reverse*.  
+**score: ** Off-target score as provided by Deskgen. Leave targets empty.  
+**amplicon_name: ** Name of the amplicon in the format *Guide@name*dot*type of target*, e.g. STAT3.in (for target), STAT3.off1 (for the first off target).  
+**is_on_target: ** Is this amplicon on a target or an off-target? Boolean (TRUE/FALSE) value.  
+**dna_feature: ** Gene, non-coding, etc. This column will be populated automatically with the NGS alignment results.  
+**chromosome: ** Chromosome where the amplicon is located, as a numeric value, e.g. *17*.  
+**primer_geid: ** ID of the primer in the Genome Editing database, e.g. RA10_193.  
+**primer_sequence: ** 5' to 3' sequence of the primer in the forward DNA strand.  
+**primer_strand: ** DNA strand where the primer sequence is located, i.e. forward or reverse.  
+**primer_start: ** Start location of the primer in the forward strand.  
+**primer_end: ** End location of the primer in the forward strand.  
+**description: ** Description of the cell treatments, DNA extraction and PCR protocol used to get the amplicons.  
+
+### ExperimentLayout  
+The *Layout* describes the way samples are arranged in the plate wells, so ultimately any result can be traced back to a single clone Each plate in the layout gets a unique ID, so clones are defined by a combination of plate *geid* and *well_position*.  
+**project_geid: ** This must match Project@geid.  
+**geid: ** unique ID for a layout plate in the format *project_geid*_*two-digit number*s, e.g. GEP00001_01 and GEP00001_02.  
+**well_position: ** Well position in the format (A-H)(1-12), e.g. A1 and A12.  
+**cell_line_name: ** Name of the parental cell line used to derive a clone (if any) to gene-edit, e.g MCF7.  
+**clone_name: ** Name of the parental cell line-derived clone. This is the source of cells used to gene-edit.  
+**guide_name: ** This corresponds to the name of the guide used to edit the cell clone and must match one of the guide names in Guide@name, e.g. STAT3.1.  
+**replicate_group: ** Numeric value. E.g. each gene-edited single clone will receive a unique number, e.g. 1, 2, 3, and if there is replication (e.g. for controls) a repeated number as in 4, 4, 4. Each plate will have a maximum of 96 replicate groups.  
+**is_control: ** Is there a control in this well position? Boolean (TRUE/FALSE) value.  
+**content_type: ** What is the content in the well? This can take the values of:  
+    + *empty*. A well with no cells.  
+    + *sample*. A gene-edited, single-cell derived clone.  
+    + *normalisation*. A normalisation control for ICW, typically located at wells A1 and H12.  
+    + *background*. A background fluorescence control for ICW, typically a Western with neither primary nor secondary antibody.  
+    + *knock-out*. A knock-out control for ICW and perhaps also for NGS and IncuCyte data, typically a previously characterised KO clone, or the wild-type clone processed in a Western with no primary antibody (so any secondary antibody fluorescence is background, and the result is equivalent to not having any protein).  
+    + *wild-type*. A wild-type control, typically the clone that has been used for gene-editing.  
+
+### Plate  
+The *Plate* collects information on the unique ID's and barcodes assigned to each plate over an experiment. A plate *Layout* (distribution of wells and associated information) for a plate is unique, and that Layout is associated to results from ICW, IncuCyte and NGS.
+**plate_barcode: ** Unique barcode assigned to each experimental plate.  
+**geid: ** ID of the experimental plate in the format *ExperimentLayout@geid*_*type of experiment*, e.g. GEP00001_01_incu, GEP00001_02_incu, GEP00001_01_ICW, GEP00001_02_ICW, GEP00001_01_PCR, GEP00001_02_PCR, GEP00001_01_dilution, GEP00001_02_dilution, GEP00001_01_NGS, GEP00001_02_NGS.  
+**description: ** Any description that can be informative for the plate, e.g. for "GEP00001_01_dilution" a description can be " "PCR dilution 1:150 for indexing, temporarily stored".  
+
+### SequencingLibrary  
+The *SequencingLibrary* stores information about the NGS library submission.  
+**experiment_layout_geid: ** This ID must match ExperimentLayout@geid.  
+**well_position: ** This must match the corresponding ExperimentLayout@well_position.  
+**dna_source: ** Where was the DNA used for PCR obtained from? This can take the value of *fixed cells*, *non-fixed cells* and *gDNA*.  
+**slxid: ** The Solexa ID the NGS library was assigned to, e.g. SLX-13775.  
+**library_type: ** Always *Fluidigm*.  
+**barcode_size: ** ?.  ##### Not needed  
+**sequencing_barcode: ** The Fluidigm barcode identifier, e.g. FLD0193.  
+**sequencing_sample_name: ** The sample name assigned at the time of submission, in the format *experiment_layout_geid*_*well_position*.  
+
+###Resuls  
+Work in progress, this will store the processed results for IncuCyte, ICW and NGS, e.g. clones that where delivered and characterisation of these (e.g. retarded growth, absence of protein, homozygous KO with frameshift indels).  
