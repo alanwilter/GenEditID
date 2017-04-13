@@ -98,9 +98,9 @@ Three scripts for loading the plate layouts, ICW channels and Incucyte growth tr
 ```bash
 source venv/bin/activate
 export PYTHONPATH=`pwd`/python
-python python/scripts/loadLayoutCSV.py
-python python/scripts/loadICWCSV.py
-python python/scripts/loadIncucyteCSV.py
+python python/scripts/load_layout.py --layout=data/20170127_GEP00001/20170118_GEP00001.xlsx
+python python/scripts/load_protein_abundance.py GEP00001_01 data/20170127_GEP00001/GEP00001_01_ICW.csv
+python python/scripts/load_cell_growth.py GEP00001_01 data/20170127_GEP00001/GEP00001_01_incu.txt
 ```
 
 ### R script for plotting from DB

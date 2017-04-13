@@ -18,6 +18,10 @@ __pycache__
 # Config files
 *.yml
 
+# Log files
+*.log
+*.log.errors
+
 # Eclipse
 .project
 .classpath

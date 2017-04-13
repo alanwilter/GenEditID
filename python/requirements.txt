@@ -5,5 +5,5 @@ pyyaml
 sqlalchemy==1.1.6
 psycopg2==2.7
 
-# Parsing sheets
+# parsing excel sheets
 openpyxl
