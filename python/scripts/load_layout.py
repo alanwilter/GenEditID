@@ -475,6 +475,8 @@ def main():
 
     try:
         loader.loadAll()
+    except Exception as e:
+        log.exception(e)
     finally:
         session.close()
 
