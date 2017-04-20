@@ -1,22 +1,25 @@
 import csv
 import sqlalchemy
-import sys
+
+# logging configuration
+import log as logger
 
 from datetime import datetime
 from dnascissors.config import cfg
-from dnascissors.model import *
+from dnascissors.model import Base, Plate, Well, CellGrowth
 
-def loadIncucyte(plateId, fileName):
+
+def loadIncucyte(log, session, plateId, fileName):
 
     plate = session.query(Plate).filter(Plate.geid == plateId).first()
 
     if not plate:
-        raise Exception('No plate %s' % plateId)
+        raise Exception('No plate {:s}'.format(plateId))
 
-    print("Loading Incucyte growth information for plate %s from %s" % (plateId, fileName))
+    log.info("Loading Incucyte growth information for plate {:s} from {:s}".format(plateId, fileName))
 
     with open(fileName, 'r') as icwFile:
-        reader = csv.reader(icwFile, delimiter = '\t')
+        reader = csv.reader(icwFile, delimiter='\t')
 
         start = False
         header = None
@@ -48,49 +51,53 @@ def loadIncucyte(plateId, fileName):
                                   .filter(Well.row == wellrow)\
                                   .filter(Well.column == wellcolumn)\
                                   .first()
-                    
+
                     if not well:
-                        raise Exception("There is no well at %s%d on plate %s" % (wellrow, wellcolumn, plate.geid))
+                        raise Exception("There is no well at {:s}{:d} on plate {:s}".format(wellrow, wellcolumn, plate.geid))
 
                     value = float(line[column])
 
-                    print("Setting well %s%s on %s for Incucyte %s at %s" % (well.row, well.column, plate.geid, value, line[0]))
+                    log.info("Setting well {:s}{:d} on {:s} for Incucyte {:f} at {:s}".format(well.row, well.column, plate.geid, value, line[0]))
 
                     growth = session.query(CellGrowth)\
                                     .filter(CellGrowth.plate == plate)\
                                     .filter(CellGrowth.well == well)\
                                     .filter(CellGrowth.hours == hour)\
                                     .first()
-                                    
+
                     if not growth:
                         growth = CellGrowth(well=well, plate=plate)
                         growth.hours = hour
                         growth.timestamp = time
                         session.add(growth)
-                        
+
                     growth.confluence_percentage = value
 
     session.commit()
 
 
-if len(sys.argv) < 3:
-    print("Need the plate id and at least one Incucyte file.", file=sys.stderr)
-    sys.exit(1)
+def main():
+    import argparse
+    import os
 
-plateId = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--plateid", dest="plateid", action="store", help="The plate ID e.g. 'GEP00001_01'", required=True)
+    parser.add_argument("--file", dest="file", action="store", help="The Incucyte file e.g. 'GEP00001_01 data/20170127_GEP00001/GEP00001_01_incu.txt'.", required=True)
+    options = parser.parse_args()
 
-engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_cell_growth.log'))
 
-Base.metadata.bind = engine
+    engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+    Base.metadata.bind = engine
+    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = DBSession()
 
-DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-
-session = DBSession()
-
-for fileIndex in range(2, len(sys.argv)):
     try:
-        loadIncucyte(plateId, sys.argv[fileIndex])
+        loadIncucyte(log, session, options.plateid, options.file)
     except Exception as e:
-        print(e, file=sys.stderr)
+        log.exception(e)
 
-session.close()
+    session.close()
+
+if __name__ == '__main__':
+    main()

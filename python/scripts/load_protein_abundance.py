@@ -1,21 +1,24 @@
 import csv
 import sqlalchemy
-import sys
+
+# logging configuration
+import log as logger
 
 from dnascissors.config import cfg
-from dnascissors.model import *
+from dnascissors.model import Base, Plate, Well, ProteinAbundance
 
-def loadICW(plateId, fileName):
+
+def loadICW(log, session, plateId, fileName):
 
     plate = session.query(Plate).filter(Plate.geid == plateId).first()
 
     if not plate:
-        raise Exception('No plate %s' % plateId)
+        raise Exception('No plate {:s}'.format(plateId))
 
-    print("Loading InCell Western signal for plate %s from %s" % (plateId, fileName))
+    log.info("Loading InCell Western signal for plate {:s} from {:s}".format(plateId, fileName))
 
     with open(fileName, 'r') as icwFile:
-        reader = csv.reader(icwFile, delimiter = '\t')
+        reader = csv.reader(icwFile, delimiter='\t')
 
         channel = None
         row = None
@@ -43,9 +46,9 @@ def loadICW(plateId, fileName):
                                   .first()
 
                     if not well:
-                        raise Exception("There is no well at %s%d on plate %s" % (rowchar, column, plate.geid))
+                        raise Exception("There is no well at {:s}{:d} on plate {:s}".format(rowchar, column, plate.geid))
 
-                    print("Setting well %s%s on %s for ICW %s" % (well.row, well.column, plate.geid, channel))
+                    log.info("Setting well {:s}{:d} on {:s} for ICW {:d}".format(well.row, well.column, plate.geid, channel))
 
                     abundance = session.query(ProteinAbundance)\
                                        .filter(ProteinAbundance.well == well)\
@@ -66,25 +69,29 @@ def loadICW(plateId, fileName):
     session.commit()
 
 
+def main():
+    import argparse
+    import os
 
-if len(sys.argv) < 3:
-    print("Need the plate id and at least one InCell Western file.", file=sys.stderr)
-    sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--plateid", dest="plateid", action="store", help="The plate ID e.g. 'GEP00001_01'", required=True)
+    parser.add_argument("--file", dest="file", action="store", help="The InCell Western file e.g. 'data/20170127_GEP00001/GEP00001_01_ICW.csv'.", required=True)
+    options = parser.parse_args()
 
-plateId = sys.argv[1]
+    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_protein_abundance.log'))
 
-engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+    engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
+    Base.metadata.bind = engine
+    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = DBSession()
 
-Base.metadata.bind = engine
-
-DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-
-session = DBSession()
-
-for fileIndex in range(2, len(sys.argv)):
     try:
-        loadICW(plateId, sys.argv[fileIndex])
+        loadICW(log, session, options.plateid, options.file)
     except Exception as e:
-        print(e, file=sys.stderr)
+        log.exception(e)
 
-session.close()
+    session.close()
+
+
+if __name__ == '__main__':
+    main()
