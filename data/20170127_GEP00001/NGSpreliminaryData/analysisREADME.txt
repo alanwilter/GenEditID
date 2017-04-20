@@ -122,3 +122,5 @@ Question is ...
 - How this experiment adptors differ with standard illumina adaptors?
 - If they differ may be need to creade adaptor file for each experment?
 
+# Currently there is now easy way to identify the target and off target regions for each sample?
+- Can we add additionl column in the sheet 'SequencingLibrary' of 20170118_GEP00001.xlsx file?
