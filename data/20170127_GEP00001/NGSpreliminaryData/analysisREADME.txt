@@ -105,3 +105,20 @@ gunzip *
 cat SLX-13775.FLD0194.000000000-B4LYY.s_1.r_1.fasta | grep -v '^>' > SLX-13775.FLD0194.000000000-B4LYY.s_1.r_1_only_seq
 
 cat SLX-13775.FLD0194.000000000-B4LYY.s_1.r_2.fasta | grep -v '^>' > SLX-13775.FLD0194.000000000-B4LYY.s_1.r_2_only_seq
+
+
+# FLD0272 sample showed high alignment rate but only 29.4% bases are useble
+Again illumina adopter is opping out, indicating that insert size is too samall. There are 68687 reads in reas1 file and 59,765 showed adaptor contamination.
+
+
+# Why fastQC failed to detect adapter sequences?
+
+/home/chilam01/Apps/fastQC/0.11.5/FastQC/Configuration/
+
+fastQC only list of adptores present in the adapter_list.txt,
+
+Question is ...
+
+- How this experiment adptors differ with standard illumina adaptors?
+- If they differ may be need to creade adaptor file for each experment?
+
