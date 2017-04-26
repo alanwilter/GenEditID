@@ -4,12 +4,12 @@ library(ggplot2)
 
 # connect to database
 #db <- src_sqlite("crispr.sqlite")
-db <- src_postgres(user="gene", password="gene", host="localhost", port=5432, dbname="geneediting")
+db <- src_postgres(user="gene", password="gene", host="bioinf-srv003.cri.camres.org", port=5432, dbname="geneediting")
 
 # connect to tables
 cell_line <- tbl(db, "cell_line") %>% rename(cell_line_id=id, cell_line_name=name, cell_line_description=description)
 project <- tbl(db, "project") %>% rename(project_id=id, project_geid=geid, project_description=description)
-experiment_layout <- tbl(db, "experiment_layout") %>% rename(experiment_layout_id=id, experiment_layout_geid=geid) 
+experiment_layout <- tbl(db, "experiment_layout") %>% rename(experiment_layout_id=id, experiment_layout_geid=geid)
 clone <- tbl(db, "clone") %>% rename(clone_id=id, clone_name=name)
 well <- tbl(db, "well") %>% rename(well_id=id)
 well_content <- tbl(db, "well_content") %>% rename(well_content_id=id)
@@ -37,11 +37,11 @@ protein_abundance_data <- left_join(well, abundance, by="well_id") %>%
     left_join(., guide_well_content_association, by="well_content_id") %>%
     left_join(., guide, by="guide_id") %>%
     left_join(., target, by="target_id") %>%
-    collect %>% 
+    collect %>%
     filter(!is.na(content_type)) %>%
-    mutate(position=paste0(row, column)) %>% 
-    mutate(classifier=create_classifier(cell_line_name, clone_name, guide_name, content_type)) %>% 
-    select(classifier, position, intensity_channel_700, intensity_channel_800) %>% 
+    mutate(position=paste0(row, column)) %>%
+    mutate(classifier=create_classifier(cell_line_name, clone_name, guide_name, content_type)) %>%
+    select(classifier, position, intensity_channel_700, intensity_channel_800) %>%
     rename(Content=classifier, Channel700=intensity_channel_700, Channel800=intensity_channel_800)
 
 print(protein_abundance_data)
@@ -54,7 +54,7 @@ protein_abundance_data
 protein_abundance_plot <- ggplot(protein_abundance_data, aes(x = Content, y = ratio800to700)) +
     geom_violin() +
     geom_point(aes(colour=Content)) +
-    theme_bw() + 
+    theme_bw() +
     ggtitle('InCellWestern') +
     xlab('Cell line') +
     ylab('Relative protein abundance (ratio 800 to 700 nm)') +
@@ -70,13 +70,13 @@ clone_growth_data <- left_join(well, growth, by="well_id") %>%
     inner_join(., guide_well_content_association, by="well_content_id") %>%
     inner_join(., guide, by="guide_id") %>%
     inner_join(., target, by="target_id") %>%
-    collect %>% 
-    mutate(position=paste0(row, column)) %>% 
+    collect %>%
+    mutate(position=paste0(row, column)) %>%
     select(plate_id, target_name, guide_name, position, hours, confluence_percentage) %>%
-    rename(PlateID=plate_id, Target=target_name, Guide=guide_name, Well=position, Elapsed=hours, Confluence=confluence_percentage) %>% 
+    rename(PlateID=plate_id, Target=target_name, Guide=guide_name, Well=position, Elapsed=hours, Confluence=confluence_percentage) %>%
     filter(!is.na(Confluence))
 
-clone_growth_data 
+clone_growth_data
 
 # plot clone growth curves
 clone_growth_curve <- ggplot(clone_growth_data, aes(x = Elapsed, y = Confluence, group = as.factor(Target):as.factor(PlateID):as.factor(Well))) +
