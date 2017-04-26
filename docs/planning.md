@@ -26,7 +26,7 @@
 ## Plan
 
 - Anne will load the NGS results into the database
-- Rich will do the plate drawing
+- Rich will do the plate drawing based on the plate layout project from github https://github.com/crukci-bioinformatics/PlateLayout
 - Ruben will do the smoothing of the slope [r/scripts/genome_editing.r](../r/scripts/genome_editing.r)
 - Chandu will do the calculation of the NGS score
 
