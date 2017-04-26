@@ -231,6 +231,34 @@ class SequencingLibraryContent(Base):
     sequencing_sample_name = Column(String(32), nullable=True)
 
 
+class VariantResult(Base):
+    __tablename__ = 'variant_result'
+    id = Column(Integer, primary_key=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_results_fk', ondelete='cascade'), nullable=True)
+    sequencing_library_content = relationship(
+        SequencingLibraryContent,
+        backref=backref('variant_results', uselist=True, cascade='delete,all'))
+    variant_type = Column(String(20))
+    symbol = Column(String(20))
+    cDNA_effect = Column(String(20))
+    protein_effect = Column(String(20))
+    codons = Column(String(20))
+    chromosome = Column(String(20))
+    position = Column(String(20))
+    sequence_ref = Column(String(20))
+    sequence_alt = Column(String(20))
+    allele_fraction = Column(String(20))
+    depth = Column(String(20))
+    quality = Column(String(20))
+    amplicon = Column(String(20))
+    gene_id = Column(String(20))
+    offset_from_primer_end = Column(String(20))
+    indel_length = Column(String(20))
+    sequence_forward_context = Column(String(20))
+    sequence_reverse_context = Column(String(20))
+    sequence_alleles = Column(String(20))
+
+
 class ProteinAbundance(Base):
     __tablename__ = 'abundance'
     id = Column(Integer, primary_key=True)
