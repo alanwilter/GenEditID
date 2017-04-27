@@ -112,6 +112,6 @@ shell/load_project.sh
 ### R script for plotting from DB
 - install these packages in RStudio
 ```R
-install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit'))
+install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit', 'svglite'))
 ```
 - run script `r/scripts/genome_editing.r` to plot protein abundance and clone growth curve.
