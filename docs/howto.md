@@ -56,8 +56,7 @@ R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contain
 ### R packages dependencies
 
 ```R
-install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RColorBrewer', 'RSQLite','RPostgreSQL'),
-                 repos="http://mirrors.ebi.ac.uk/CRAN/")
+install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RColorBrewer', 'RSQLite','RPostgreSQL'), repos="http://mirrors.ebi.ac.uk/CRAN/")
 ```
 
 ## Create database schema
@@ -119,7 +118,7 @@ shell/load_project_GEP00001.sh
 - [http://shiny.rstudio.com/tutorial/](http://shiny.rstudio.com/tutorial/)
 - [http://shiny.rstudio.com/tutorial/lesson1/](http://shiny.rstudio.com/tutorial/lesson1/)
 
-### How to run the shiny app
+### How to run the shiny app in RStudio
 - Installation instruction
   - in RStudio, File > New Project and select directory of the git repo
   - install these R packages in RStudio (see above for the full list)
@@ -129,3 +128,8 @@ shell/load_project_GEP00001.sh
   runApp('r/shinyapp/.')
   ```
 
+### How to run the shiny app from R or on the server.
+
+```
+R -e "shiny::runApp('r/shinyapp', port=4700, host='0.0.0.0')"
+```

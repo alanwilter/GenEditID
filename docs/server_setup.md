@@ -28,6 +28,7 @@ yum install \
     gcc-gfortran \
     git \
     libcurl-devel \
+    libxml2-devel \
     openssl-devel \
     pcre-devel \
     xz-devel
@@ -55,12 +56,17 @@ sudo make install
 Some packages are required and to keep them common to this R install, they can be built into R itself.
 (This is not possible if we use R from the EPEL RPMs.)
 
-These commands need to be run as root.
+These commands need to be run as root. The last step ("ggbio") takes a long time with all its dependencies.
 
 ```
 export PG_INCDIR=/usr/pgsql-9.3/include
 export PG_LIBDIR=/usr/pgsql-9.3/lib
+
 /usr/local/R-3.3.3/bin/R
-install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RPostgreSQL'),
+
+install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RPostgreSQL', 'DT', 'XML'),
                  repos="http://mirrors.ebi.ac.uk/CRAN/")
+
+source("http://bioconductor.org/biocLite.R")
+biocLite("ggbio")
 ```
