@@ -1,5 +1,12 @@
 # How to...
 
+## Dedicated Host
+
+We have a machine for this project: `bioinf-ge001.cri.camres.org`. This is a virtual machine running Centos 7.
+
+Anne, Chandu, Rich & Ruben have sudo root access to the machine.
+
+
 ## Shiny App
 
 ### Installing R 3.3.2
@@ -116,6 +123,7 @@ shell/load_project_GEP00001.sh
 
 ### R script for plotting from DB
 - First, install these packages in RStudio
+
 ```R
 install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit', 'RPostgreSQL'))
 ```

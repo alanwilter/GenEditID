@@ -227,7 +227,7 @@ ggplotly(ggplot(ICWincu, aes(x = ratio800to700, y=mu, group = Layout:Plate:Well)
 
 
 ###Add in NGS data
-    snv <- read.delim("SLX-13775_variants.csv")
+    snv <- read.delim("SLX-13775_variantsSNVs.csv")
     snv$Type <- 'SNV'
     gDNAsnv <- sort(unique(as.character(snv[grep('*-G', snv[,1]), 1])))
     

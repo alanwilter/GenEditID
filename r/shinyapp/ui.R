@@ -1,50 +1,116 @@
 shinyUI(fluidPage(
-  titlePanel(h1(strong('ICW and IncuCyte'), style='color:steelblue')),
+  titlePanel(h1(strong('GE Project Analysis'), style='color:steelblue')),
   br(),
-  sidebarLayout(
-    sidebarPanel(
-      tabsetPanel(
-        tabPanel('Controls',
-                 p(h4('Primer design:', style='color:steelblue')),
-                 
-                 
-                 
-                 fileInput("fileinput", "Choose CSV File",
-                            # accept = c(
-                             #  "text/csv",
-                              # "text/comma-separated-values,text/plain",
-                               #".csv"),
-                             multiple = T
-                   
-                 )
-                )
-      )
+  
+  tabsetPanel(
+    
+    
+    
+    tabPanel('Project',
+      p(h4('Project selection:', style='color:steelblue')),
+      DT::dataTableOutput('ProjectTable'),
+      br(),
+      p('sgRNA guide details:', style='color:steelblue'),
+      tableOutput('GuideTable'),
+      br(),
+      p('Project progress:', style='color:steelblue'),
+      p('show Growth, protein and NGS slots, reacting to presence/absence of data with colours')
     ),
-    mainPanel(
-      tabsetPanel(
-        tabPanel('Plots',
-                  fluidRow(
-                    column(1, br(), br(), br(), downloadButton('plotICWDownload', ''), br(), br()
-                    ),
-                    column(11, h3('IncellWestern'),
-                           plotlyOutput('ICWplot'))
-                  ),
-                 fluidRow(
-                   column(1, br(), br(), br(), downloadButton('plotInRDownload', ''), br(), br()),
-                   column(11, h3('IncuCyte'),
-                          plotlyOutput('Incucyteplot')),
-                          tableOutput('tablecsv')
-                 )
-                  ,
-                  fluidRow(
-                    column(1, br(), br(), br(), downloadButton('plotInCDownload', ''), br(), br()),
-                    column(11, h3('IncuCyte'),
-                           plotlyOutput('IncucyteCurveplot')) #,
-                    #tableOutput('tablecsv')
-                  )
+  
+    
+    
+    tabPanel('Exploratory Analysis',
+      p(),
+      sidebarLayout(
+        
+        sidebarPanel('Data',
+            radioButtons("EAradio", label = h3("Select dataset"),
+                choices = list("Growth" = 1, "Protein" = 2, "NGS" = 3, 'Combined data' = 4), 
+                selected = 1)            
+        ),
+        mainPanel('Plots',
+            conditionalPanel(
+               condition = "input.EAradio == 1",
+               p('EAradio1'),
+               plotlyOutput('proteinPlot')
+            ),
+            conditionalPanel(
+               condition = "input.EAradio == 2",
+               plotlyOutput('growthcurvePlot')
+            )
+            # ,
+            # conditionalPanel(
+            #    condition = "input.EAradio == 3",
+            #    plotlyOutput()
+            # ),
+            # conditionalPanel(
+            #    condition = "input.EAradio == 4",
+            #    plotlyOutput()
+            # )
+                  
+                  
+                  # fluidRow(
+                  #   column(1, br(), br(), br(), downloadButton('plotICWDownload', ''), br(), br()
+                  #   ),
+                  #   column(11, h3('IncellWestern'),
+                  #          plotlyOutput('ICWplot'))
+                  # )
         )
       )
+    ),
+    
+    
+    
+    tabPanel('Results',
+      p(),
+      sidebarLayout(
+        
+        sidebarPanel('Clones'),
+        
+        mainPanel('Plots')
+      )
     )
+    
   )
   
+
 ))
+  
+  
+#   sidebarLayout(
+#     sidebarPanel(
+#   
+#         
+#         
+#                  
+#                 )
+#       )
+#     ),
+#     mainPanel(
+#       tabsetPanel(
+#         
+#         tabPanel('Exploratory plots'),
+#         
+#         tabPanel('Results'),
+#         
+#         tabPanel('Plots',
+#                   ,
+#                  fluidRow(
+#                    column(1, br(), br(), br(), downloadButton('plotInRDownload', ''), br(), br()),
+#                    column(11, h3('IncuCyte'),
+#                           plotlyOutput('Incucyteplot')),
+#                           tableOutput('tablecsv')
+#                  )
+#                   ,
+#                   fluidRow(
+#                     column(1, br(), br(), br(), downloadButton('plotInCDownload', ''), br(), br()),
+#                     column(11, h3('IncuCyte'),
+#                            plotlyOutput('IncucyteCurveplot')) #,
+#                     #tableOutput('tablecsv')
+#                   )
+#         )
+#       )
+#     )
+#   )
+#   
+# ))
