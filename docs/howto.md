@@ -19,7 +19,7 @@ R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contain
   - in RStudio, File > New Project and select directory of the git repo
   - install these packages in RStudio
   ```R
-  install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly'))
+  install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'RPostgreSQL'))
   ```
 - Run the app
 ```R
