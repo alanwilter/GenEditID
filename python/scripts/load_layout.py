@@ -1,9 +1,27 @@
 import sqlalchemy
 import openpyxl
 import logging
+import pandas
 
 from dnascissors.config import cfg
-from dnascissors.model import Base, Project, Target, Guide, Amplicon, AmpliconSelection, Primer, CellLine, Clone, ExperimentLayout, Plate, WellContent, Well
+from dnascissors.model import Base
+from dnascissors.model import Project
+from dnascissors.model import Target
+from dnascissors.model import Guide
+from dnascissors.model import Amplicon
+from dnascissors.model import AmpliconSelection
+from dnascissors.model import Primer
+from dnascissors.model import CellLine
+from dnascissors.model import Clone
+from dnascissors.model import ExperimentLayout
+from dnascissors.model import Plate
+from dnascissors.model import WellContent
+from dnascissors.model import Well
+from dnascissors.model import SequencingLibrary
+from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import VariantResult
+from dnascissors.model import ProteinAbundance
+from dnascissors.model import CellGrowth
 
 from excelloader import ExcelLoader
 
@@ -19,6 +37,7 @@ class LayoutLoader(ExcelLoader):
         self.log = logging.getLogger('dnascissors')
         self.session = session
         self.workbook = openpyxl.load_workbook(workbook_file, read_only=True, data_only=True)
+        self.xls = pandas.ExcelFile(workbook_file)
 
     def toStrand(self, cell, rowNumber):
         str = self.get_string(cell)
@@ -46,11 +65,14 @@ class LayoutLoader(ExcelLoader):
             self.session.commit()
             self.loadExperimentLayout()
             self.session.commit()
+            self.loadPlates()
+            self.session.commit()
+            self.loadSequencingLibraries()
+            self.session.commit()
         finally:
             self.workbook.close()
 
     def loadProjects(self):
-
         sheet = None
 
         try:
@@ -376,7 +398,6 @@ class LayoutLoader(ExcelLoader):
                     self.log.info('Created clone {:s} from cell row {:s}'.format(clone.name, clone.cell_line.name))
 
             # Plate
-
             plate = self.session.query(Plate).filter(Plate.geid == layoutGeid).first()
 
             if not plate:
@@ -388,7 +409,6 @@ class LayoutLoader(ExcelLoader):
                 self.log.info('Created plate {:s}'.format(plate.geid))
 
             # Well content
-
             content = None
 
             if clone:
@@ -442,6 +462,40 @@ class LayoutLoader(ExcelLoader):
 
             self.log.info('Created well {:s}{:d} in layout {:s}'.format(well.row, well.column, well.experiment_layout.geid))
 
+    def loadPlates(self):
+        df = self.xls.parse('Plate')
+        for row in df.itertuples():
+            experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
+            if not experiment_layout:
+                raise Exception('Experiment layout GEID {:s} is required for plate GEID {:s}'.format(row.experiment_layout_geid, row.geid))
+            plate = Plate(experiment_layout=experiment_layout)
+            plate.geid = row.geid
+            plate.barcode = row.plate_barcode
+            plate.description = row.description
+            self.session.add(plate)
+            self.log.info('Created plate {:s} in layout {:s}'.format(plate.geid, plate.experiment_layout.geid))
+
+    def loadSequencingLibraries(self):
+        df = self.xls.parse('SequencingLibrary')
+        for row in df.itertuples():
+            sequencing_library = self.session.query(SequencingLibrary).filter(SequencingLibrary.slxid == row.slxid).first()
+            if not sequencing_library:
+                sequencing_library = SequencingLibrary()
+                sequencing_library.slxid = row.slxid
+                sequencing_library.library_type = row.library_type
+                sequencing_library.barcode_size = int(row.barcode_size)
+                self.session.add(sequencing_library)
+                self.log.info('Created sequening library {:s}'.format(sequencing_library.slxid))
+            experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
+            well = self.session.query(Well).filter(Well.row == row.well_position[0]).filter(Well.column == row.well_position[1:]).filter(Well.experiment_layout_id == experiment_layout.id).first()
+            seq_lib_content = SequencingLibraryContent(sequencing_library=sequencing_library, \
+                                    well=well, \
+                                    dna_source=row.dna_source, \
+                                    sequencing_barcode=row.sequencing_barcode, \
+                                    sequencing_sample_name = row.sequencing_sample_name)
+            self.session.add(seq_lib_content)
+            self.log.info('Created sequencing library content {:s} for library {:s} in layout {:s}'.format(seq_lib_content.sequencing_barcode, sequencing_library.slxid, experiment_layout.geid))
+
 
 def main():
     import argparse
@@ -459,17 +513,56 @@ def main():
     session = DBSession()
 
     if options.clean_db:
-        deleteCount = session.query(CellLine).delete()
-        log.info('Deleted {:d} cell lines'.format(deleteCount))
+        delete_count = session.query(CellGrowth).delete()
+        log.info('Deleted {:d} cell growths'.format(delete_count))
 
-        deleteCount = session.query(Primer).delete()
-        log.info('Deleted {:d} primers'.format(deleteCount))
+        delete_count = session.query(ProteinAbundance).delete()
+        log.info('Deleted {:d} protein abundances'.format(delete_count))
 
-        deleteCount = session.query(Amplicon).delete()
-        log.info('Deleted {:d} amplicons'.format(deleteCount))
+        delete_count = session.query(VariantResult).delete()
+        log.info('Deleted {:d} variant results'.format(delete_count))
 
-        deleteCount = session.query(Project).delete()
-        log.info('Deleted {:d} projects'.format(deleteCount))
+        delete_count = session.query(Plate).delete()
+        log.info('Deleted {:d} plates'.format(delete_count))
+
+        delete_count = session.query(SequencingLibrary).delete()
+        log.info('Deleted {:d} sequencing libraries'.format(delete_count))
+
+        delete_count = session.query(SequencingLibraryContent).delete()
+        log.info('Deleted {:d} sequencing library contents'.format(delete_count))
+
+        delete_count = session.query(CellLine).delete()
+        log.info('Deleted {:d} cell lines'.format(delete_count))
+
+        delete_count = session.query(Clone).delete()
+        log.info('Deleted {:d} clones'.format(delete_count))
+
+        delete_count = session.query(WellContent).delete()
+        log.info('Deleted {:d} well contents'.format(delete_count))
+
+        delete_count = session.query(Well).delete()
+        log.info('Deleted {:d} wells'.format(delete_count))
+
+        delete_count = session.query(ExperimentLayout).delete()
+        log.info('Deleted {:d} experiment layouts'.format(delete_count))
+
+        delete_count = session.query(Primer).delete()
+        log.info('Deleted {:d} primers'.format(delete_count))
+
+        delete_count = session.query(AmpliconSelection).delete()
+        log.info('Deleted {:d} amplicon selections'.format(delete_count))
+
+        delete_count = session.query(Amplicon).delete()
+        log.info('Deleted {:d} amplicons'.format(delete_count))
+
+        delete_count = session.query(Guide).delete()
+        log.info('Deleted {:d} guides'.format(delete_count))
+
+        delete_count = session.query(Target).delete()
+        log.info('Deleted {:d} targets'.format(delete_count))
+
+        delete_count = session.query(Project).delete()
+        log.info('Deleted {:d} projects'.format(delete_count))
 
     loader = LayoutLoader(session, options.file_layout)
 
