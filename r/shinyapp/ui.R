@@ -23,30 +23,29 @@ shinyUI(fluidPage(
       p(),
       sidebarLayout(
         
-        sidebarPanel('Data',
+        sidebarPanel(width = 2,
             radioButtons("EAradio", label = h3("Select dataset"),
                 choices = list("Growth" = 1, "Protein" = 2, "NGS" = 3, 'Combined data' = 4), 
                 selected = 1)            
         ),
-        mainPanel('Plots',
+        mainPanel(
             conditionalPanel(
                condition = "input.EAradio == 1",
-               p('EAradio1'),
-               plotlyOutput('proteinPlot')
+               column(6, plotlyOutput('growthcurvePlot', height = "600px")),
+               column(6, plotlyOutput('growthratePlot', height = "800px"))
             ),
             conditionalPanel(
                condition = "input.EAradio == 2",
-               plotlyOutput('growthcurvePlot')
-            )
-            # ,
+               fillPage(plotlyOutput('proteinPlot', height = "800px"))
+            ),
             # conditionalPanel(
             #    condition = "input.EAradio == 3",
             #    plotlyOutput()
             # ),
-            # conditionalPanel(
-            #    condition = "input.EAradio == 4",
-            #    plotlyOutput()
-            # )
+            conditionalPanel(
+               condition = "input.EAradio == 4",
+               fillPage(plotlyOutput('combinedPlot', height = "800px"))
+            )
                   
                   
                   # fluidRow(

@@ -173,8 +173,8 @@ colnames(incu.grofitsum)[c(1:3, 9, 10)] <- c('Plate', 'Well', 'Layout', 'mu', 's
 
 #plot clone growth rates
 ggplotly(ggplot(incu.grofitsum, aes(x = Layout, y=mu, group = Layout:Plate:Well)) +
-  geom_point(position = position_dodge(0.2), aes(colour = Layout)) +
-  geom_errorbar(aes(ymin = mu - stdmu, ymax= mu + stdmu, colour = Layout), position = position_dodge(0.2), size = 0.4) +
+  geom_point(position = position_dodge(0.5), aes(colour = Layout)) +
+  geom_errorbar(aes(ymin = mu - stdmu, ymax= mu + stdmu, colour = Layout), position = position_dodge(0.5), size = 0.4) +
   theme_bw() +
   ggtitle('Clone growth rate') +
   xlab('Clone') +

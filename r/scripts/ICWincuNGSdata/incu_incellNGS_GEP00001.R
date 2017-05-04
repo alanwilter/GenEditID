@@ -251,7 +251,7 @@ ggplotly(ggplot(ICWincu, aes(x = ratio800to700, y=mu, group = Layout:Plate:Well)
     data$Plate <- substr(data$Sample, 4,5)
     data$Plate <- gsub('P', 'plate', data$Plate)
     data$Plate <- as.factor(data$Plate)
-    data$Well <- substr(data$Sample, 6,7)
+    data$Well <- sapply(as.character(data$Sample), function(a) strsplit(a, split='-')[[1]][2])
     data$Well <- as.factor(data$Well)
     dataNGS <- data[,c(36, 37, 35, 1, 3, 4, 34, 15)]
     colnames(dataNGS) <- c('Plate', 'Well', 'Layout', 'Sample', 'Variant', 'Gene', 'Type', 'AlleleFraction')

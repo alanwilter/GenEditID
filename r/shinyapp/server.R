@@ -55,6 +55,8 @@ shinyServer(function(input, output, session){
 #### EXPLORATORY ANALYSIS TAB
   output$proteinPlot <- renderPlotly(protein_abundance_plot)
   output$growthcurvePlot <- renderPlotly(clone_growth_curve)
+  output$growthratePlot <- renderPlotly(clone_growth_rate)
+  output$combinedPlot <- renderPlotly(ICWincuNGS_plotly)
   
 #### RESULTS TAB
   
