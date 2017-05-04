@@ -12,7 +12,7 @@ The shared instance is running on bioinf-srv003 until we get a dedicated VM.
 (As root)
 
     yum localinstall https://download.postgresql.org/pub/repos/yum/9.3/redhat/rhel-7-x86_64/pgdg-centos93-9.3-3.noarch.rpm
-    yum install postgresql93-server postgresql93
+    yum install postgresql93 postgresql93-server postgresql93-devel
 
     passwd postgres
 
