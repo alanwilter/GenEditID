@@ -93,7 +93,11 @@ Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
 
 ## Load data
 
-Three scripts for loading the plate layouts, ICW channels and Incucyte growth tracking.
+Four scripts for loading into the tracking database:
+- project data and plate layouts,
+- protein abundance (ICW channels),
+- cell growths (Incucyte) and
+- variant results from NGS analysis.
 
 ```bash
 source venv/bin/activate
@@ -101,17 +105,18 @@ export PYTHONPATH=`pwd`/python
 python python/scripts/load_layout.py --layout=data/20170127_GEP00001/20170118_GEP00001.xlsx
 python python/scripts/load_protein_abundance.py --plateid=GEP00001_01 --file=data/20170127_GEP00001/GEP00001_01_ICW.csv
 python python/scripts/load_cell_growth.py --plateid=GEP00001_01 --file=data/20170127_GEP00001/GEP00001_01_incu.txt
+python python/scripts/load_variant_results.py --file=data/20170127_GEP00001/GEP00001_NGS_IndelsResults.csv
 ```
 
-One script to load all files associated with one project
+One script to load all files associated with project GEP00001
 
 ```bash
-shell/load_project.sh
+shell/load_project_GEP00001.sh
 ```
 
 ### R script for plotting from DB
-- install these packages in RStudio
+- First, install these packages in RStudio
 ```R
-install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit'))
+install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit', 'RPostgreSQL'))
 ```
 - run script `r/scripts/genome_editing.r` to plot protein abundance and clone growth curve.
