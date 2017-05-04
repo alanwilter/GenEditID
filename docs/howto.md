@@ -1,5 +1,12 @@
 # How to...
 
+## Dedicated Host
+
+We have a machine for this project: `bioinf-ge001.cri.camres.org`. This is a virtual machine running Centos 7.
+
+Anne, Chandu, Rich & Ruben have sudo root access to the machine.
+
+
 ## Shiny App
 
 ### Installing R 3.3.2

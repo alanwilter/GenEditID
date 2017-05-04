@@ -10,5 +10,5 @@
 # Local Postgres database
 #DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"
 
-# Shared Postgres database on bioinf-srv003
-#DATABASE_URI: "postgresql://gene:gene@bioinf-srv003.cri.camres.org/geneediting"
+# Shared Postgres database on bioinf-ge001
+#DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"

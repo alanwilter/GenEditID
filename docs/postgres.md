@@ -66,8 +66,8 @@ Edit `/var/lib/pgsql/9.3/data/postgresql.conf` to change the `listen_addresses` 
 
 #### Accessing the Database from Elsewhere
 
-    psql -h bioinf-srv003.cri.camres.org -U gene geneediting
+    psql -h bioinf-ge001.cri.camres.org -U gene geneediting
 
 The YAML setting for accessing this database in the code is:
 
-    DATABASE_URI: "postgresql://gene:gene@bioinf-srv003.cri.camres.org/geneediting"
+    DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"
