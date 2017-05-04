@@ -1,6 +1,6 @@
 # Script for filtering indels based on various factors
 # Author - Chandu
-# date : 02-05-17
+# date : 04-05-17
 
 library( dplyr)
 
@@ -29,6 +29,18 @@ library( dplyr)
 # STAT3.1.in = 40498700
 # STAT3.3.off1= 125765667
 tab <- read.delim( file='SLX-13775_variantsINDELS.csv', stringsAsFactors = F)  #Ruben. Add variantsSNV's
+
+# clean col names
+names(tab) <- gsub('\\.','_',names(tab) )
+names(tab) <- gsub('__','_',names(tab) )
+names(tab) <- sub('_$','', names(tab))
+
+names(tab)[match( 'X5_context', names(tab) ) ] <- 'fivePrimeContext'
+names(tab)[match( 'X3_context', names(tab) ) ] <- 'threePrimeContext'
+
+# remove empty columns
+tab <- select(tab, -Existing_variation : -GMAF, -PubMed) 
+
 tab <- mutate(tab, OnTarget=rep('-', nrow(tab)))
 tab$OnTarget[ grep( 'off', tab$Amplicon)] <- 'FALSE'
 tab <- mutate( tab,OnTarget=ifelse(OnTarget == 'FALSE', FALSE, TRUE) )
@@ -60,9 +72,9 @@ tab[ tab$distance > 10, 'disScore']  <- 1
 # Filter out AF > 90 and indel length > 3 #Ruben. Instead of filter out, weigh down. 
                                           # These could still be valid clones, although we don't have confidence to call them.
 
-tab <- filter(tab, Allele.fraction > 0.15) 
+tab <- filter(tab, Allele_fraction > 0.15) 
 
-tab <- filter(tab, !(Allele.fraction > 0.9 & abs(Indel.length) > 3  ))
+tab <- filter(tab, !(Allele_fraction > 0.9 & abs(Indel_length) > 3  ))
 
 # filter based on consequence #Ruben. Weigh down instead. Inframe_deletion could generate a phenotype if it is on a key position 
                               #in the protein.
@@ -70,8 +82,8 @@ tab <- filter(tab, !(Allele.fraction > 0.9 & abs(Indel.length) > 3  ))
                               #you will think that GE-P1B4-C is a good HET line because of alleleFrequency and OnTarget == TRUE. However it should be heavily weighed down because
                               #it's showing an off-target. When filtering, do it with effect on 'sample' groups, not on rows.
 
-tab <- filter(tab, Variant.type.consequence == 'frameshift' | 
-                Variant.type.consequence == 'stop_gained,frameshift')
+tab <- filter(tab, Variant_type_consequence == 'frameshift' | 
+                Variant_type_consequence == 'stop_gained,frameshift')
 
 # Filter based on on/off-target
 tab <- filter(tab, OnTarget == TRUE)

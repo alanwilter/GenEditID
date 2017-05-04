@@ -6,34 +6,7 @@ We have a machine for this project: `bioinf-ge001.cri.camres.org`. This is a vir
 
 Anne, Chandu, Rich & Ruben have sudo root access to the machine.
 
-
-## Shiny App
-
-### Installing R 3.3.2
-[https://cran.r-project.org/bin/macosx/](https://cran.r-project.org/bin/macosx/)
-
-R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contains R 3.3.2 framework, R.app GUI 1.68 in 64-bit for Intel Macs, Tcl/Tk 8.6.0 X11 libraries and Texinfo 5.2. The latter two components are optional and can be ommitted when choosing "custom install", it is only needed if you want to use the tcltk R package or build package documentation from sources.
-
-### Installing RStudio 1.0.136
-[https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)
-
-### How to build a shiny app
-- [http://shiny.rstudio.com/tutorial/](http://shiny.rstudio.com/tutorial/)
-- [http://shiny.rstudio.com/tutorial/lesson1/](http://shiny.rstudio.com/tutorial/lesson1/)
-
-### How to run the shiny app
-- Installation instruction
-  - in RStudio, File > New Project and select directory of the git repo
-  - install these packages in RStudio
-  ```R
-  install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'RPostgreSQL'))
-  ```
-- Run the app
-```R
-source('r/shinyapp/global.R')
-runApp('r/shinyapp/.')
-```
-- Choose CSV File, click on 'Browse...' and select all 13 data files in `data/20170127_Experiment0001/` directory.
+Information on setting this up can be found in [server_setup.md].
 
 ## Dependencies
 
@@ -68,24 +41,25 @@ Installation instructions for Postgres on a Centos 7 server can be found [in thi
 
 #### Postgres Drivers for R
 
-For R, you will need to install the development files for Postgres:
+See [postgres.md] and then [server_setup.md].
 
-  yum install postgresql-9.3-devel
+## R
 
-Then before starting R, you need to set variables as to where the development files are:
+### Installing R 3.3.2
+[https://cran.r-project.org/bin/macosx/](https://cran.r-project.org/bin/macosx/)
 
+R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contains R 3.3.2 framework, R.app GUI 1.68 in 64-bit for Intel Macs, Tcl/Tk 8.6.0 X11 libraries and Texinfo 5.2. The latter two components are optional and can be omitted when choosing "custom install", it is only needed if you want to use the tcltk R package or build package documentation from sources.
+
+### Installing RStudio 1.0.136
+[https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)
+
+### R packages dependencies
+
+```R
+install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RColorBrewer', 'RSQLite','RPostgreSQL'), repos="http://mirrors.ebi.ac.uk/CRAN/")
 ```
-export PG_INCDIR=/usr/pgsql-9.3/include
-export PG_LIBDIR=/usr/pgsql-9.3/lib
-```
 
-Then start R and install:
-
-```
-install.packages(c('RPostgreSQL'))
-```
-
-## Create database tables
+## Create database schema
 
 Install [dependencies](#dependencies) first.
 
@@ -97,6 +71,11 @@ python python/scripts/create_db.py
 ```
 
 Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
+
+### Create database schema on dedicated server
+
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Run `python/scripts/create_db.py` script to create DB schema
 
 ## Load data
 
@@ -121,10 +100,36 @@ One script to load all files associated with project GEP00001
 shell/load_project_GEP00001.sh
 ```
 
-### R script for plotting from DB
-- First, install these packages in RStudio
+### Load data into database on dedicated server
 
-```R
-install.packages(c('dplyr', 'RSQLite', 'ggplot2', 'grofit', 'RPostgreSQL'))
-```
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Run `shell/load_project_GEP00001.sh` script to load all data associated to GEP00001 project
+
+## NGS analysis
+
+
+## Results in Shiny App
+
+### R script for plotting from DB
+- First, install R packages (see list above) in RStudio
 - run script `r/scripts/genome_editing.r` to plot protein abundance and clone growth curve.
+
+### How to build a shiny app
+- [http://shiny.rstudio.com/tutorial/](http://shiny.rstudio.com/tutorial/)
+- [http://shiny.rstudio.com/tutorial/lesson1/](http://shiny.rstudio.com/tutorial/lesson1/)
+
+### How to run the shiny app in RStudio
+- Installation instruction
+  - in RStudio, File > New Project and select directory of the git repo
+  - install these R packages in RStudio (see above for the full list)
+  - Run the app
+  ```R
+  source('r/shinyapp/global.R')
+  runApp('r/shinyapp/.')
+  ```
+
+### How to run the shiny app from R or on the server.
+
+```
+R -e "shiny::runApp('r/shinyapp', port=4700, host='0.0.0.0')"
+```

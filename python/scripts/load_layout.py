@@ -513,6 +513,7 @@ def main():
     session = DBSession()
 
     if options.clean_db:
+
         delete_count = session.query(CellGrowth).delete()
         log.info('Deleted {:d} cell growths'.format(delete_count))
 
@@ -531,6 +532,18 @@ def main():
         delete_count = session.query(SequencingLibraryContent).delete()
         log.info('Deleted {:d} sequencing library contents'.format(delete_count))
 
+        delete_count = session.query(Primer).delete()
+        log.info('Deleted {:d} primers'.format(delete_count))
+
+        delete_count = session.query(AmpliconSelection).delete()
+        log.info('Deleted {:d} amplicon selections'.format(delete_count))
+
+        delete_count = session.query(Amplicon).delete()
+        log.info('Deleted {:d} amplicons'.format(delete_count))
+
+        delete_count = session.query(Guide).delete()
+        log.info('Deleted {:d} guides'.format(delete_count))
+
         delete_count = session.query(CellLine).delete()
         log.info('Deleted {:d} cell lines'.format(delete_count))
 
@@ -545,18 +558,6 @@ def main():
 
         delete_count = session.query(ExperimentLayout).delete()
         log.info('Deleted {:d} experiment layouts'.format(delete_count))
-
-        delete_count = session.query(Primer).delete()
-        log.info('Deleted {:d} primers'.format(delete_count))
-
-        delete_count = session.query(AmpliconSelection).delete()
-        log.info('Deleted {:d} amplicon selections'.format(delete_count))
-
-        delete_count = session.query(Amplicon).delete()
-        log.info('Deleted {:d} amplicons'.format(delete_count))
-
-        delete_count = session.query(Guide).delete()
-        log.info('Deleted {:d} guides'.format(delete_count))
 
         delete_count = session.query(Target).delete()
         log.info('Deleted {:d} targets'.format(delete_count))
