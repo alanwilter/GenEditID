@@ -29,7 +29,7 @@ install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite'
 - [http://shiny.rstudio.com/tutorial/](http://shiny.rstudio.com/tutorial/)
 - [http://shiny.rstudio.com/tutorial/lesson1/](http://shiny.rstudio.com/tutorial/lesson1/)
 
-### How to run the shiny app
+### How to run the shiny app in RStudio
 - Installation instruction
   - in RStudio, File > New Project and select directory of the git repo
   - install these packages in RStudio
@@ -42,6 +42,11 @@ source('r/shinyapp/global.R')
 runApp('r/shinyapp/.')
 ```
 - Choose CSV File, click on 'Browse...' and select all 13 data files in `data/20170127_Experiment0001/` directory.
+
+### How to run the shiny app from R or on the server.
+
+R -e "shiny::runApp('r/shinyapp', port=4700, host='0.0.0.0')"
+
 
 ## Dependencies
 

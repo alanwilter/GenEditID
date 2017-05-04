@@ -68,7 +68,7 @@ loadPlateData <- function(db, plateId)
 
 ## Main code.
 
-db <- src_postgres(user="gene", password="gene", host="bioinf-srv003.cri.camres.org", port=5432, dbname="geneediting")
+db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
 
 cell_line <- tbl(db, "cell_line") %>% rename(cell_line_id=id, cell_line_name=name, cell_line_description=description)
 project <- tbl(db, "project") %>% rename(project_id=id, project_geid=geid, project_description=description)
