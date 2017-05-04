@@ -284,11 +284,19 @@ ICWincuNGS_plotly <- plot_ly(ICWincuNGS, type = 'scatter', mode = 'markers',
 NGS.mutations <- plot_ly(NGSdata.cells, type = 'histogram', x = ~Type) %>%
                   layout(xaxis = list(title = 'Type of mutation'), yaxis = list(title = '% of all mutations'))
   
-NGS.variants <-  plot_ly(NGSdata.cells, type = 'histogram', x = ~Variant) %>%
-                  layout(xaxis = list(title = 'Type of variant', tickangle = -5),
+NGS.variants <-  plot_ly(mutate(NGSdata.cells, Variant = c('frameshift', 'synonymous', 'inframe.del', 'intron.noncoding', 'stop.frameshift')[
+                                match(NGSdata.cells$Variant, c('frameshift', 'synonymous','inframe_deletion', 'intron,non_coding_transcript', 'stop_gained,frameshift'))]),
+                         type = 'histogram', x = ~Variant) %>%
+                  layout(xaxis = list(title = 'Type of variant'),
                          yaxis = list(title = '% of all variants'),
-                         margin(l = 1000))
+                         margin = list(l = 150))
 
+NGS.zygosity <- plot_ly(mutate(NGSdataby, has.offtargets = c('in-target', 'off-target')[match(NGSdataby$has.offtargets, c(F, T))]),
+                        type = 'histogram', x = ~Zygosity, color = ~has.offtargets) %>%
+                        layout(xaxis = list(title = 'Zygosity'), yaxis = list(title = '%'))
+
+NGS.distancetocutsite <- plot_ly(data, type = 'histogram', x = ~Indel.length) %>%
+                  layout(xaxis = list(title = 'Indel length (nt)'), yaxis = list(title = '%'))
 
 
 

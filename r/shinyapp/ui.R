@@ -38,10 +38,13 @@ shinyUI(fluidPage(
                condition = "input.EAradio == 2",
                fillPage(plotlyOutput('proteinPlot', height = "800px"))
             ),
-            # conditionalPanel(
-            #    condition = "input.EAradio == 3",
-            #    plotlyOutput()
-            # ),
+            conditionalPanel(
+               condition = "input.EAradio == 3",
+               column(4, plotlyOutput('NGS.mutationsPlot'),
+                         plotlyOutput('NGS.distancetocutsitePlot')),
+               column(4, plotlyOutput('NGS.variantsPlot'),
+                         plotlyOutput('NGS.zygosityPlot'))
+            ),
             conditionalPanel(
                condition = "input.EAradio == 4",
                fillPage(plotlyOutput('combinedPlot', height = "800px"))
