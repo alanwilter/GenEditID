@@ -12,7 +12,13 @@ Anne, Chandu, Rich & Ruben have sudo root access to the machine.
 ### Installing R 3.3.2
 [https://cran.r-project.org/bin/macosx/](https://cran.r-project.org/bin/macosx/)
 
-R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contains R 3.3.2 framework, R.app GUI 1.68 in 64-bit for Intel Macs, Tcl/Tk 8.6.0 X11 libraries and Texinfo 5.2. The latter two components are optional and can be ommitted when choosing "custom install", it is only needed if you want to use the tcltk R package or build package documentation from sources.
+R 3.3.2 binary for Mac OS X 10.9 (Mavericks) and higher, signed package. Contains R 3.3.2 framework, R.app GUI 1.68 in 64-bit for Intel Macs, Tcl/Tk 8.6.0 X11 libraries and Texinfo 5.2. The latter two components are optional and can be omitted when choosing "custom install", it is only needed if you want to use the tcltk R package or build package documentation from sources.
+
+### R packages
+```R
+install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite', 'dplyr', 'RColorBrewer'),
+                 repos="http://mirrors.ebi.ac.uk/CRAN/")
+```
 
 ### Installing RStudio 1.0.136
 [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)
