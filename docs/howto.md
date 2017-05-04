@@ -97,6 +97,11 @@ python python/scripts/create_db.py
 
 Visualize the SQLite database using [DbVisualizer](http://www.dbvis.com/).
 
+### Create database schema on dedicated server
+
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Run `python/scripts/create_db.py` script to create DB schema
+
 ## Load data
 
 Four scripts for loading into the tracking database:
@@ -119,6 +124,12 @@ One script to load all files associated with project GEP00001
 ```bash
 shell/load_project_GEP00001.sh
 ```
+
+### Load data into database on dedicated server
+
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Run `shell/load_project_GEP00001.sh` script to load all data associated to GEP00001 project
+
 
 ### R script for plotting from DB
 - First, install these packages in RStudio

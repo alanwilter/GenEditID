@@ -35,7 +35,7 @@ class Target(Base):
     """
     __tablename__ = 'target'
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='cascade'))
+    project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='CASCADE'))
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
@@ -57,7 +57,7 @@ class Guide(Base):
     """
     __tablename__ = 'guide'
     id = Column(Integer, primary_key=True)
-    target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='cascade'))
+    target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='CASCADE'))
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
@@ -89,11 +89,11 @@ class AmpliconSelection(Base):
     """
     __tablename__ = 'amplicon_selection'
     id = Column(Integer, primary_key=True)
-    guide_id = Column(Integer, ForeignKey('guide.id', name="ampliconselection_guide_fk", ondelete='cascade'))
+    guide_id = Column(Integer, ForeignKey('guide.id', name="ampliconselection_guide_fk", ondelete='CASCADE'))
     guide = relationship(
         Guide,
         backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
-    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name="ampliconselection_amplicon_fk", ondelete='cascade'))
+    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name="ampliconselection_amplicon_fk", ondelete='CASCADE'))
     amplicon = relationship(
         Amplicon,
         backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
@@ -104,8 +104,8 @@ class AmpliconSelection(Base):
 
 
 primer_amplicon_association = Table('primer_amplicon_association', Base.metadata,
-    Column('amplicon_id', Integer, ForeignKey('amplicon.id', ondelete='cascade')),
-    Column('primer_id', Integer, ForeignKey('primer.id', ondelete='cascade'))
+    Column('amplicon_id', Integer, ForeignKey('amplicon.id', ondelete='CASCADE')),
+    Column('primer_id', Integer, ForeignKey('primer.id', ondelete='CASCADE'))
 )
 
 
@@ -131,7 +131,7 @@ class CellLine(Base):
 class Clone(Base):
     __tablename__ = 'clone'
     id = Column(Integer, primary_key=True)
-    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cellline_fk', ondelete='cascade'))
+    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cellline_fk', ondelete='CASCADE'))
     cell_line = relationship(
         CellLine,
         backref=backref('clones', uselist=True, cascade='delete,all'))
@@ -146,7 +146,7 @@ class ExperimentLayout(Base):
     """
     __tablename__ = 'experiment_layout'
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='experiment_layout_project_fk', ondelete='cascade'))
+    project_id = Column(Integer, ForeignKey('project.id', name='experiment_layout_project_fk', ondelete='CASCADE'))
     project = relationship(
         Project,
         backref=backref('experiment_layouts', uselist=True, cascade='delete,all'))
@@ -156,29 +156,29 @@ class ExperimentLayout(Base):
 class Plate(Base):
     __tablename__ = 'plate'
     id = Column(Integer, primary_key=True)
-    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='plate_experiment_layout_fk', ondelete='cascade'))
+    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='plate_experiment_layout_fk', ondelete='CASCADE'))
     experiment_layout = relationship(
         ExperimentLayout,
         backref=backref('plates', uselist=True, cascade='delete,all'))
     barcode = Column(String(32), index=True)
-    geid = Column(String(12), unique=True, nullable=False, index=True)
+    geid = Column(String(32), unique=True, nullable=False, index=True)
     description = Column(String)
 
 
 guide_well_content_association = Table('guide_well_content_association', Base.metadata,
-    Column('well_content_id', Integer, ForeignKey('well_content.id')),
-    Column('guide_id', Integer, ForeignKey('guide.id'))
+    Column('well_content_id', Integer, ForeignKey('well_content.id', ondelete='CASCADE')),
+    Column('guide_id', Integer, ForeignKey('guide.id', ondelete='CASCADE'))
 )
 
 
 class WellContent(Base):
     __tablename__ = 'well_content'
     id = Column(Integer, primary_key=True) # is this id the replicate goup?
-    clone_id = Column(Integer, ForeignKey('clone.id', name='well_content_clone_fk', ondelete='cascade'))
+    clone_id = Column(Integer, ForeignKey('clone.id', name='well_content_clone_fk', ondelete='CASCADE'))
     clone = relationship(
         Clone,
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
-    guides = relationship('Guide', secondary=guide_well_content_association)
+    guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     replicate_group = Column(Integer, nullable=False, default=0)
     content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
@@ -187,11 +187,11 @@ class WellContent(Base):
 class Well(Base):
     __tablename__ = 'well'
     id = Column(Integer, primary_key=True)
-    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='well_experiment_layout_fk', ondelete='cascade'), nullable=False)
+    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='well_experiment_layout_fk', ondelete='CASCADE'), nullable=False)
     experiment_layout = relationship(
         ExperimentLayout,
         backref=backref('wells', uselist=True, cascade='delete,all'))
-    well_content_id = Column(Integer, ForeignKey('well_content.id', name='well_well_content_fk', ondelete='cascade'), nullable=True)
+    well_content_id = Column(Integer, ForeignKey('well_content.id', name='well_well_content_fk', ondelete='CASCADE'), nullable=True)
     well_content = relationship(
         WellContent,
         backref=backref('wells', uselist=True, cascade='delete,all'))
@@ -210,7 +210,7 @@ class SequencingLibrary(Base):
     """
     __tablename__ = 'sequencing_library'
     id = Column(Integer, primary_key=True)
-    slxid = Column(String(8), unique=True, nullable=False)
+    slxid = Column(String(12), unique=True, nullable=False)
     library_type = Column(String(32))
     barcode_size = Column(Integer)
 
@@ -218,11 +218,11 @@ class SequencingLibrary(Base):
 class SequencingLibraryContent(Base):
     __tablename__ = 'sequencing_library_content'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='well_sequencing_library_content_fk', ondelete='cascade'), nullable=True)
+    well_id = Column(Integer, ForeignKey('well.id', name='well_sequencing_library_content_fk', ondelete='CASCADE'), nullable=True)
     well = relationship(
         Well,
         backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
-    sequencing_library_id = Column(Integer, ForeignKey('sequencing_library.id', name='well_sequencing_library_fk', ondelete='cascade'), nullable=False)
+    sequencing_library_id = Column(Integer, ForeignKey('sequencing_library.id', name='well_sequencing_library_fk', ondelete='CASCADE'), nullable=False)
     sequencing_library = relationship(
         SequencingLibrary,
         backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
@@ -234,7 +234,7 @@ class SequencingLibraryContent(Base):
 class VariantResult(Base):
     __tablename__ = 'variant_result'
     id = Column(Integer, primary_key=True)
-    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_results_fk', ondelete='cascade'), nullable=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_results_fk', ondelete='CASCADE'), nullable=True)
     sequencing_library_content = relationship(
         SequencingLibraryContent,
         backref=backref('variant_results', uselist=True, cascade='delete,all'))
@@ -263,11 +263,11 @@ class VariantResult(Base):
 class ProteinAbundance(Base):
     __tablename__ = 'abundance'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='abundance_well_fk', ondelete='cascade'), nullable=False)
+    well_id = Column(Integer, ForeignKey('well.id', name='abundance_well_fk', ondelete='CASCADE'), nullable=False)
     well = relationship(
         Well,
         backref=backref('abundances', uselist=True, cascade='delete,all'))
-    plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='cascade'), nullable=False)
+    plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='CASCADE'), nullable=False)
     plate = relationship(
         Plate,
         backref=backref('abundances', uselist=True, cascade='delete,all'))
@@ -278,11 +278,11 @@ class ProteinAbundance(Base):
 class CellGrowth(Base):
     __tablename__ = 'growth'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='growth_well_fk', ondelete='cascade'), nullable=False)
+    well_id = Column(Integer, ForeignKey('well.id', name='growth_well_fk', ondelete='CASCADE'), nullable=False)
     well = relationship(
         Well,
         backref=backref('growths', uselist=True, cascade='delete,all'))
-    plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='cascade'), nullable=False)
+    plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='CASCADE'), nullable=False)
     plate = relationship(
         Plate,
         backref=backref('growths', uselist=True, cascade='delete,all'))
