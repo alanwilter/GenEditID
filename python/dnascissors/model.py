@@ -210,7 +210,7 @@ class SequencingLibrary(Base):
     """
     __tablename__ = 'sequencing_library'
     id = Column(Integer, primary_key=True)
-    slxid = Column(String(8), nullable=False)
+    slxid = Column(String(8), unique=True, nullable=False)
     library_type = Column(String(32))
     barcode_size = Column(Integer)
 
@@ -229,6 +229,35 @@ class SequencingLibraryContent(Base):
     dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', name='dna_source'), nullable=False)
     sequencing_barcode = Column(String(20), nullable=False)
     sequencing_sample_name = Column(String(32), nullable=True)
+
+
+class VariantResult(Base):
+    __tablename__ = 'variant_result'
+    id = Column(Integer, primary_key=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_results_fk', ondelete='cascade'), nullable=True)
+    sequencing_library_content = relationship(
+        SequencingLibraryContent,
+        backref=backref('variant_results', uselist=True, cascade='delete,all'))
+    variant_type = Column(String(32))
+    gene_id = Column(String(32))
+    cDNA_effect = Column(String(250))
+    protein_effect = Column(String(250))
+    codons = Column(String(250))
+    chromosome = Column(String(32))
+    position = Column(Integer)
+    sequence_ref = Column(String(250))
+    sequence_alt = Column(String(250))
+    allele_fraction = Column(Float)
+    depth = Column(Integer)
+    quality = Column(Integer)
+    amplicon = Column(String(250))
+    exon = Column(String(32))
+    offset_from_primer_end = Column(Integer)
+    indel_length = Column(Integer)
+    sequence_forward_context = Column(String(250))
+    sequence_reverse_context = Column(String(250))
+    sequence_alleles = Column(String(250))
+    ge_score = Column(Float)
 
 
 class ProteinAbundance(Base):
