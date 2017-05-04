@@ -6,6 +6,8 @@ We have a machine for this project: `bioinf-ge001.cri.camres.org`. This is a vir
 
 Anne, Chandu, Rich & Ruben have sudo root access to the machine.
 
+Information on setting this up can be found in [server_setup.md].
+
 
 ## Shiny App
 
@@ -74,22 +76,8 @@ Installation instructions for Postgres on a Centos 7 server can be found [in thi
 
 #### Postgres Drivers for R
 
-For R, you will need to install the development files for Postgres:
+See [postgres.md] and then [server_setup.md].
 
-  yum install postgresql-9.3-devel
-
-Then before starting R, you need to set variables as to where the development files are:
-
-```
-export PG_INCDIR=/usr/pgsql-9.3/include
-export PG_LIBDIR=/usr/pgsql-9.3/lib
-```
-
-Then start R and install:
-
-```
-install.packages(c('RPostgreSQL'))
-```
 
 ## Create database tables
 
