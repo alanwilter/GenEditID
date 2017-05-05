@@ -240,6 +240,7 @@ class VariantResult(Base):
         backref=backref('variant_results', uselist=True, cascade='delete,all'))
     variant_type = Column(String(32))
     gene_id = Column(String(32))
+    gene = Column(String(32))
     cDNA_effect = Column(String(250))
     protein_effect = Column(String(250))
     codons = Column(String(250))
@@ -257,7 +258,10 @@ class VariantResult(Base):
     sequence_forward_context = Column(String(250))
     sequence_reverse_context = Column(String(250))
     sequence_alleles = Column(String(250))
-    ge_score = Column(Float)
+    on_target = Column(Boolean)
+    cut_site = Column(Integer)
+    distance = Column(Integer)
+    ge_score = Column(Integer)
 
 
 class ProteinAbundance(Base):

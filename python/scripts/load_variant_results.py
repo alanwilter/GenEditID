@@ -16,34 +16,38 @@ def loadVariantResults(log, session, file_name):
         reader = csv.DictReader(f, delimiter=',')
         for row in reader:
             seq_lib_content = session.query(SequencingLibraryContent) \
-                                     .filter(SequencingLibraryContent.sequencing_sample_name == row['sequencing_sample_name']) \
-                                     .filter(SequencingLibraryContent.sequencing_barcode == row['sequencing_barcode']) \
+                                     .filter(SequencingLibraryContent.sequencing_sample_name == row['Sample']) \
+                                     .filter(SequencingLibraryContent.sequencing_barcode == row['Barcode']) \
                                      .first()
             if not seq_lib_content:
                 raise Exception("There is no sequencing library content for {:s} sample with {:s} barcode".format(row['sequencing_sample_name'], row['sequencing_barcode']))
             result = VariantResult(sequencing_library_content=seq_lib_content)
-            result.variant_type = row['variant_type']
-            result.gene_id = row['gene_id']
+            result.variant_type = row['Variant_type_consequence']
+            result.gene_id = row['Symbol_Gene_ID']
+            result.gene = row['Gene']
             result.cDNA_effect = row['cDNA_effect']
-            result.protein_effect = row['protein_effect']
-            result.codons = row['codons']
-            result.chromosome = row['chromosome']
-            result.position = int(row['position'])
-            result.sequence_ref = row['sequence_ref']
-            result.sequence_alt = row['sequence_alt']
-            result.allele_fraction = float(row['allele_fraction'])
-            result.depth = int(row['depth'])
-            result.quality = int(row['quality'])
-            result.amplicon = row['amplicon']
-            result.exon = row['exon']
-            result.offset_from_primer_end = int(row['offset_from_primer_end'])
-            result.indel_length = int(row['indel_length'])
-            result.sequence_forward_context = row['sequence_forward_context']
-            result.sequence_reverse_context = row['sequence_reverse_context']
-            result.sequence_alleles = row['sequence_alleles']
-            result.ge_score = float(row['ge_score'])
+            result.protein_effect = row['Protein_effect']
+            result.codons = row['Codons']
+            result.chromosome = row['Chromosome']
+            result.position = int(row['Position'])
+            result.sequence_ref = row['Ref']
+            result.sequence_alt = row['Alt']
+            result.allele_fraction = float(row['Allele_fraction'])
+            result.depth = int(row['Depth'])
+            result.quality = int(row['Quality'])
+            result.amplicon = row['Amplicon']
+            result.exon = row['Exon']
+            result.offset_from_primer_end = int(row['Offset_from_primer_end'])
+            result.indel_length = int(row['Indel_length'])
+            result.sequence_forward_context = row['fivePrimeContext']
+            result.sequence_reverse_context = row['threePrimeContext']
+            result.sequence_alleles = row['Alleles']
+            result.on_target = bool(row['OnTarget'])
+            result.cut_site = int(row['cutSite'])
+            result.distance = int(row['distance'])
+            result.ge_score = int(row['disScore'])
             session.add(result)
-            log.info("Variant result added for {:s} sample with {:s} barcode".format(row['sequencing_sample_name'], row['sequencing_barcode']))
+            log.info("Variant result added for {:s} sample with {:s} barcode".format(row['Sample'], row['Barcode']))
 
     session.commit()
 
