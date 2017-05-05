@@ -31,6 +31,7 @@ yum install \
     libxml2-devel \
     openssl-devel \
     pcre-devel \
+    screen \
     xz-devel
 ```
 
