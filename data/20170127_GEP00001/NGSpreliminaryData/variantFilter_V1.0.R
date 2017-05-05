@@ -3,6 +3,7 @@
 # date : 04-05-17
 
 library( dplyr)
+library( ggplot2)
 
 # Need to add additional column indicating on or off targets
 # filter based on alle frequency
@@ -72,7 +73,49 @@ tab[ tab$distance > 10, 'disScore']  <- 1
 # Filter out AF > 90 and indel length > 3 #Ruben. Instead of filter out, weigh down. 
                                           # These could still be valid clones, although we don't have confidence to call them.
 
-tab <- filter(tab, Allele_fraction > 0.15) 
+# Allele frequency distribution plot
+p <- ggplot( data=tab, aes( x=Allele_fraction)) + 
+       geom_histogram( bins = 11, colour='orange', fill='white') + 
+       ggtitle( 'Allele fraction distribution') +
+       xlab( 'Allele Fraction')
+ggsave('totalAlleleFractionDistribution.pdf', p)
+
+
+# Allele fraction distribution > 0.9
+p <- ggplot( data=filter(tab, Allele_fraction > 0.9), aes( x=Allele_fraction)) +
+  geom_histogram( bins = 11, colour='orange', fill='white') +
+  ggtitle( 'Allele fraction distribution > 0.9') +
+  xlab( 'Allele Fraction')
+ggsave( 'higherEndAlleleFractionDistribution.pdf', p)
+
+# Allele fraction distribution < 0.15
+
+p <- ggplot( data=filter(tab, Allele_fraction < 0.15), aes( x=Allele_fraction)) +
+  geom_histogram( bins = 11, colour='orange', fill='white') +
+  ggtitle( 'Allele fraction distribution < 0.15') +
+  xlab( 'Allele Fraction')
+ggsave( 'lowerEndAlleleFractionDistribution.pdf', p)
+
+
+# Total indel length distribution 
+p <- ggplot( data=tab, aes( x=Indel_length)) +
+  geom_histogram( colour='orange', fill='white') +
+  ggtitle( 'Indel Length Distribution') +
+  xlab( 'Indel Length')
+ggsave( 'totalIndelLengthDistribution.pdf', p)
+
+#  indel length distribution > 0.9 allele fraction
+p <- ggplot( data=filter(tab, Allele_fraction > 0.90 ), aes( x=Indel_length)) +
+  geom_histogram( colour='orange', fill='white') +
+  ggtitle( 'Indel Length Distribution > 0.9 Allele Fraction') +
+  xlab( 'Indel Length')
+ggsave( 'indelLengthDistributionAtHigherAlleFraction.pdf', p)
+
+
+
+  
+  
+tab <- filter(tab, Allele_fraction > 0.15)
 
 tab <- filter(tab, !(Allele_fraction > 0.9 & abs(Indel_length) > 3  ))
 
