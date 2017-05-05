@@ -31,3 +31,9 @@
 - Chandu will do the calculation of the NGS score
 
 [Database installation/information](postgres.md)
+
+# TODO list
+
+- [] Need to modify variantFilter_V1.0.R to get the cut site from database
+- [] load data from both indels and snvs into variantFilter_V1.0.R
+- [] issue with shiny app: position_dodge messes up hover event data. Ruben is on it, raised issue at github plot.ly.
