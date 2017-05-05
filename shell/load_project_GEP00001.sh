@@ -18,5 +18,6 @@ do
   python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_incu.txt
 done
 
-echo 'Loading sequencing results'
-python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_IndelsResults.csv
+echo 'Loading sequencing variant results'
+python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsINDELsResults.csv --type=INDEL
+python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNPsResults.csv --type=SNP

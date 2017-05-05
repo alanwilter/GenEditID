@@ -10,7 +10,7 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
 
 
-def loadVariantResults(log, session, file_name):
+def loadVariantResults(log, session, file_name, variant_type):
     log.info("Loading variant results from {:s}".format(file_name))
     with open(file_name, 'r') as f:
         reader = csv.DictReader(f, delimiter=',')
@@ -22,7 +22,8 @@ def loadVariantResults(log, session, file_name):
             if not seq_lib_content:
                 raise Exception("There is no sequencing library content for {:s} sample with {:s} barcode".format(row['sequencing_sample_name'], row['sequencing_barcode']))
             result = VariantResult(sequencing_library_content=seq_lib_content)
-            result.variant_type = row['Variant_type_consequence']
+            result.variant_type = variant_type
+            result.consequence = row['Variant_type_consequence']
             result.gene_id = row['Symbol_Gene_ID']
             result.gene = row['Gene']
             result.cDNA_effect = row['cDNA_effect']
@@ -38,7 +39,9 @@ def loadVariantResults(log, session, file_name):
             result.amplicon = row['Amplicon']
             result.exon = row['Exon']
             result.offset_from_primer_end = int(row['Offset_from_primer_end'])
-            result.indel_length = int(row['Indel_length'])
+            result.indel_length = None
+            if variant_type == 'INDEL':
+                result.indel_length = int(row['Indel_length'])
             result.sequence_forward_context = row['fivePrimeContext']
             result.sequence_reverse_context = row['threePrimeContext']
             result.sequence_alleles = row['Alleles']
@@ -58,6 +61,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", dest="file", action="store", help="The variant results CSV file e.g. 'data/20170127_GEP00001/GEP00001_NGS_IndelsResults.csv'.", required=True)
+    parser.add_argument("--type", dest="variant_type", action="store", help="The type of variant results.", choices=['INDEL', 'SNP'], required=True)
     parser.add_argument("--clean", dest="clean_db", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
@@ -73,7 +77,7 @@ def main():
             delete_count = session.query(VariantResult).delete()
             log.info('Deleted {:d} variant results'.format(delete_count))
 
-        loadVariantResults(log, session, options.file)
+        loadVariantResults(log, session, options.file, options.variant_type)
     except Exception as e:
         log.exception(e)
 
