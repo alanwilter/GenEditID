@@ -1,14 +1,12 @@
-shinyServer(function(input, output, session){
-  
+shinyServer(function(input, output, session) {
   # selected entities
-  
   selection <- reactiveValues(
     selectedProject = NULL
   )
   
-  
-#### PROJECT TAB
-  #Project table
+# --------------------------------------------------------------------------------
+# PROJECT TAB
+  # Project table
   output$ProjectTable <- DT::renderDataTable(
     datatable(as.data.frame(project),
               rownames = FALSE,
@@ -51,8 +49,8 @@ shinyServer(function(input, output, session){
   #Guide table
   output$GuideTable <- renderTable(as.data.frame(guide)[, -c(1:2)])
   
-  
-#### EXPLORATORY ANALYSIS TAB
+# --------------------------------------------------------------------------------
+# EXPLORATORY ANALYSIS TAB
   output$proteinPlot <- renderPlotly(protein_abundance_plot)
   output$growthcurvePlot <- renderPlotly(clone_growth_curve)
   output$growthratePlot <- renderPlotly(clone_growth_rate)
@@ -63,10 +61,9 @@ shinyServer(function(input, output, session){
   output$NGS.distancetocutsitePlot <- renderPlotly(NGS.distancetocutsite)
   
   
-#### RESULTS TAB
-  
-  
-  
+# --------------------------------------------------------------------------------
+# RESULTS TAB
+
 })
 
             

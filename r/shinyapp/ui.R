@@ -4,8 +4,6 @@ shinyUI(fluidPage(
   
   tabsetPanel(
     
-    
-    
     tabPanel('Project',
       p(h4('Project selection:', style='color:steelblue')),
       DT::dataTableOutput('ProjectTable'),
@@ -17,8 +15,6 @@ shinyUI(fluidPage(
       p('show Growth, protein and NGS slots, reacting to presence/absence of data with colours')
     ),
   
-    
-    
     tabPanel('Exploratory Analysis',
       p(),
       sidebarLayout(
@@ -36,7 +32,7 @@ shinyUI(fluidPage(
             ),
             conditionalPanel(
                condition = "input.EAradio == 2",
-               fillPage(plotlyOutput('proteinPlot', height = "800px"))
+               plotlyOutput('proteinPlot', height = "800px")
             ),
             conditionalPanel(
                condition = "input.EAradio == 3",
@@ -50,69 +46,23 @@ shinyUI(fluidPage(
                fillPage(plotlyOutput('combinedPlot', height = "800px"))
             )
                   
-                  
-                  # fluidRow(
-                  #   column(1, br(), br(), br(), downloadButton('plotICWDownload', ''), br(), br()
-                  #   ),
-                  #   column(11, h3('IncellWestern'),
-                  #          plotlyOutput('ICWplot'))
-                  # )
+          # fluidRow(
+          #   column(1, br(), br(), br(), downloadButton('plotICWDownload', ''), br(), br()
+          #   ),
+          #   column(11, h3('IncellWestern'),
+          #          plotlyOutput('ICWplot'))
+          # )
         )
       )
     ),
     
-    
-    
     tabPanel('Results',
       p(),
       sidebarLayout(
-        
         sidebarPanel('Clones'),
-        
         mainPanel('Plots')
       )
     )
     
   )
-  
-
 ))
-  
-  
-#   sidebarLayout(
-#     sidebarPanel(
-#   
-#         
-#         
-#                  
-#                 )
-#       )
-#     ),
-#     mainPanel(
-#       tabsetPanel(
-#         
-#         tabPanel('Exploratory plots'),
-#         
-#         tabPanel('Results'),
-#         
-#         tabPanel('Plots',
-#                   ,
-#                  fluidRow(
-#                    column(1, br(), br(), br(), downloadButton('plotInRDownload', ''), br(), br()),
-#                    column(11, h3('IncuCyte'),
-#                           plotlyOutput('Incucyteplot')),
-#                           tableOutput('tablecsv')
-#                  )
-#                   ,
-#                   fluidRow(
-#                     column(1, br(), br(), br(), downloadButton('plotInCDownload', ''), br(), br()),
-#                     column(11, h3('IncuCyte'),
-#                            plotlyOutput('IncucyteCurveplot')) #,
-#                     #tableOutput('tablecsv')
-#                   )
-#         )
-#       )
-#     )
-#   )
-#   
-# ))

@@ -1,20 +1,24 @@
-#CRAN libraries
-library(shiny) #app
-library(ggplot2) #plotting
-library(plotly) #interactive plots over ggplots
+# CRAN libraries
+library(shiny) # app
+library(ggplot2) # plotting
+library(plotly) # interactive plots over ggplots
 library(reshape2)
 library(dplyr)
 library(RPostgreSQL)
 library(DT)
-library(grofit) #calculation of growth slopes
-#Bioconductory libraries
+library(grofit) # calculation of growth slopes
+# Bioconductory libraries
 library(ggbio) #genome plots
-# library(ensembldb) #functions to create and use transcript centric annotation databases/packages
-# library(EnsDb.Hsapiens.v75) #ensembl data
 
-#Things annotated as %DB% and /%DB% require updating after NGS data is in the database
-#%DB%
-#Temporary workaround to get the NGS data, till we have it in the database.
+# library(ensembldb) # functions to create and use transcript centric annotation databases/packages
+# library(EnsDb.Hsapiens.v75) # ensembl data
+
+# --------------------------------------------------------------------------------
+# Should be loaded from DB
+# Things annotated as %DB% and /%DB% require updating after NGS data is in the database
+# %DB%
+# Temporary workaround to get the NGS data, till we have it in the database.
+# To create the RDS files, look into r/scripts/ICWincuNGSdata/incu_incellNGS_GEP00001.R script to recreate them
 data <- readRDS("data/GEP00001_data.RDS")
 data <- data[data$Allele.fraction > 0.15, c('Plate', 'Well', 'guide', 'Alleles', 'Indel.length',
                                             'Allele.fraction', 'Chromosome', 'Position',
@@ -29,14 +33,13 @@ NGSdata <- readRDS('data/GEP00001_dataNGS.RDS') %>%
    droplevels %>%
    arrange(desc(Plate, Well))
 
-NGSdata.cells <- NGSdata[grepl('-C', NGSdata$Sample),] #extracted cells only
-NGSdata.gDNA <- NGSdata[grepl('-G', NGSdata$Sample),]  #extracted gDNA only
-           
+NGSdata.cells <- NGSdata[grepl('-C', NGSdata$Sample),] # extracted cells only
+NGSdata.gDNA <- NGSdata[grepl('-G', NGSdata$Sample),]  # extracted gDNA only
 #/%DB%
 
-##### connect to database
-#db <- src_sqlite("crispr.sqlite")
-db <- src_postgres(user="gene", password="gene", host="bioinf-srv003.cri.camres.org", port=5432, dbname="geneediting")
+# --------------------------------------------------------------------------------
+# connect to database
+db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
 
 # connect to tables
 cell_line <- tbl(db, "cell_line")        %>% rename(cell_line_id=id, cell_line_name=name, cell_line_description=description)
@@ -51,6 +54,7 @@ abundance <- tbl(db, "abundance")        %>% rename(abundance_id=id)
 target <- tbl(db, "target")              %>% rename(target_id=id, target_name=name)
 guide <- tbl(db, "guide")                %>% rename(guide_id=id, guide_name=name)
 guide_well_content_association <- tbl(db, "guide_well_content_association")
+# TODO add NGS tables
 
 create_classifier <- function(cellline, clone, guide, content)
 {
@@ -97,7 +101,10 @@ clone_growth_data <- left_join(well, growth, by="well_id") %>%
   mutate(Plate = as.factor(Plate), Well = as.factor(Well), Guide = as.factor(Guide))
 #add reactive filters (sliders) to filter out clones with no or little growth
 
-##Convert clone_growth_data to matrix to use with the grofit package
+# --------------------------------------------------------------------------------
+# processing data
+
+## Convert clone_growth_data to matrix to use with the grofit package
 # Trim wells with growth increase (time 93 - time 0) < 10%
 growthincrease <- clone_growth_data[clone_growth_data$Elapsed == 93, 'Confluence'] - clone_growth_data[clone_growth_data$Elapsed == 0, 'Confluence']
 growthincrease <- data.frame(clone_growth_data[clone_growth_data$Elapsed == 0, c('Plate', 'Well')],
@@ -106,12 +113,10 @@ growthincrease <- data.frame(clone_growth_data[clone_growth_data$Elapsed == 0, c
 growthincrease <- growthincrease[growthincrease$Confluence > 12,] %>%
 mutate(index = paste0(Plate, Well))
 
-
 clone_growth_data_rate <- select(clone_growth_data, Plate, Well, Content, Elapsed, Confluence) %>%
   mutate(classifier = as.factor(Content)) %>%
   filter(paste0(clone_growth_data$Plate, clone_growth_data$Well) %in% growthincrease$index) %>%
   dcast(Plate + Well + Content ~ Elapsed, value.var = 'Confluence')
-  
 
 clone_growth_data_time <- matrix(data = unique(clone_growth_data$Elapsed), 
                                  ncol = length(unique(clone_growth_data$Elapsed)), 
@@ -121,21 +126,16 @@ clone_growth_data_grofit <- grofit(clone_growth_data_time, clone_growth_data_rat
 clone_growth_data_grofitsum <- summary(clone_growth_data_grofit$gcFit) %>%
   select(1:9, 13)
 colnames(clone_growth_data_grofitsum)[c(1:3, 9, 10)] <- c('Plate', 'Well', 'Content', 'mu', 'stdmu') #mu is the maximum slope, and stdmu its std deviation
-#NOTE: sometimes the model can't be fitted and we get NA's in mu and stdmu, which are not plotted. Curves look ragged but fine, so we are losing data here due to lack of model fitting
+# NOTE: sometimes the model can't be fitted and we get NA's in mu and stdmu, which are not plotted. 
+# Curves look ragged but fine, so we are losing data here due to lack of model fitting
 
-
-#merge ICW and incu data in a single table for plotting:
+# merge ICW and incu data in a single table for plotting:
 clone_growth_protein <- merge(clone_growth_data_grofitsum, protein_abundance_data, all = T, by = c('Plate', 'Well', 'Content')) %>%
   mutate('minusSD' = mu - stdmu, 'plusSD' = mu + stdmu) %>%
   subset(!grepl('normalisation|background', Content))
 
-# #this is a list with the KO clones selected by Rasmus
-# KOlist <- data.frame('Plate' = paste0('plate', c(1,1,1,2,2,3,3,3,4,4)),
-#                      'Well' = c('C5', 'C9', 'E2', 'D9', 'F8', 'B9', 'C3', 'D9', 'B6', 'B5'))
-# ICWincu$mer <- paste0(ICWincu$Plate, ICWincu$Well)
-# KOICWincu <- subset(ICWincu, mer %in% paste0(KOlist[,1], KOlist[,2]))
-# subset(ICWincu, Plate %in% KOlist[,1] & Well %in% KOlist[,2])
-
+# --------------------------------------------------------------------------------
+# Should be loaded from DB
 #%DB%
 fun.by <- function(x) {NGS <- by(x[,], INDICES = list(x$Plate, x$Well, x$Type), FUN = as.data.frame)
                        NGS <- NGS[!do.call(c, lapply(NGS, is.null))]
@@ -172,9 +172,7 @@ NGSdataby$Zygosity <- apply(NGSdataby[,c('homo', 'muthet', 'mutwt')], 1, functio
   do.call(rbind, .) %>%
   as.factor
 
-
-
-#to check odd results
+# to check odd results
   # m <- NGSdataby[duplicated(paste0(NGSdataby$Plate, NGSdataby$Well)), c('Plate', 'Well')]
   # m <- paste0(m$Plate, m$Well)
   # NGSdataby$m2 <- as.character(paste0(NGSdataby$Plate, NGSdataby$Well))
@@ -188,38 +186,21 @@ NGSdataby$Zygosity <- apply(NGSdataby[,c('homo', 'muthet', 'mutwt')], 1, functio
 ICWincuNGS <- merge(clone_growth_protein, NGSdataby, by = c('Plate', 'Well', 'Content'), all = T)
 ICWincuNGS$plusSD <- ICWincuNGS$mu + ICWincuNGS$stdmu
 ICWincuNGS$minusSD <- ICWincuNGS$mu - ICWincuNGS$stdmu
-#remove background and normalisation controls
+# remove background and normalisation controls
 ICWincuNGS <- subset(ICWincuNGS, !grepl('normalisation|background', Content)) %>% droplevels
 #NGSdata <- subset(NGSdata, !grepl('normalisation|background', Content))
 #/%DB%
 
-
-#try this with plot_ly instead of ggplot. When parsing this plot with ggplotly it mixes up the scales
-# ICWincuNGS_plot <- ggplot(ICWincuNGS, aes(x = ratio800to700, y=mu, group = Content:Plate:Well, shape = Content)) +
-#            geom_point() +
-#            geom_errorbar(aes(ymin = minusSD, ymax= plusSD), size = 0.4) +
-#            geom_point(data = subset(ICWincuNGS, !is.na(Zygosity)), aes(x = ratio800to700, y=mu, colour = Zygosity)) +
-#            #NOTE!! position_dodge messes up with the hover events and gives wrong locations, don't use if this is not fixed!
-#            #geom_point(data = KOICWincu, colour= 'black') +
-#            theme_bw() +
-#            #ggtitle('Clone growth rate') +
-#            xlab('protein abundance') +
-#            ylab('maximum growth slope') +
-#            theme(
-#              #axis.title.x = element_text(face="bold", colour="#990000", size=20),
-#              axis.text.x  = element_text(angle=15, vjust=0.5, size=10))
-
-
-
-#####PLOTS
-#NOTE: plot x axis labels are cut off, this can be workaround by extending the margings 
+# --------------------------------------------------------------------------------
+# plots
+# NOTE: plot x axis labels are cut off, this can be workaround by extending the margings 
   #l <- plotly_build(g)
   #l$layout$margin$b <- l$layout$margin$b + 50
 ##NOTE: hjust does not translate properly into plotly
 
 # plot ratio against cell line
 protein_abundance_plot <- ggplot(protein_abundance_data, aes(x = Content, y = ratio800to700, group = Plate:Well)) +
-  #geom_violin(aes(group = NULL), color = 'darkgreen') + #it gives error when transformed with ggploly - unknown column 'Content'
+  # geom_violin(aes(group = NULL), color = 'darkgreen') + # it gives error when transformed with ggploly - unknown column 'Content'
   geom_point() + # position = position_dodge()) messes up with hover in ggplotly, so the wrong wells are shown
   theme_bw() +
   ggtitle('Protein content (InCellWestern)') +
@@ -229,9 +210,9 @@ protein_abundance_plot <- ggplot(protein_abundance_data, aes(x = Content, y = ra
 
 # plot clone growth curves
 clone_growth_data$cLayout <- as.factor(sapply(clone_growth_data$Content, function(a) strsplit(a, " ")[[1]][3]))
-clone_growth_curve <- ggplot(clone_growth_data,
+clone_growth_curve <- ggplot(clone_growth_data, 
                              aes(x = Elapsed, y = Confluence,group = cLayout:Plate:Well,
-                                 color = cLayout)) +
+                             color = cLayout)) +
   geom_line() +
   theme_bw() +
   ggtitle('Clone growth curves') +
@@ -241,7 +222,7 @@ clone_growth_curve <- ggplot(clone_growth_data,
 
 # plot clone growth rates
 clone_growth_rate <- ggplot(subset(clone_growth_data_grofitsum, !is.na(mu)), aes(x = Content, y=mu, group = Plate:Well)) +
-  #geom_violin(aes(group = NULL)) + #it gives error when transformed with ggploly - unknown column 'Content'
+  # geom_violin(aes(group = NULL)) + # it gives error when transformed with ggploly - unknown column 'Content'
   geom_point(position = position_dodge(0.6)) +
   geom_errorbar(aes(ymin = mu - stdmu, ymax= mu + stdmu), position = position_dodge(0.6), size = 0.4) +
   theme_bw() +
@@ -249,26 +230,11 @@ clone_growth_rate <- ggplot(subset(clone_growth_data_grofitsum, !is.na(mu)), aes
   xlab('Clone') +
   ylab('maximum growth slope') +
   theme(
-    #axis.title.x = element_text(face="bold", colour="#990000", size=20),
+    # axis.title.x = element_text(face="bold", colour="#990000", size=20),
     axis.text.x  = element_text(angle=15, vjust=0.5, hjust = 0.5, size=10))
-#BIG NOTE position = position_dodge()) messes up with hover in ggplotly, so the wrong wells are shown!!
+# BIG NOTE position = position_dodge()) messes up with hover in ggplotly, so the wrong wells are shown!!
 
 # combined plot (protein + growth slopes + NGS)
-      #ggplot, it gives problems because when transformed with ggplotly the grouping in the legend is lost
-      # ICWincuNGS_plot <- ggplot(ICWincuNGS, aes(x = ratio800to700, y=mu, group = Content:Plate:Well:Type, shape = Content, fill = Type)) +
-      #            geom_point() +
-      #            geom_errorbar(aes(ymin = minusSD, ymax= plusSD), size = 0.4) +
-      #            geom_point(data = subset(ICWincuNGS, !is.na(Zygosity)), aes(x = ratio800to700, y=mu, colour = Zygosity)) +
-      #            #NOTE!! position_dodge messes up with the hover events and gives wrong locations, don't use if this is not fixed!
-      #            #geom_point(data = KOICWincu, colour= 'black') +
-      #            theme_bw() +
-      #            #ggtitle('Clone growth rate') +
-      #            xlab('protein abundance') +
-      #            ylab('maximum growth slope') +
-      #            theme(
-      #              #axis.title.x = element_text(face="bold", colour="#990000", size=20),
-      #              axis.text.x  = element_text(angle=15, vjust=0.5, size=10))
-      
 ICWincuNGS_plotly <- plot_ly(ICWincuNGS, type = 'scatter', mode = 'markers',
                              # Hover text:
                              text = ~paste("Plate:Well ", Plate, Well)) %>%
@@ -278,8 +244,8 @@ ICWincuNGS_plotly <- plot_ly(ICWincuNGS, type = 'scatter', mode = 'markers',
   layout(xaxis = list(title ='protein abundance'), yaxis = list(title = 'maximum growth slope'))
 
 # NGS plots
-  #proportion of indels and snvs
-  #initial number of clones screened is hard-coded. Obtain from corresponding number of library samples
+# proportion of indels and snvs
+# initial number of clones screened is hard-coded. Obtain from corresponding number of library samples
 
 NGS.mutations <- plot_ly(NGSdata.cells, type = 'histogram', x = ~Type) %>%
                   layout(xaxis = list(title = 'Type of mutation'), yaxis = list(title = '% of all mutations'))
@@ -298,14 +264,9 @@ NGS.zygosity <- plot_ly(mutate(NGSdataby, has.offtargets = c('in-target', 'off-t
 NGS.distancetocutsite <- plot_ly(data, type = 'histogram', x = ~Indel.length) %>%
                   layout(xaxis = list(title = 'Indel length (nt)'), yaxis = list(title = '%'))
 
-
-
+# --------------------------------------------------------------------------------
+# Notes
 # TODO create one plot per well with plotly
-
-# calculate slope of growth curves with grofit
-# Moving average: https://en.wikipedia.org/wiki/Moving_average
-# Kernel smoother: https://en.wikipedia.org/wiki/Kernel_smoother
-# TODO
-
-# plot clone growth rate
-# TODO
+# TODO calculate slope of growth curves with grofit
+# TODO Moving average: https://en.wikipedia.org/wiki/Moving_average
+# TODO Kernel smoother: https://en.wikipedia.org/wiki/Kernel_smoother
