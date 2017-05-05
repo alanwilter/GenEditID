@@ -112,6 +112,7 @@ write.csv( x=tab, file='SLX-13775_variantsINDELS_filtered.csv', row.names=F)
   #OnTarget (per sample group)
    # absence/presence of off-target in sample group: score 10/0
 
+
   #distance
    # d < 4: score 5
    # d >= 4: score 2
