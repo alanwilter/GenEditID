@@ -37,3 +37,5 @@
 - [] Need to modify variantFilter_V1.0.R to get the cut site from database
 - [] load data from both indels and snvs into variantFilter_V1.0.R
 - [] issue with shiny app: position_dodge messes up hover event data. Ruben is on it, raised issue at github plot.ly.
+- [] Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously. We need to add an 'allele_number' field to the database.
+- [] There are large frameshifts missing in either haplotype or Vardict callers, so it could be that we need to merge results from both?
