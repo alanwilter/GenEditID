@@ -17,8 +17,8 @@ def loadICW(log, session, plateId, fileName):
 
     log.info("Loading InCell Western signal for plate {:s} from {:s}".format(plateId, fileName))
 
-    with open(fileName, 'r') as icwFile:
-        reader = csv.reader(icwFile, delimiter='\t')
+    with open(fileName, 'r') as f:
+        reader = csv.reader(f, delimiter='\t')
 
         channel = None
         row = None

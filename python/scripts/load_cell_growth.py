@@ -18,8 +18,8 @@ def loadIncucyte(log, session, plateId, fileName):
 
     log.info("Loading Incucyte growth information for plate {:s} from {:s}".format(plateId, fileName))
 
-    with open(fileName, 'r') as icwFile:
-        reader = csv.reader(icwFile, delimiter='\t')
+    with open(fileName, 'r') as f:
+        reader = csv.reader(f, delimiter='\t')
 
         start = False
         header = None

@@ -1,5 +1,4 @@
 import sqlalchemy
-import openpyxl
 import logging
 import pandas
 
@@ -24,445 +23,260 @@ from dnascissors.model import ProteinAbundance
 from dnascissors.model import CellGrowth
 
 from excelloader import ExcelLoader
-
-# logging configuration
 import log as logger
 
 
 class LayoutLoader(ExcelLoader):
 
-    columnSeparator = ','
+    COLUMN_SEPARATOR = ','
 
     def __init__(self, session, workbook_file):
         self.log = logging.getLogger('dnascissors')
         self.session = session
-        self.workbook = openpyxl.load_workbook(workbook_file, read_only=True, data_only=True)
         self.xls = pandas.ExcelFile(workbook_file)
 
-    def toStrand(self, cell, rowNumber):
-        str = self.get_string(cell)
+    def to_strand(self, value, i):
+        if self.get_value(value):
+            if value in ['+', 'positive', 'p', 'forward', 'f']:
+                return 'forward'
+            elif value in ['-', 'negative', 'n', 'reverse', 'r']:
+                return 'reverse'
+            raise ValueError('Strand must be "forward" or "reverse", not "{:s}" (row {:d})'.format(str(value), i))
 
-        if not str:
-            return None
+    def to_dna_feature(self, value, i):
+        if self.get_value(value):
+            if value in ['gene', 'precursor', 'non-coding']:
+                return value
+            raise ValueError('DNA feature must be "gene", "precursor", "non-coding", not "{:s}" (row {:d})'.format(str(value), i))
 
-        if str in ['+', 'positive', 'p', 'forward', 'f']:
-            return 'forward'
+    def to_content_type(self, value, i):
+        if self.get_value(value):
+            value = str(value).lower()
+            if value in ['wt', 'wildtype', 'wild-type']:
+                return 'wild-type'
+            elif value in ['ko', 'knockout', 'knock-out']:
+                return 'knock-out'
+            elif value in ['bg', 'background']:
+                return 'background'
+            elif value in ['nm', 'normalisation', 'normaliser']:
+                return 'normalisation'
+            elif value in ['sm', 'sample']:
+                return 'sample'
+            elif value == 'empty':
+                return 'empty'
+            raise Exception("Well content type not recognised: {:s} (row {:d})".format(str(value), i))
+        else:
+            return 'empty'
 
-        if str in ['-', 'negative', 'n', 'reverse', 'r']:
-            return 'reverse'
+    def load_all(self):
+        self.load_projects()
+        self.session.commit()
+        self.load_targets()
+        self.session.commit()
+        self.load_guides()
+        self.session.commit()
+        self.load_amplicon_selection()
+        self.session.commit()
+        self.load_experiment_layout()
+        self.session.commit()
+        self.load_plates()
+        self.session.commit()
+        self.load_sequencing_libraries()
+        self.session.commit()
 
-        raise ValueError('Strand must be "forward" or "reverse", not "{:s}" (row {:d})'.format(str, rowNumber))
-
-    def loadAll(self):
-        try:
-            self.loadProjects()
-            self.session.commit()
-            self.loadTargets()
-            self.session.commit()
-            self.loadGuides()
-            self.session.commit()
-            self.loadAmpliconSelection()
-            self.session.commit()
-            self.loadExperimentLayout()
-            self.session.commit()
-            self.loadPlates()
-            self.session.commit()
-            self.loadSequencingLibraries()
-            self.session.commit()
-        finally:
-            self.workbook.close()
-
-    def loadProjects(self):
-        sheet = None
-
-        try:
-            sheet = self.workbook['Project']
-        except KeyError as e:
-            raise Exception("There is no 'Project' sheet in the work book.", e)
-
-        rowNumber = 1
-
-        for row in sheet.iter_rows(min_row=2):
-            ++rowNumber
-
-            projectId = self.get_string(row[0])
-
-            if not projectId:
-                raise Exception('Project identifier is required on row {:d}'.format(rowNumber))
-
-            project = self.session.query(Project).filter(Project.geid == projectId).first()
-
+    def load_projects(self):
+        sheet = self.xls.parse('Project')
+        for i, row in enumerate(sheet.itertuples(), 1):
+            if not row.geid:
+                raise Exception('Project identifier is required on row {:d}'.format(i))
+            project = self.session.query(Project).filter(Project.geid == row.geid).first()
             if project:
                 self.log.info("Already have a project {:s} ({:s})".format(project.geid, project.name))
                 return
-
             project = Project()
-            project.geid = projectId
-            project.name = self.get_string(row[1])
-            project.scientist = self.get_string(row[2])
-            project.group = self.get_string(row[4])
-            project.group_leader = self.get_string(row[5])
-            project.start_date = self.get_date(row[6])
-            project.description = self.get_string(row[7], 1024)
-
+            project.geid = row.geid
+            project.name = row.name
+            project.scientist = row.scientist
+            project.institute = row.institute
+            project.group = row.group
+            project.group_leader = row.group_leader
+            project.start_date = self.get_date(row.start_date)
+            project.description = self.get_string(row.description, 1024)
             self.session.add(project)
-
             self.log.info('Created project {:s}'.format(project.name))
 
-    def loadTargets(self):
-
-        sheet = None
-
-        try:
-            sheet = self.workbook['Target']
-        except KeyError as e:
-            raise Exception("There is no 'Target' sheet in the work book.", e)
-
-        rowNumber = 1
-
-        for row in sheet.iter_rows(min_row=2):
-            ++rowNumber
-
-            projectId = self.get_string(row[0])
-
-            if not projectId:
-                raise Exception('Project identifier is required on row {:d}'.format(rowNumber))
-
-            project = self.session.query(Project).filter(Project.geid == projectId).first()
-
+    def load_targets(self):
+        sheet = self.xls.parse('Target')
+        for i, row in enumerate(sheet.itertuples(), 1):
+            if not row.project_geid:
+                raise Exception('Project identifier is required on row {:d}'.format(i))
+            project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
-                raise Exception('Project "{:s}" does not exist (row {:d})'.format(projectId, rowNumber))
-
-            targetName = self.get_string(row[1])
-
-            if not targetName:
-                raise Exception('Target name is required on row {:d}'.format(rowNumber))
-
-            target = self.session.query(Target).filter(Target.name == targetName).first()
-
+                raise Exception('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
+            if not row.name:
+                raise Exception('Target name is required on row {:d}'.format(i))
+            target = self.session.query(Target).filter(Target.name == row.name).first()
             if target:
                 self.log.info("Already have a target called {:s}. It's from the project {:s}.".format(target.name, target.project.name))
                 return
-
             target = Target(project=project)
-            target.name = targetName
-            target.species = self.get_string(row[2])
-            target.assembly = self.get_string(row[3])
-            target.gene_id = self.get_string(row[4])
-            target.chromosome = self.get_string(row[5])
-            target.start = self.get_int(row[6])
-            target.end = self.get_int(row[7])
-            target.strand = self.toStrand(row[8], rowNumber)
-            target.description = self.get_string(row[9], 1024)
-
+            target.name = row.name
+            target.species = row.species
+            target.assembly = row.assembly
+            target.gene_id = row.gene_id
+            target.chromosome = str(row.chromosome)
+            target.start = int(row.start)
+            target.end = int(row.end)
+            target.strand = self.to_strand(row.strand, i)
+            target.description = self.get_string(row.description, 1024)
             self.session.add(target)
-
             self.log.info('Created target {:s}'.format(target.name))
 
-    def loadGuides(self):
-        sheet = None
-
-        try:
-            sheet = self.workbook['Guide']
-        except KeyError as e:
-            raise Exception("There is no 'Guide' sheet in the work book.", e)
-
-        rowNumber = 1
-
-        for row in sheet.iter_rows(min_row=2):
-            ++rowNumber
-
-            targetName = self.get_string(row[0])
-
-            if not targetName:
-                raise Exception('Target name is required on row {:d}'.format(rowNumber))
-
-            target = self.session.query(Target).filter(Target.name == targetName).first()
-
+    def load_guides(self):
+        sheet = self.xls.parse('Guide')
+        for i, row in enumerate(sheet.itertuples(), 1):
+            if not row.target_name:
+                raise Exception('Target name is required on row {:d}'.format(i))
+            target = self.session.query(Target).filter(Target.name == row.target_name).first()
             if not target:
-                raise Exception('Target "{:s}" does not exist (row {:d})'.format(targetName, rowNumber))
-
-            guideName = self.get_string(row[1])
-
-            if not guideName:
-                raise Exception('Guide name is required on row {:d}'.format(rowNumber))
-
+                raise Exception('Target "{:s}" does not exist (row {:d})'.format(row.target_name, i))
+            if not row.name:
+                raise Exception('Guide name is required on row {:d}'.format(i))
             guide = Guide(target=target)
-            guide.name = guideName
-            guide.guide_sequence = self.get_string(row[2])
-            guide.pam_sequence = self.get_string(row[3])
-            guide.activity = self.get_int(row[4])
-            guide.exon = self.get_int(row[5])
-            guide.nuclease = self.get_string(row[6])
-
+            guide.name = row.name
+            guide.guide_sequence = row.guide_sequence
+            guide.pam_sequence = row.pam_sequence
+            guide.activity = int(row.activity)
+            guide.exon = int(row.exon)
+            guide.nuclease = row.nuclease
             self.session.add(guide)
-
             self.log.info('Created guide {:s}'.format(guide.name))
 
-    def loadAmpliconSelection(self):
-
-        sheet = None
-
-        try:
-            sheet = self.workbook['AmpliconSelection']
-        except KeyError as e:
-            raise Exception("There is no 'AmpliconSelection' sheet in the work book.")
-
-        rowNumber = 1
+    def load_amplicon_selection(self):
+        sheet = self.xls.parse('AmpliconSelection')
         previous_strand = None
-
-        for row in sheet.iter_rows(min_row=2):
-            ++rowNumber
-
+        for i, row in enumerate(sheet.itertuples(), 1):
             # Need the guide first.
-
-            guideName = self.get_string(row[0])
-
-            if not guideName:
-                raise Exception('Guide name is required on row {:d}'.format(rowNumber))
-
-            guide = self.session.query(Guide).filter(Guide.name == guideName).first()
-
+            if not row.guide_name:
+                raise Exception('Guide name is required on row {:d}'.format(i))
+            guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
             if not guide:
-                raise Exception('Guide "{:s}" does not exist (row {:d})'.format(projectId, rowNumber))
-
+                raise Exception('Guide "{:s}" does not exist (row {:d})'.format(row.guide_name, i))
             # Find or create the amplicon
-            ampliconName = self.get_string(row[5])
-
-            if not ampliconName:
-                raise Exception('Amplicon name is required on row {:d}'.format(rowNumber))
-
-            amplicon = self.session.query(Amplicon).filter(Amplicon.name == ampliconName).first()
-
+            if not row.amplicon_name:
+                raise Exception('Amplicon name is required on row {:d}'.format(i))
+            amplicon = self.session.query(Amplicon).filter(Amplicon.name == row.amplicon_name).first()
             if not amplicon:
-
-                onTarget = self.get_string(row[6])
-
                 amplicon = Amplicon()
-                amplicon.name = ampliconName
-                amplicon.is_on_target = onTarget and 'true' == onTarget.casefold()
-                amplicon.dna_feature = self.get_string(row[7])
-                amplicon.chromosome = self.get_string(row[8])
-
+                amplicon.name = row.amplicon_name
+                amplicon.is_on_target = bool(row.is_on_target)
+                amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
+                amplicon.chromosome = str(row.chromosome)
+                #amplicon.start = ??? # should be calculate
+                #amplicon.end = ??? # should be calculate
                 self.session.add(amplicon)
-
                 self.log.info('Created amplicon {:s}'.format(amplicon.name))
-
             # Find or create the amplicon selection
-
-            guideLocation = self.get_int(row[2])
-
-            strand = self.toStrand(row[3], rowNumber)
+            strand = self.to_strand(row.guide_strand, i)
             if strand:
                 previous_strand = strand
             else:
                 if previous_strand:
                     strand = previous_strand
                 else:
-                    raise Exception("Have no guide strand on row {:d}".format(rowNumber))
-
-            selection = self.session.query(AmpliconSelection).filter(AmpliconSelection.amplicon == amplicon)\
-                                                        .filter(AmpliconSelection.guide_location == guideLocation)\
-                                                        .filter(AmpliconSelection.guide_strand == strand).first()
-
+                    raise Exception("Have no guide strand on row {:d}".format(i))
+            selection = self.session.query(AmpliconSelection)\
+                                    .filter(AmpliconSelection.amplicon == amplicon)\
+                                    .filter(AmpliconSelection.guide_location == int(row.guide_location))\
+                                    .filter(AmpliconSelection.guide_strand == strand).first()
             if not selection:
-
                 selection = AmpliconSelection(guide=guide, amplicon=amplicon)
-                selection.experiment_type = self.get_string(row[1])
-                selection.guide_location = guideLocation
+                selection.experiment_type = row.experiment_type
+                selection.guide_location = int(row.guide_location)
                 selection.guide_strand = strand
-
-                scoreStr = self.get_string(row[4])
-                if scoreStr is not None and scoreStr != 'NA':
-                    selection.score = int(scoreStr)
-
+                if not row.score and row.score != 'NA':
+                    selection.score = int(row.score)
                 self.session.add(selection)
-
                 self.log.info('Created amplicon selection of amplicon {:s} at {:d}'.format(amplicon.name, selection.guide_location))
-
-            geid = self.get_string(row[9])
-
-            if not geid:
-                raise Exception('Primer GEID is required on row {:d}'.format(rowNumber))
-
-            primer = self.session.query(Primer).filter(Primer.geid == geid).first()
-
+            # Find or create primer
+            if not row.primer_geid:
+                raise Exception('Primer GEID is required on row {:d}'.format(i))
+            primer = self.session.query(Primer).filter(Primer.geid == row.primer_geid).first()
             if not primer:
                 primer = Primer()
-                primer.geid = self.get_string(row[9])
-                primer.sequence = self.get_string(row[10])
-                primer.strand = self.toStrand(row[11], rowNumber)
-                primer.start = self.get_int(row[12])
-                primer.end = self.get_int(row[13])
-                primer.description = self.get_string(row[14], 1024)
-
+                primer.geid = row.primer_geid
+                primer.sequence = row.primer_sequence
+                primer.strand = self.to_strand(row.primer_strand, i)
+                primer.start = int(row.primer_start)
+                primer.end = int(row.primer_end)
+                primer.description = self.get_string(row.description, 1024)
                 self.session.add(primer)
-
                 self.log.info('Created primer {:s}'.format(primer.geid))
-
             primer.amplicons.append(amplicon)
-
             self.log.info('Linked amplicon {:s} with primer {:s}'.format(amplicon.name, primer.geid))
 
-    def loadExperimentLayout(self):
-
-        sheet = None
-
-        try:
-            sheet = self.workbook['ExperimentLayout']
-        except KeyError as e:
-            raise Exception("There is no 'ExperimentLayout' sheet in the work book.")
-
-        rowNumber = 1
-        plate = None
-
-        for row in sheet.iter_rows(min_row=2):
-            ++rowNumber
-
+    def load_experiment_layout(self):
+        sheet = self.xls.parse('ExperimentLayout')
+        guide = None
+        for i, row in enumerate(sheet.itertuples(), 1):
             # Need to find project.
-
-            projectId = self.get_string(row[0])
-
-            if not projectId:
-                raise Exception('Project identifier is required on row {:d}'.format(rowNumber))
-
-            project = self.session.query(Project).filter(Project.geid == projectId).first()
-
+            if not row.project_geid:
+                raise Exception('Project identifier is required on row {:d}'.format(i))
+            project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
-                raise Exception('Project "{:s}" does not exist (row {:d})'.format(projectId, rowNumber))
-
+                raise Exception('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
             # May also need to find a guide.
-
-            guide = None
-
-            guideName = self.get_string(row[5])
-
-            if guideName:
-                guide = self.session.query(Guide).filter(Guide.name == guideName).first()
-
+            if self.get_value(row.guide_name):
+                guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
                 if not guide:
-                    raise("There is no guide with the name {:s}".format(guideName))
-
+                    raise Exception("There is no guide with the name {:s}".format(str(row.guide_name)))
             # Experiment layout
-
-            layoutGeid = self.get_string(row[1])
-
-            if not layoutGeid:
-                raise Exception('Experiment layout GEID is required on row {:d}'.format(rowNumber))
-
-            layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == layoutGeid).first()
-
+            if not row.geid:
+                raise Exception('Experiment layout GEID is required on row {:d}'.format(i))
+            layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
                 layout = ExperimentLayout(project=project)
-                layout.geid = layoutGeid
-
+                layout.geid = row.geid
                 self.session.add(layout)
-
                 self.log.info('Created experiment layout {:s} in project {:s}'.format(layout.geid, project.geid))
-
-            # Cell row
-
-            celllineName = self.get_string(row[3])
-
-            cellline = None
-
-            if celllineName:
-                cellline = self.session.query(CellLine).filter(CellLine.name == celllineName).first()
-
-                if not cellline:
-                    cellline = CellLine(name=celllineName)
-
-                    self.session.add(cellline)
-
-                    self.log.info('Created cell row {:s}'.format(cellline.name))
-
+            # Cell line
+            if self.get_value(row.cell_line_name):
+                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
+                if not cell_line:
+                    cell_line = CellLine(name=row.cell_line_name)
+                    self.session.add(cell_line)
+                    self.log.info('Created cell line {:s}'.format(cell_line.name))
             # Clone
-
-            cloneName = self.get_string(row[4])
-
-            clone = None
-
-            if cloneName:
-
-                if not cellline:
-                    raise Exception('Cannot have a clone without a cell row on row {:d}'.format(rowNumber))
-
-                clone = self.session.query(Clone).filter(Clone.cell_line == cellline).filter(Clone.name == cloneName).first()
-
+            if self.get_value(row.clone_name):
+                if not cell_line:
+                    raise Exception('Cannot have a clone without a cell line on row {:d}'.format(i))
+                clone = self.session.query(Clone).filter(Clone.cell_line == cell_line).filter(Clone.name == row.clone_name).first()
                 if not clone:
-                    clone = Clone(cell_line=cellline)
-                    clone.name = cloneName
-
+                    clone = Clone(cell_line=cell_line)
+                    clone.name = row.clone_name
                     self.session.add(clone)
-
                     self.log.info('Created clone {:s} from cell row {:s}'.format(clone.name, clone.cell_line.name))
-
-            # Plate
-            plate = self.session.query(Plate).filter(Plate.geid == layoutGeid).first()
-
-            if not plate:
-                plate = Plate(experiment_layout=layout)
-                plate.geid = layout.geid
-
-                self.session.add(plate)
-
-                self.log.info('Created plate {:s}'.format(plate.geid))
-
             # Well content
-            content = None
-
             if clone:
-
-                contentType = self.get_string(row[8])
-                if contentType:
-                    contentType = contentType.lower()
-
-                    if contentType in ['wt', 'wildtype', 'wild-type']:
-                        contentType = 'wild-type'
-                    elif contentType in ['ko', 'knockout', 'knock-out']:
-                        contentType = 'knock-out'
-                    elif contentType in ['bg', 'background']:
-                        contentType = 'background'
-                    elif contentType in ['nm', 'normalisation', 'normaliser']:
-                        contentType = 'normalisation'
-                    elif contentType in ['sm', 'sample']:
-                        contentType = 'sample'
-                    elif contentType == 'empty':
-                        contentType = None
-                    else:
-                        raise Exception("Well content type not recognised: {:s}".format(contentType))
-
                 content = WellContent(clone=clone)
-
                 if guide:
                     content.guides.append(guide)
-
-                controlFlag = self.get_string(row[7])
-
-                content.replicate_group = self.get_int(row[6])
-                content.is_control = controlFlag and 'true' == controlFlag.casefold()
-                content.content_type = contentType
-
+                content.replicate_group = self.get_int(row.replicate_group)
+                content.is_control = bool(row.is_control)
+                content.content_type = self.to_content_type(row.content_type, i)
                 self.session.add(content)
-
                 self.log.info("Created well content for clone {:s}".format(content.clone.name))
-
             # Well
-            wellPos = self.get_string(row[2])
-
-            if not wellPos:
-                raise Exception('Well position is required on row {:d}'.format(rowNumber))
-
+            if not row.well_position:
+                raise Exception('Well position is required on row {:d}'.format(i))
             well = Well(experiment_layout=layout)
-            well.row = wellPos[0]
-            well.column = int(wellPos[1:])
+            well.row = row.well_position[0]
+            well.column = int(row.well_position[1:])
             well.well_content = content
-
             self.session.add(well)
-
             self.log.info('Created well {:s}{:d} in layout {:s}'.format(well.row, well.column, well.experiment_layout.geid))
 
-    def loadPlates(self):
+    def load_plates(self):
         df = self.xls.parse('Plate')
         for row in df.itertuples():
             experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
@@ -475,7 +289,7 @@ class LayoutLoader(ExcelLoader):
             self.session.add(plate)
             self.log.info('Created plate {:s} in layout {:s}'.format(plate.geid, plate.experiment_layout.geid))
 
-    def loadSequencingLibraries(self):
+    def load_sequencing_libraries(self):
         df = self.xls.parse('SequencingLibrary')
         for row in df.itertuples():
             sequencing_library = self.session.query(SequencingLibrary).filter(SequencingLibrary.slxid == row.slxid).first()
@@ -568,7 +382,7 @@ def main():
     loader = LayoutLoader(session, options.file_layout)
 
     try:
-        loader.loadAll()
+        loader.load_all()
     except Exception as e:
         log.exception(e)
     finally:

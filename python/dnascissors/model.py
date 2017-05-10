@@ -12,8 +12,8 @@ Base = declarative_base()
 
 class Project(Base):
     """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_Project.csv
-    geid	name	scientist	institute	group	group_leader	start_date	description
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Project
+    columns: geid	name	scientist	institute	group	group_leader	start_date	description
     """
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
@@ -30,8 +30,8 @@ class Project(Base):
 
 class Target(Base):
     """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_Target.csv
-    project_geid	name	species	assembly	gene_id	chromosome	start	end	strand	description
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Target
+    columns: project_geid	name	species	assembly	gene_id	chromosome	start	end	strand	description
     """
     __tablename__ = 'target'
     id = Column(Integer, primary_key=True)
@@ -52,8 +52,8 @@ class Target(Base):
 
 class Guide(Base):
     """
-    template file: data/template/YYYYMMDD_GEPXXXXX_Guide.csv
-    target_name	name	guide_sequence	pam_sequence	activity	exon	nuclease
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Guide
+    columns: target_name	name	guide_sequence	pam_sequence	activity	exon	nuclease
     """
     __tablename__ = 'guide'
     id = Column(Integer, primary_key=True)
@@ -84,8 +84,8 @@ class Amplicon(Base):
 
 class AmpliconSelection(Base):
     """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_AmpliconSelection.csv
-    guide_name	experiment_type	guide_location	guide_strand	score	amplicon_name	is_on_target	dna_feature	chromosome	primer_geid	primer_sequence	primer_strand	primer_start	primer_end
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: AmpliconSelection
+    columns: guide_name	experiment_type	guide_location	guide_strand	score	amplicon_name	is_on_target	dna_feature	chromosome	primer_geid	primer_sequence	primer_strand	primer_start	primer_end	description
     """
     __tablename__ = 'amplicon_selection'
     id = Column(Integer, primary_key=True)
@@ -141,8 +141,8 @@ class Clone(Base):
 
 class ExperimentLayout(Base):
     """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_ExperimentLayout.csv
-    geid	well_position	cell_line_name	clone_name	guide_name	replicate_group	content_type	is_control
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: ExperimentLayout
+    columns: project_geid	geid	well_position	cell_line_name	clone_name	guide_name	replicate_group	is_control	content_type
     """
     __tablename__ = 'experiment_layout'
     id = Column(Integer, primary_key=True)
@@ -154,6 +154,10 @@ class ExperimentLayout(Base):
 
 
 class Plate(Base):
+    """
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Plate
+    columns: experiment_layout_geid	plate_barcode	geid	description
+    """
     __tablename__ = 'plate'
     id = Column(Integer, primary_key=True)
     experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='plate_experiment_layout_fk', ondelete='CASCADE'))
@@ -180,7 +184,7 @@ class WellContent(Base):
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', name='content_type'), nullable=False)
+    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
 
 
@@ -205,8 +209,8 @@ class Well(Base):
 
 class SequencingLibrary(Base):
     """
-    template file: data/templates/YYYYMMDD_GEPXXXXX_SequencingLibrary.csv
-    experiment_layout_geid	well_position	dna_source	slxid	library_type	barcode_size	sequencing_barcode	sequencing_sample_name
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: SequencingLibrary
+    columns: experiment_layout_geid	well_position	dna_source	slxid	library_type	barcode_size	sequencing_barcode	sequencing_sample_name
     """
     __tablename__ = 'sequencing_library'
     id = Column(Integer, primary_key=True)

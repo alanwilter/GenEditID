@@ -31,7 +31,8 @@
 - [ ] Chandu: modify script to read from db
 - [ ] Chandu: move script
 - [x] Anne: git move?
-- [ ] Anne: add mismatch table, clean python loader code
+- [x] Anne: clean python loader code
+- [ ] Anne: add mismatch table
 - [ ] Anne: look at python webapp options and framework
 
 
@@ -42,7 +43,7 @@
 - [ ] Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously - need to add an 'allele_number' field to the database
 - [ ] There are large frameshifts missing in either haplotype or Vardict callers, so it could be that we need to merge results from both?
 
-Following Friday 5th May 2017 3 month review:
+**Following Friday 5th May 2017 3 month review:**
 - primer design automation and loading data in DB (primer blast)
 - guide vs variants score given by the website (Ruben has code)
 - base content of variants and coordinates
