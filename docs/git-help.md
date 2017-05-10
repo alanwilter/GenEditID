@@ -31,3 +31,21 @@ https://kirstiejane.github.io/friendly-github-intro/
   git merge origin/master
   git push origin master
   ```
+
+## Moving or renaming files
+
+- [Moving a file to a new location using the command line](https://help.github.com/articles/moving-a-file-to-a-new-location-using-the-command-line/)
+  ```bash
+  mv /old-folder/image.png /new-folder/.
+  git add /new-folder/image.png
+  git commit -m "Move file to new directory"
+  git push origin master
+  ```
+- [Renaming a file using the command line](https://help.github.com/articles/renaming-a-file-using-the-command-line/)
+  ```bash
+  git mv old_filename new_filename
+  git commit -m "Rename file"
+  git push origin master
+  ```
+
+  NB. This [post](http://stackoverflow.com/questions/2314652/is-it-possible-to-move-rename-files-in-git-and-maintain-their-history) says Git detects renames rather than persisting the operation with the commit, so whether you use `git mv` or just a plain `mv` doesn't matter.
