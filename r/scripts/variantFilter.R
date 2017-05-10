@@ -5,6 +5,22 @@
 library( dplyr)
 library( ggplot2)
 
+
+cleanColNames <- function( tab, varType, varCaller ){
+  # clean col names
+  names(tab) <- gsub('\\.','_',names(tab) )
+  names(tab) <- gsub('__','_',names(tab) )
+  names(tab) <- sub('_$','', names(tab))
+  
+  names(tab)[match( 'X5_context', names(tab) ) ] <- 'fivePrimeContext'
+  names(tab)[match( 'X3_context', names(tab) ) ] <- 'threePrimeContext'
+  tab <- mutate( tab, varType=rep(varType, nrow(tab)),
+                 varCaller=rep(varCaller, nrow(tab))
+                 )
+  return(tab)
+  
+}
+
 # Need to add additional column indicating on or off targets
 # filter based on alle frequency
 # Filter all the sites <0.15 ( equvivalent of 6 alleles 100/6 ~ .15%)
@@ -29,23 +45,46 @@ library( ggplot2)
 # STAT3.2.in__STAT3.3.in__STAT3.4.in = 40497640
 # STAT3.1.in = 40498700
 # STAT3.3.off1= 125765667
-tab <- read.delim( file='SLX-13775_variantsINDELS.csv', stringsAsFactors = F)  #Ruben. Add variantsSNV's
 
-# clean col names
-names(tab) <- gsub('\\.','_',names(tab) )
-names(tab) <- gsub('__','_',names(tab) )
-names(tab) <- sub('_$','', names(tab))
+# read cut site info from DB
 
-names(tab)[match( 'X5_context', names(tab) ) ] <- 'fivePrimeContext'
-names(tab)[match( 'X3_context', names(tab) ) ] <- 'threePrimeContext'
+# Connect to DB
+db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting" )
 
-# remove empty columns
-tab <- select(tab, -Existing_variation : -GMAF, -PubMed) 
+# Data is spread in two tables
+# amplicon_selection
+# amplicon
 
+# cut site = amplicon_selection.guide_location
+# Amplicon Name = amplicon.name
+
+# read amplicon_selection table
+amplicon_selection <- tbl( db, 'amplicon_selection') %>% 
+  select( amplicon_id, guide_location) %>% 
+  as.data.frame()
+
+
+# read amplicon table
+amplicon <- tbl( db, 'amplicon' ) %>% 
+  select( id, name) %>% 
+  rename( amplicon_id=id) %>% 
+  as.data.frame()
+
+# merge two tables
+cutInfoTab <- left_join(amplicon_selection, amplicon, by='amplicon_id' )
+
+tab <- read.delim( file='../../data/20170127_GEP00001/NGSpreliminaryData/SLX-13775_variantsINDELS.csv', stringsAsFactors = F)  #Ruben. Add variantsSNV's
+
+# clean column names
+tab <- cleanColNames( tab,varType='indel', varCaller='VarDict')
+
+# add on/off target info
 tab <- mutate(tab, OnTarget=rep('-', nrow(tab)))
 tab$OnTarget[ grep( 'off', tab$Amplicon)] <- 'FALSE'
 tab <- mutate( tab,OnTarget=ifelse(OnTarget == 'FALSE', FALSE, TRUE) )
 
+
+# add cut site info
 tab <- mutate(tab, cutSite=ifelse(Amplicon =='STAT3.2.in__STAT3.3.in__STAT3.4.in', 40497640,  
                                   ifelse( Amplicon == 'STAT3.1.in', 40498700, 125765667)))
 tab <- mutate(tab, distance=abs(Position - cutSite))
