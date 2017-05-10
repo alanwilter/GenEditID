@@ -1,6 +1,5 @@
 library(dplyr)
-library(grofit)
-library(ggplot2)
+library(plotly)
 
 # connect to database
 #db <- src_sqlite("crispr.sqlite")
@@ -41,20 +40,23 @@ protein_abundance_data <- left_join(well, abundance, by="well_id") %>%
     select(classifier, position, intensity_channel_700, intensity_channel_800) %>%
     rename(Content=classifier, Channel700=intensity_channel_700, Channel800=intensity_channel_800)
 
-print(protein_abundance_data)
-
+#-----------------------------
+# CALCULATIONS
 # calculate relative protein abundance, ratio 800 to 700
 protein_abundance_data['ratio800to700'] = protein_abundance_data['Channel800']/protein_abundance_data['Channel700']
-protein_abundance_data
 
+# -----------------------------
+# PLOTS
 # plot ratio against cell line
-protein_abundance_plot <- ggplot(protein_abundance_data, aes(x = Content, y = ratio800to700)) +
-    geom_violin() +
-    geom_point(aes(colour=Content)) +
-    theme_bw() +
-    ggtitle('InCellWestern') +
-    xlab('Cell line') +
-    ylab('Relative protein abundance (ratio 800 to 700 nm)') +
-    theme(axis.text.x = element_text(angle=15, vjust=0.5, size=10))
-
-print(protein_abundance_plot)
+protein_abundance_plot <- protein_abundance_data %>%
+                          group_by(Content, Plate, Well) %>%
+                          plot_ly(.,
+                                  x = ~Content,
+                                  y = ~ratio800to700,
+                                  type = 'scatter',
+                                  mode = 'markers',
+                                  color = ~Content,
+                                  # Hover text:
+                                  text = ~paste("Content:Plate:Well ", Content, Plate, Well)
+                                  ) %>%
+                          layout(xaxis = list(title ='Cell line'), yaxis = list(title = 'Relative protein abundance'))
