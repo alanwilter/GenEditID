@@ -1,8 +1,10 @@
 # Planning meetings
 
 ## Data in database
-
 - store NGS results
+
+[Database installation/information](postgres.md)
+
 
 ## Variant calling methods
 
@@ -15,7 +17,7 @@
 - plots only against a specific project
 - plot growth curves
 - plot protein against growth slopes - add smoothing to the calculation of the slope
-- show the right clone by giving a score and displaying on a plate view (red/green)
+- show the right clone by giving a score and displaying on a plate view (red/green) using the plate layout project from github https://github.com/crukci-bioinformatics/PlateLayout
   - allele frequency - filtering, threshold 0.15 and then take into account for calculating score
   - weight down the ones with off-target
   - real mutation
@@ -23,19 +25,26 @@
 
 ### Interactive plots next
 
-## Plan
+## Today's plan
+- [ ] Rich: load data from db in shiny app
+- [ ] Ruben: put Rich plot in shiny app
+- [ ] Chandu: modify script to read from db
+- [ ] Chandu: move script
+- [x] Anne: git move?
+- [ ] Anne: add mismatch table, clean python loader code
+- [ ] Anne: look at python webapp options and framework
 
-- Anne will load the NGS results into the database
-- Rich will do the plate drawing based on the plate layout project from github https://github.com/crukci-bioinformatics/PlateLayout
-- Ruben will do the smoothing of the slope [r/scripts/genome_editing.r](../r/scripts/genome_editing.r)
-- Chandu will do the calculation of the NGS score
 
-[Database installation/information](postgres.md)
+## What's next? Our TODO list...
+- [ ] need to modify variantFilter_V1.0.R to get the cut site from database
+- [ ] load data from both indels and snvs into variantFilter_V1.0.R
+- [ ] issue with shiny app: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
+- [ ] Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously - need to add an 'allele_number' field to the database
+- [ ] There are large frameshifts missing in either haplotype or Vardict callers, so it could be that we need to merge results from both?
 
-# TODO list
-
-- [] Need to modify variantFilter_V1.0.R to get the cut site from database
-- [] load data from both indels and snvs into variantFilter_V1.0.R
-- [] issue with shiny app: position_dodge messes up hover event data. Ruben is on it, raised issue at github plot.ly.
-- [] Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously. We need to add an 'allele_number' field to the database.
-- [] There are large frameshifts missing in either haplotype or Vardict callers, so it could be that we need to merge results from both?
+Following Friday 5th May 2017 3 month review:
+- primer design automation and loading data in DB (primer blast)
+- guide vs variants score given by the website (Ruben has code)
+- base content of variants and coordinates
+- analyse different projects together
+- web app
