@@ -20,4 +20,4 @@ done
 
 echo 'Loading sequencing variant results'
 python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsINDELsResults.csv --type=INDEL
-python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNPsResults.csv --type=SNP
+python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNVsResults.csv --type=SNV

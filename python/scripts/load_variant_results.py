@@ -10,7 +10,7 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
 
 
-def loadVariantResults(log, session, file_name, variant_type):
+def load_variant_results(log, session, file_name, variant_type):
     log.info("Loading variant results from {:s}".format(file_name))
     with open(file_name, 'r') as f:
         reader = csv.DictReader(f, delimiter=',')
@@ -61,7 +61,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", dest="file", action="store", help="The variant results CSV file e.g. 'data/20170127_GEP00001/GEP00001_NGS_IndelsResults.csv'.", required=True)
-    parser.add_argument("--type", dest="variant_type", action="store", help="The type of variant results.", choices=['INDEL', 'SNP'], required=True)
+    parser.add_argument("--type", dest="variant_type", action="store", help="The type of variant results.", choices=['INDEL', 'SNV'], required=True)
     parser.add_argument("--clean", dest="clean_db", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
@@ -77,7 +77,7 @@ def main():
             delete_count = session.query(VariantResult).delete()
             log.info('Deleted {:d} variant results'.format(delete_count))
 
-        loadVariantResults(log, session, options.file, options.variant_type)
+        load_variant_results(log, session, options.file, options.variant_type)
     except Exception as e:
         log.exception(e)
 

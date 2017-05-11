@@ -8,16 +8,16 @@ from dnascissors.config import cfg
 from dnascissors.model import Base, Plate, Well, ProteinAbundance
 
 
-def loadICW(log, session, plateId, fileName):
+def load_ICW(log, session, plate_id, file_name):
 
-    plate = session.query(Plate).filter(Plate.geid == plateId).first()
+    plate = session.query(Plate).filter(Plate.geid == plate_id).first()
 
     if not plate:
-        raise Exception('No plate {:s}'.format(plateId))
+        raise Exception('No plate {:s}'.format(plate_id))
 
-    log.info("Loading InCell Western signal for plate {:s} from {:s}".format(plateId, fileName))
+    log.info("Loading InCell Western signal for plate {:s} from {:s}".format(plate_id, file_name))
 
-    with open(fileName, 'r') as f:
+    with open(file_name, 'r') as f:
         reader = csv.reader(f, delimiter='\t')
 
         channel = None
@@ -86,7 +86,7 @@ def main():
     session = DBSession()
 
     try:
-        loadICW(log, session, options.plateid, options.file)
+        load_ICW(log, session, options.plateid, options.file)
     except Exception as e:
         log.exception(e)
 
