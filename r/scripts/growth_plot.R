@@ -11,15 +11,16 @@ fun.growth_readDB <- function() {
     db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
     
     # connect to tables
-    clone <- tbl(db, "clone") %>% rename(clone_id=id, clone_name=name)
     well <- tbl(db, "well") %>% rename(well_id=id)
-    well_content <- tbl(db, "well_content") %>% rename(well_content_id=id)
-    plate <- tbl(db, "plate") %>% rename(plate_id=id)
     growth <- tbl(db, "growth") %>% rename(growth_id=id)
-    target <- tbl(db, "target") %>% rename(target_id=id, target_name=name)
-    guide <- tbl(db, "guide") %>% rename(guide_id=id, guide_name=name)
+    well_content <- tbl(db, "well_content") %>% rename(well_content_id=id)
+    clone <- tbl(db, "clone") %>% rename(clone_id=id, clone_name=name)
+    cell_line <- tbl(db, "cell_line") %>% rename(cell_line_id=id, cell_line_name=name, cell_line_description=description)
+    plate <- tbl(db, "plate") %>% rename(plate_id=id)
     guide_well_content_association <- tbl(db, "guide_well_content_association")
-    
+    guide <- tbl(db, "guide") %>% rename(guide_id=id, guide_name=name)
+    target <- tbl(db, "target") %>% rename(target_id=id, target_name=name)
+
     # read clone growth data
     clone_growth_data <- left_join(well, growth, by="well_id") %>%
       inner_join(., well_content, by="well_content_id") %>%
@@ -35,6 +36,8 @@ fun.growth_readDB <- function() {
       rename(Content = classifier, Plate=plate_id, Target=target_name, Guide=guide_name, Well=position, Elapsed=hours, Confluence=confluence_percentage) %>%
       filter(!is.na(Confluence)) %>%
       mutate(Plate = as.factor(Plate), Well = as.factor(Well), Guide = as.factor(Guide))
+      # add reactive filters (sliders) to filter out clones with no or little growth
+    
     return(clone_growth_data)
 }
 
@@ -84,7 +87,7 @@ fun.growth_calcslope <- function(clone_growth_data) {
 # PLOTS
 
 # clone growth curves
-fun.growth_plotcurves <- funtion(cgd) {
+fun.growth_plotcurves <- function(cgd) {
   # cgd: clone_growth_data
   
 clone_growth_data <- as.data.frame(cgd) %>%

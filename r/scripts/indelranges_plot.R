@@ -83,6 +83,17 @@ fun.NGS_plotindelranges <- function(a) {
   # a: databy.haploranges.rangesfull
 
 # ------ Ruben to update ggplot with plot_ly  
+  g.plot <- plot_ly(subset(a, indel.IRanges.width > 0),
+                    shapes = list(
+                      list(
+                           type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.3,
+                           x0 = "1980-01-01", x1 = "1985-01-01", xref = "x",
+                           y0 = 4, y1 = 12.5, yref = "y"),
+                      )
+                    )
+  
+  
   
 g.plot <- ggplot(subset(a, indel.IRanges.width > 0), aes(xmin = start, xmax = end, ymin = 0, ymax = Allele.fraction, color = indelID)) +
   geom_point(data = subset(a, indel.IRanges.width == 0 & Chromosome == 'chr10'), aes(x = Position, y = Allele.fraction), color = 'black') +
