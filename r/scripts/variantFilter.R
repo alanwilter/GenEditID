@@ -51,27 +51,76 @@ cleanColNames <- function( tab, varType, varCaller ){
 # Connect to DB
 db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting" )
 
-# Data is spread in two tables
+###################################################
+
+# Varinat output has sample names and barcode
+# Sample names in DB : sequencing_library_content
+# Actual cut sites in DB :  amplicon_selection (col name:guide_location)
+
+# Map sequencing_library_content and amplicon_selection through intermediate tables
+# For more info - crispr_db_diagram_postgres.pdf
+
+# sequencing_library_content
+#      |
+#     \|/
+#     well 
+#      |
+#     \|/
+#     well_content 
+#      |
+#     \|/
+#  guide_well_content_association
+#     /|\
+#      |
+#   guide
+#     /|\
+#      |
 # amplicon_selection
-# amplicon
 
-# cut site = amplicon_selection.guide_location
-# Amplicon Name = amplicon.name
+########################################
+# sequencing_library_content -> well -> well_content
 
-# read amplicon_selection table
-amplicon_selection <- tbl( db, 'amplicon_selection') %>% 
-  select( amplicon_id, guide_location) %>% 
+sequencing_library_content <- tbl(db, 'sequencing_library_content') %>%  
+  rename( well_content_id=well_id) %>% 
+  select( -id) %>% 
   as.data.frame()
 
+# well_id in sequencing_library_id == well_content_id
 
-# read amplicon table
-amplicon <- tbl( db, 'amplicon' ) %>% 
-  select( id, name) %>% 
-  rename( amplicon_id=id) %>% 
+well <- tbl( db, 'well') %>% 
+  select( -row, -column) %>% 
   as.data.frame()
 
-# merge two tables
-cutInfoTab <- left_join(amplicon_selection, amplicon, by='amplicon_id' )
+# merger sequencing_library_content + well
+seq_library_con_plus_well <- left_join(sequencing_library_content, well, by='well_content_id') 
+
+
+# in in seq_library_con_plus_well == id in well_content
+well_content <- tbl(db, 'well_content') %>%  as.data.frame()
+
+seq_lib_con_plus_well_plus_well_con <- left_join(seq_library_con_plus_well, well_content, by='id') 
+###############################################
+
+guide_well_content_association <- tbl( db, 'guide_well_content_association') %>% 
+  as.data.frame()
+
+guide <- tbl(db, 'guide') %>%  
+  rename( guide_id = id) %>% 
+  as.data.frame()
+
+amplicon_selection <- tbl( db, 'amplicon_selection') %>% as.data.frame()
+
+amplicon <- tbl(db, 'amplicon') %>% 
+  select( -dna_feature:-end) %>% 
+  as.data.frame()
+as_plus_a <- left_join( amplicon_selection, amplicon, by='id')
+
+slc_plus_w_plus_wc_gwca <- left_join( seq_lib_con_plus_well_plus_well_con, 
+                                      guide_well_content_association, by='well_content_id') 
+
+#######################################################
+
+
 
 tab <- read.delim( file='../../data/20170127_GEP00001/NGSpreliminaryData/SLX-13775_variantsINDELS.csv', stringsAsFactors = F)  #Ruben. Add variantsSNV's
 
