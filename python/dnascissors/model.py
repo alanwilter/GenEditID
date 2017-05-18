@@ -242,7 +242,7 @@ class VariantResult(Base):
     sequencing_library_content = relationship(
         SequencingLibraryContent,
         backref=backref('variant_results', uselist=True, cascade='delete,all'))
-    variant_type = Column(Enum('INDEL', 'SNP', name='variant_type'), nullable=False, index=True)
+    variant_type = Column(Enum('INDEL', 'SNV', name='variant_type'), nullable=False, index=True)
     consequence = Column(String(32))
     gene_id = Column(String(32))
     gene = Column(String(32))

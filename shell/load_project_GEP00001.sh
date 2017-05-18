@@ -14,10 +14,10 @@ python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJDATE}_${PROJNAME}
 for plateid in 01 02 03 04 05 06
 do
   echo 'Loading data for plate' ${plateid}
-  python python/scripts/load_protein_abundance.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_ICW.csv
-  python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_incu.txt
+  python python/scripts/load_protein_abundance.py --plateid=${PROJNAME}_${plateid}_ICW --file=${PROJDIR}/${PROJNAME}_${plateid}_ICW.csv
+  python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid}_incu --file=${PROJDIR}/${PROJNAME}_${plateid}_incu.txt
 done
 
 echo 'Loading sequencing variant results'
 python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsINDELsResults.csv --type=INDEL
-python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNPsResults.csv --type=SNP
+python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNVsResults.csv --type=SNV

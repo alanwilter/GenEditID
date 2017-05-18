@@ -34,6 +34,7 @@ class LayoutLoader(ExcelLoader):
         self.log = logging.getLogger('dnascissors')
         self.session = session
         self.xls = pandas.ExcelFile(workbook_file)
+        self.genome_assembly = None
 
     def to_strand(self, value, i):
         if self.get_value(value):
@@ -131,6 +132,7 @@ class LayoutLoader(ExcelLoader):
             target.description = self.get_string(row.description, 1024)
             self.session.add(target)
             self.log.info('Created target {:s}'.format(target.name))
+            self.genome_assembly = target.assembly
 
     def load_guides(self):
         sheet = self.xls.parse('Guide')
@@ -163,17 +165,18 @@ class LayoutLoader(ExcelLoader):
             if not guide:
                 raise Exception('Guide "{:s}" does not exist (row {:d})'.format(row.guide_name, i))
             # Find or create the amplicon
-            if not row.amplicon_name:
-                raise Exception('Amplicon name is required on row {:d}'.format(i))
-            amplicon = self.session.query(Amplicon).filter(Amplicon.name == row.amplicon_name).first()
+            amplicon_name = '{:s}_chr{:s}_{:d}_off'.format(self.genome_assembly, str(row.chromosome), int(row.forward_primer_start))
+            if bool(row.is_on_target):
+                amplicon_name = '{:s}_chr{:s}_{:d}_on'.format(self.genome_assembly, str(row.chromosome), int(row.forward_primer_start))
+            amplicon = self.session.query(Amplicon).filter(Amplicon.name == amplicon_name).first()
             if not amplicon:
                 amplicon = Amplicon()
-                amplicon.name = row.amplicon_name
+                amplicon.name = amplicon_name
                 amplicon.is_on_target = bool(row.is_on_target)
                 amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
                 amplicon.chromosome = str(row.chromosome)
-                #amplicon.start = ??? # should be calculate
-                #amplicon.end = ??? # should be calculate
+                amplicon.start = int(row.forward_primer_start)
+                amplicon.end = int(row.reverse_primer_start)
                 self.session.add(amplicon)
                 self.log.info('Created amplicon {:s}'.format(amplicon.name))
             # Find or create the amplicon selection
@@ -198,22 +201,38 @@ class LayoutLoader(ExcelLoader):
                     selection.score = int(row.score)
                 self.session.add(selection)
                 self.log.info('Created amplicon selection of amplicon {:s} at {:d}'.format(amplicon.name, selection.guide_location))
-            # Find or create primer
-            if not row.primer_geid:
-                raise Exception('Primer GEID is required on row {:d}'.format(i))
-            primer = self.session.query(Primer).filter(Primer.geid == row.primer_geid).first()
-            if not primer:
-                primer = Primer()
-                primer.geid = row.primer_geid
-                primer.sequence = row.primer_sequence
-                primer.strand = self.to_strand(row.primer_strand, i)
-                primer.start = int(row.primer_start)
-                primer.end = int(row.primer_end)
-                primer.description = self.get_string(row.description, 1024)
-                self.session.add(primer)
-                self.log.info('Created primer {:s}'.format(primer.geid))
-            primer.amplicons.append(amplicon)
-            self.log.info('Linked amplicon {:s} with primer {:s}'.format(amplicon.name, primer.geid))
+            # Find or create forward primer
+            if not row.forward_primer_geid:
+                raise Exception('Forward primer GEID is required on row {:d}'.format(i))
+            forward_primer = self.session.query(Primer).filter(Primer.geid == row.forward_primer_geid).first()
+            if not forward_primer:
+                forward_primer = Primer()
+                forward_primer.geid = row.forward_primer_geid
+                forward_primer.sequence = row.forward_primer_sequence
+                forward_primer.strand = 'forward'
+                forward_primer.start = int(row.forward_primer_start)
+                forward_primer.end = int(row.forward_primer_end)
+                forward_primer.description = self.get_string(row.description, 1024)
+                self.session.add(forward_primer)
+                self.log.info('Created primer {:s}'.format(forward_primer.geid))
+            forward_primer.amplicons.append(amplicon)
+            self.log.info('Linked amplicon {:s} with forward primer {:s}'.format(amplicon.name, forward_primer.geid))
+            # Find or create reverse primer
+            if not row.reverse_primer_geid:
+                raise Exception('Reverse primer GEID is required on row {:d}'.format(i))
+            reverse_primer = self.session.query(Primer).filter(Primer.geid == row.reverse_primer_geid).first()
+            if not reverse_primer:
+                reverse_primer = Primer()
+                reverse_primer.geid = row.reverse_primer_geid
+                reverse_primer.sequence = row.reverse_primer_sequence
+                reverse_primer.strand = 'reverse'
+                reverse_primer.start = int(row.reverse_primer_start)
+                reverse_primer.end = int(row.reverse_primer_end)
+                reverse_primer.description = self.get_string(row.description, 1024)
+                self.session.add(reverse_primer)
+                self.log.info('Created primer {:s}'.format(reverse_primer.geid))
+            reverse_primer.amplicons.append(amplicon)
+            self.log.info('Linked amplicon {:s} with forward primer {:s}'.format(amplicon.name, reverse_primer.geid))
 
     def load_experiment_layout(self):
         sheet = self.xls.parse('ExperimentLayout')
