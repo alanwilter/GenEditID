@@ -1,3 +1,18 @@
+# Need to install Bioperl, Matt suggested to intsll local copy of perla nd then install bioperl
+
+# Matt mail 
+On 4 Apr 2017, at 11:42, Matthew Eldridge <Matthew.Eldridge@cruk.cam.ac.uk> wrote:
+
+Perl: I use perlbrew and cpanm (see ~eldrid01/README.perl on new cluster)
+
+Ensembl VEP: I use a local private installation (see ~/eldrid01/software/ensembl/README) but have put the cached reference data for anyone to use here: /mnt/scratchb/bioinformatics/eldrid01/reference_data/ensembl/vep
+
+Some recent run folders:
+/mnt/scratcha/bioinformatics/eldrid01/20170131_PiskorzA_JB_ampliconseq
+
+
+
+
 # kickstart
 sbatch runKickStart_v1.0.sh 
 
