@@ -11,18 +11,24 @@ library(plotly)
 # Currently it does not read from the database. Also we need to modify the hard-added column 'Type', so it is managed from the database only.
 # Things that should come or go from/to the database are marked as %DB
 
-fun.NGS_readDB <- function() {
-  
-  # ----------update this to read from DB
-  
-  # Hard-added a column called 'Type' with the variant caller used (Haplotype.caller or Vardict). This should be done differently when loading from
-  # database, since data from indels and snvs is unified there
-  NGSdata <- read.delim('r/shinyapp/data/SLX-13774variants.csv')
-  NGSdata <- NGSdata[,c(1:4, 9, 10, 16,17, 20, 31)]
-  colnames(NGSdata) <- c('Type', 'Sample', 'Barcode', 'Variant', 'Chromosome', 'Position', 'Allele.fraction', 'Depth', 'Amplicon', 'indel.length')
-  # ----------
-  
-  return(data)
+fun.NGS_readDB <- function(db) {
+
+    sql <- 
+        'select
+             vr.variant_type as Type,
+             slc.sequencing_sample_name as Sample,
+             slc.sequencing_barcode as Barcode,
+             vr.chromosome as Chromosome,
+             vr.position as Position,
+             vr.allele_fraction as AlleleFraction,
+             vr.depth as Depth,
+             vr.amplicon as Amplicon,
+             vr.indel_length as IndelLength
+         from
+             sequencing_library_content slc
+             inner join variant_result vr on vr.sequencing_library_content_id = slc.id'
+    
+    dbGetQuery(db$con, sql)
 }
 
 
@@ -35,15 +41,16 @@ fun.NGS_indelranges <- function(NGSdata) {
 
     # ---------Ruben update this once the database table is clear  
     # take results from Haplotype.caller only
-    data <-  droplevels(NGSdata[grep('H.', NGSdata$Type), ]) # split is done by levels, so make sure that unused ones are dropped
+    #data <-  droplevels(NGSdata[grep('H.', NGSdata$type), ]) # split is done by levels, so make sure that unused ones are dropped
     # ---------
     
-    databy <- split(data, f = data$Sample)
+    databy <- split(NGSdata, f = NGSdata$sample)
     
-    # create indel position ranges (position, indellenght), shifting positions for deletions
-     # (e.g. an indel in position 8 and width = -2 is converted into indel in postion 6 and width = 2) for IRanges to work
+    # create indel position ranges (position, indel length), shifting positions for deletions
+    # (e.g. an indel in position 8 and width = -2 is converted into indel in postion 6 and width = 2) for IRanges to work
+    # Note that in the second line, column 5 is the position and column 9 is the indel length (b[c(5,9)]).
     databy.haploranges <- lapply(databy, function(b) {
-      dat <- apply(b[c(6,10)], 1, FUN = function(a) {    #note that `apply` works on matrices, so it must receive just numeric data, otherwise it will convert 'b' into character.
+      dat <- apply(b[c(5,9)], 1, FUN = function(a) {    #note that `apply` works on matrices, so it must receive just numeric data, otherwise it will convert 'b' into character.
         if(is.na(a[2])) res <- c(a[1], a[1], 0) else
           if(a[2] < 0) res <- c(a[1], a[1] + a[2], abs(a[2])) else
             if(a[2] > 0) res <- c(a[1], a[1], a[2])
@@ -71,7 +78,7 @@ fun.NGS_indelranges <- function(NGSdata) {
      # so `merge` or `inner_join` will fail and generate incorrect (bigger) dataframes unless more index columns are used to make rows unique.
      # Instead of that, merge by ordering and binding the data.
     databy.haploranges.ranges <- databy.haploranges.ranges[order(databy.haploranges.ranges$Sample, databy.haploranges.ranges$Original.position), ]
-    data <- data[order(data$Sample, data$Position),]
+    data <- NGSdata[order(NGSdata$sample, NGSdata$position),]
     databy.haploranges.rangesfull <- data.frame(data, databy.haploranges.ranges)
     
     # delete columns 'Sample.1' and 'Original.position'
@@ -81,44 +88,97 @@ fun.NGS_indelranges <- function(NGSdata) {
 }
 
 # calculate data for exploratory plots
-fun.NGS_exploratory <- function(NGSdata) {
+fun.NGS_exploratory <- function(db) {
   # NGSdata: data read from the database
   
+    sql <- 
+        'select
+             p.geid as Plate,
+             concat(w.row, w.column) as Well,
+             g.name as Guide,
+             slc.sequencing_sample_name as Sample,
+             slc.sequencing_barcode as Barcode,
+             vr.consequence as Consequence,
+             vr.gene_id as SymbolGene,
+             vr."cDNA_effect" as CDNAEffect,
+             vr.protein_effect as ProteinEffect,
+             vr.codons as Codons,
+             vr.chromosome as Chromosome,
+             vr.position as Position,
+             vr.sequence_ref as Ref,
+             vr.sequence_alt as Alt,
+             vr.allele_fraction as AlleleFraction,
+             vr.depth as Depth,
+             vr.quality as Quality,
+             vr.amplicon as Amplicon,
+             vr.gene as Gene,
+             vr.exon as Exon,
+             vr.offset_from_primer_end as PrimerEndOffset,
+             vr.indel_length as IndelLength,
+             vr.sequence_alleles as Alleles,
+             vr.variant_type as Type
+         from
+             well w
+             left join sequencing_library_content slc on slc.well_id = w.id
+             inner join variant_result vr on vr.sequencing_library_content_id = slc.id
+             inner join experiment_layout el on w.experiment_layout_id = el.id
+             left join plate p on p.experiment_layout_id = el.id
+             inner join well_content wc on w.well_content_id = wc.id
+             left join guide_well_content_association gwca on gwca.well_content_id = wc.id
+             inner join guide g on gwca.guide_id = g.id'
+    
+    data <- dbGetQuery(db$con, sql)
+    
+    data <- data[data$allelefraction > 0.15, c('plate', 'well', 'guide', 'alleles', 'indellength',
+                                               'allelefraction', 'chromosome', 'position',
+                                               'consequence', 'symbolgene')]
+    data$content <- paste0('MCF7 clone3 ', data$guide)
+    data <- data[order(data$plate, data$well), ]
   
-  # Should be loaded from DB
-  # Things annotated as %DB% and /%DB% require updating after NGS data is in the database
-  # %DB%
-  # Temporary workaround to get the NGS data, till we have it in the database.
-  # To create the RDS files, look into r/scripts/ICWincuNGSdata/incu_incellNGS_GEP00001.R script to recreate them
-  data <- readRDS("data/GEP00001_data.RDS")
-  data <- data[data$Allele.fraction > 0.15, c('Plate', 'Well', 'guide', 'Alleles', 'Indel.length',
-                                              'Allele.fraction', 'Chromosome', 'Position',
-                                              'Variant.type.consequence', 'Symbol..Gene.ID.')]
-  data$Content <- paste0('MCF7 clone3 ', data$guide)
-  data <- data[order(data$Plate, data$Well), ]
+    sql <- 
+        'select
+             p.geid as Plate,
+             concat(w.row, w.column) as Well,
+             g.name as Layout,
+             slc.sequencing_sample_name as Sample,
+             vr.consequence as Variant,
+             vr.gene_id as Gene,
+             vr.variant_type as Type,
+             vr.allele_fraction as AlleleFraction
+         from
+             well w
+             left join sequencing_library_content slc on slc.well_id = w.id
+             inner join variant_result vr on vr.sequencing_library_content_id = slc.id
+             inner join experiment_layout el on w.experiment_layout_id = el.id
+             left join plate p on p.experiment_layout_id = el.id
+             inner join well_content wc on w.well_content_id = wc.id
+             left join guide_well_content_association gwca on gwca.well_content_id = wc.id
+             inner join guide g on gwca.guide_id = g.id'
+ 
+    NGSdata <- dbGetQuery(db$con, sql)
   
-  NGSdata <- readRDS('data/GEP00001_dataNGS.RDS') %>%
-    mutate('Content' = as.factor(paste0('MCF7 clone3 ', Layout)),
-           'Plate' = as.factor(Plate)) %>%
-    mutate('Plate' = gsub('plate', '', Plate)) %>%
-    droplevels %>%
-    arrange(desc(Plate, Well))
+    NGSdata <- NGSdata %>%
+        mutate('content' = as.factor(paste0('MCF7 clone3 ', layout)),
+               'plate' = as.factor(plate)) %>%
+        mutate('plate' = gsub('plate', '', plate)) %>%
+        droplevels %>%
+        arrange(desc(plate, well))
   
-  NGSdata.cells <- NGSdata[grepl('-C', NGSdata$Sample),] # extracted cells only
-  NGSdata.gDNA <- NGSdata[grepl('-G', NGSdata$Sample),]  # extracted gDNA only
+  NGSdata.cells <- NGSdata[grepl('-C', NGSdata$sample),] # extracted cells only
+  NGSdata.gDNA <- NGSdata[grepl('-G', NGSdata$sample),]  # extracted gDNA only
   
-  fun.by <- function(x) {NGS <- by(x[,], INDICES = list(x$Plate, x$Well, x$Type), FUN = as.data.frame)
+  fun.by <- function(x) {NGS <- by(x[,], INDICES = list(x$plate, x$well, x$type), FUN = as.data.frame)
   NGS <- NGS[!do.call(c, lapply(NGS, is.null))]
   NGS <- lapply(NGS, function(a) data.frame(
-    'Plate' = a$Plate,
-    'Well' = gsub('P.', '', a$Well),
-    'Content' = paste0('MCF7 clone3 ', a$Layout),
-    'Type' = a$Type,  #SNV or INDEL
+    'Plate' = a$plate,
+    'Well' = gsub('P.', '', a$well),
+    'Content' = paste0('MCF7 clone3 ', a$layout),
+    'Type' = a$type,  #SNV or INDEL
     'NROW' = nrow(a), 
-    'homo' = a$AlleleFraction >0.85,
-    'muthet' = a$AlleleFraction > 0.35 & a$AlleleFraction <0.85 & nrow(a) > 1,
-    'mutwt' = a$AlleleFraction > 0.35 & a$AlleleFraction <0.85 & nrow(a) == 1,
-    'has.offtargets' = length(unique(a$Gene)) > 1)
+    'homo' = a$allelefraction >0.85,
+    'muthet' = a$allelefraction > 0.35 & a$allelefraction <0.85 & nrow(a) > 1,
+    'mutwt' = a$allelefraction > 0.35 & a$allelefraction <0.85 & nrow(a) == 1,
+    'has.offtargets' = length(unique(a$gene)) > 1)
   )
   NGS2 <- lapply(NGS, function(a) {  #consolidate rows of the dataframe
     a$homo <- all(a$homo)
@@ -130,7 +190,7 @@ fun.NGS_exploratory <- function(NGSdata) {
   NGS <- lapply(NGS, function(a) a[1,]) #select first row only
   }
   
-  fun.by2 <- function(x) {NGS <- by(x[,], INDICES = list(x$Plate, x$Well), FUN = as.data.frame)
+  fun.by2 <- function(x) {NGS <- by(x[,], INDICES = list(x$plate, x$well), FUN = as.data.frame)
   NGS <- NGS[!do.call(c, lapply(NGS, is.null))]}
   
   NGSdataby.cells <- lapply(fun.by(NGSdata.cells), function(a) data.frame(a, 'DNAsource' = 'cells'))
@@ -160,7 +220,6 @@ fun.NGS_exploratory <- function(NGSdata) {
   # ICWincuNGS <- subset(ICWincuNGS, !grepl('normalisation|background', Content)) %>% droplevels
   # #NGSdata <- subset(NGSdata, !grepl('normalisation|background', Content))
   # #/%DB%
-  
 }
 
 
@@ -184,9 +243,9 @@ fun.NGS_plotindelranges <- function(a) {
           # 
   
   
-g.plot <- ggplot(subset(a, indel.IRanges.width > 0), aes(xmin = start, xmax = end, ymin = 0, ymax = Allele.fraction, color = indelID)) +
-  geom_point(data = subset(a, indel.IRanges.width == 0 & Chromosome == 'chr10'), aes(x = Position, y = Allele.fraction), color = 'black') +
-  geom_rect(mapping = aes(fill = Variant)) +
+g.plot <- ggplot(subset(a, indel.IRanges.width > 0), aes(xmin = start, xmax = end, ymin = 0, ymax = allelefraction, color = indelID)) +
+  geom_point(data = subset(a, indel.IRanges.width == 0 & chromosome == 'chr10'), aes(x = position, y = allelefraction), color = 'black') +
+  geom_rect(mapping = aes(fill = type)) +
   facet_wrap(~Sample) +
   geom_vline(xintercept=89653802, color = 'steelblue', linetype = "dotted") +
   theme_classic()

@@ -6,9 +6,7 @@ library(dplyr)
 library(grofit)
 library(plotly)
 
-fun.growth_readDB <- function() {
-# connect to database
-    db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
+fun.growth_readDB <- function(db) {
     
     # connect to tables
     well <- tbl(db, "well") %>% rename(well_id=id)
