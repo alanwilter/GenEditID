@@ -1,95 +1,89 @@
 library( 'dplyr')
 library( 'RPostgreSQL')
 
-# connect to DB
-db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", 
-                   port=5432, dbname="geneediting" )
+# --------------------------------------------------------------------------------
+# Definitions
+# --------------------------------------------------------------------------------
+# <--------- Amplicon ---------->
+# ===============================
+# forward primer   reverse primer
+# >>>>>>>                 <<<<<<<
+#        <---- Target --->
 
+# --------------------------------------------------------------------------------
+# Questions?
+# --------------------------------------------------------------------------------
+# (1) Where does amplicon seq pipeline use strand information?
+# Not clear, needs to discuss with Matt
+# Currently all the coordinates are forward strand based
+# (2) Should target name be different from amplicon name?
 
-primer_amplicon_association <- tbl( db, 'primer_amplicon_association') %>% as.data.frame()
-
-primer <- tbl( db, 'primer') %>% 
-  select(id, strand, start, end) %>% 
-  rename(primer_id=id,  primer_strand=strand, primer_start=start, primer_end=end) %>% 
-  as.data.frame()
-
-amplicon <- tbl(db, 'amplicon') %>% 
-  select( id,chromosome, start, end) %>%
-  rename( amplicon_id =id, amplicon_start=start, amplicon_end=end) %>% 
-  as.data.frame()
-
-
-target <- tbl(db, 'target') %>% as.data.frame()
-
-
-  #               <----Amplicon----------------->
-  #               ===============================
-  #  Far Primer   >>>>>>>          <<<<<<< Rev primer
-  #                      <-target->
-
-
-# get strand information
-# Where dose amplicon seq pipeline usese strand information?
-# I am not clear, needs to discuss with Matt
-# Currently all the coordinates are forward starand based
-
-#strand <- ifelse( target$strand == 'reverse', '-', '+')
-strand <- '+'  
-genome_id <- target$genome_id
-
-
-# amplicon coordinates
-#  GRC reference genomes chromosome names don't have 'chr'
-amplicon <- mutate(amplicon, chromosome = paste( 'chr', chromosome, sep='')) %>% 
-  mutate( strand=strand, amplicon_name=paste(genome_id, chromosome, amplicon_start, sep='_' )) %>% 
-  arrange(chromosome, amplicon_start) 
-
-write.table(x=select(amplicon, -amplicon_id), file='amplicons_v1.0.txt',
-            row.names = FALSE, col.names = FALSE, quote=FALSE, se='\t'
-            )
-
-# Target coordinates
-
-# join primer_amplicon_association + amplicon
-paa_pl_a <- inner_join(primer_amplicon_association, amplicon, by='amplicon_id')
-
-# paa_pl_a + primer
-paa_pl_a_pl_p <- inner_join( primer, paa_pl_a, by='primer_id')
-
-
-
-# get target coordinates
-chromosome <- c()
-targetStart <- c()
-targetEnd <- c()
-ampliconName <- c()
-
-for( amplicon_ID in unique(paa_pl_a_pl_p$amplicon_id))
+# --------------------------------------------------------------------------------
+# Functions
+# --------------------------------------------------------------------------------
+# load data from database using amplicon query
+loadData <- function(db_connection, slxid) 
 {
-  # target start
-  tStart <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$primer_end
-  tStart <- tStart + 1
-  targetStart <- c(targetStart, tStart)
-  # target end
-  tEnd <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'reverse')$primer_start
-  tEnd <- tEnd - 1
-  targetEnd <- c(targetEnd, tEnd)
-  
-  # chromosome
-  chr <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$chromosome
-  chromosome <- c(chromosome, chr)
-  
-  # amplicon name
-  amplicon_name <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$amplicon_name
-  ampliconName <- c(ampliconName, amplicon_name)
+  sql <- paste0(
+    "select distinct 
+        sequencing_library.slxid,
+        -- amplicon
+        'chr' || amplicon.chromosome as amplicon_chr, 
+        amplicon.start as amplicon_start, 
+        amplicon.end as amplicon_end,
+        case when amplicon_selection.guide_strand = 'forward' then '+' else '-' end as amplicon_strand,
+        genome.assembly || '_chr' || amplicon.chromosome || '_' || amplicon.start as amplicon_name, 
+        -- target
+        'chr' || amplicon.chromosome as target_chr, 
+        forward_primer.end as target_start, 
+        reverse_primer.start as target_end,
+        case when amplicon_selection.guide_strand = 'forward' then '+' else '-' end as target_strand,
+        genome.assembly || '_chr' || amplicon.chromosome || '_' || forward_primer.end as target_name
+    from sequencing_library, 
+        sequencing_library_content, 
+        well, 
+        well_content, 
+        guide_well_content_association, 
+        guide, 
+        amplicon_selection, 
+        amplicon, 
+        genome, 
+        primer_amplicon_association as forward_association, 
+        primer_amplicon_association as reverse_association, 
+        primer as forward_primer, 
+        primer as reverse_primer
+    where sequencing_library_content.sequencing_library_id=sequencing_library.id
+        and sequencing_library_content.well_id=well.id
+        and well.well_content_id=well_content.id
+        and guide_well_content_association.guide_id=guide.id
+        and guide_well_content_association.well_content_id=well_content.id
+        and amplicon_selection.guide_id=guide.id
+        and amplicon_selection.amplicon_id=amplicon.id
+        and amplicon.genome_id=genome.id
+        and forward_association.amplicon_id=amplicon.id
+        and forward_association.primer_id=forward_primer.id
+        and forward_primer.strand='forward'
+        and reverse_association.amplicon_id=amplicon.id
+        and reverse_association.primer_id=reverse_primer.id
+        and reverse_primer.strand='reverse'
+        and sequencing_library.slxid='", slxid, "'")
+
+  query <- as.data.frame(dbGetQuery(db_connection, sql))
+  query
 }
 
-targetTable <- data.frame( chromosome=chromosome, targetStart=targetStart, 
-                           targetEnd=targetEnd, strand=rep(strand, length(chromosome)), ampliconName=ampliconName)
+# --------------------------------------------------------------------------------
+# Main code
+# --------------------------------------------------------------------------------
+driver <- dbDriver("PostgreSQL")
+conn <- dbConnect(driver, user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
+slxid <- 'SLX-13775'
+data <- loadData(conn, slxid)
+print(data)
 
-targetTable <- arrange(targetTable, chromosome, targetStart)
+# amplicon coordinates
+write.table(x=select(data, -slxid, -target_chr, -target_start, -target_end, -target_strand, -target_name), file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
 
-write.table(x=targetTable, file='targets_v1.0.txt',
-            row.names = FALSE, col.names = FALSE, quote=FALSE, se='\t'
-           )
+# target coordinates
+write.table(x=select(data, -slxid, -amplicon_chr, -amplicon_start, -amplicon_end, -amplicon_strand, -amplicon_name), file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
 
