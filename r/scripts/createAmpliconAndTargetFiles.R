@@ -1,96 +1,95 @@
-# This script is modified to fit to new format 
-# data 05-04-2017
+library( 'dplyr')
+library( 'RPostgreSQL')
 
-library( dplyr)
-
-
-
-makeTargetsUniq <- function( tab )
-{
-  tab <- mutate(tab, IDs = paste( chromosome, start, end, sep=':'))
-  uniqueTab <- tab[!duplicated(tab$IDs),]
-  
-  for (EachDupId in unique(tab$IDs[duplicated(tab$IDs)]) ){
-    #cat( EachDupId, "\n")
-    newName <- paste(as.vector(filter(tab, IDs == EachDupId)$ampliconName), collapse = ',' )
-    uniqueTab[uniqueTab$IDs == EachDupId, 'ampliconName'] <- newName
-  }
-  
-  uniqueTab <- mutate(uniqueTab, chromosome= paste( 'chr', chromosome, sep=''))
-  uniqueTab <- arrange(uniqueTab, chromosome, start)
-  uniqueTab <- select(uniqueTab, -IDs)
-  return(uniqueTab)
-  
-}
+# connect to DB
+db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", 
+                   port=5432, dbname="geneediting" )
 
 
+primer_amplicon_association <- tbl( db, 'primer_amplicon_association') %>% as.data.frame()
+
+primer <- tbl( db, 'primer') %>% 
+  select(id, strand, start, end) %>% 
+  rename(primer_id=id,  primer_strand=strand, primer_start=start, primer_end=end) %>% 
+  as.data.frame()
+
+amplicon <- tbl(db, 'amplicon') %>% 
+  select( id,chromosome, start, end) %>%
+  rename( amplicon_id =id, amplicon_start=start, amplicon_end=end) %>% 
+  as.data.frame()
 
 
-tab <- read.csv( file='20170118_GEP00001_format_05_04_17.csv', stringsAsFactors = F)
-tab <- select(tab, -description)
+target <- tbl(db, 'target') %>% as.data.frame()
 
-strand <- '-'
+
+  #               <----Amplicon----------------->
+  #               ===============================
+  #  Far Primer   >>>>>>>          <<<<<<< Rev primer
+  #                      <-target->
+
+
+# get strand information
+# Where dose amplicon seq pipeline usese strand information?
+# I am not clear, needs to discuss with Matt
+# Currently all the coordinates are forward starand based
+
+#strand <- ifelse( target$strand == 'reverse', '-', '+')
+strand <- '+'  
+genome_id <- target$genome_id
+
+
+# amplicon coordinates
+#  GRC reference genomes chromosome names don't have 'chr'
+amplicon <- mutate(amplicon, chromosome = paste( 'chr', chromosome, sep='')) %>% 
+  mutate( strand=strand, amplicon_name=paste(genome_id, chromosome, amplicon_start, sep='_' )) %>% 
+  arrange(chromosome, amplicon_start) 
+
+write.table(x=select(amplicon, -amplicon_id), file='amplicons_v1.0.txt',
+            row.names = FALSE, col.names = FALSE, quote=FALSE, se='\t'
+            )
+
+# Target coordinates
+
+# join primer_amplicon_association + amplicon
+paa_pl_a <- inner_join(primer_amplicon_association, amplicon, by='amplicon_id')
+
+# paa_pl_a + primer
+paa_pl_a_pl_p <- inner_join( primer, paa_pl_a, by='primer_id')
+
+
+
+# get target coordinates
 chromosome <- c()
-ampliconStart <- c()
-ampliconEnd <- c()
 targetStart <- c()
 targetEnd <- c()
 ampliconName <- c()
 
-
-for( amplicon in unique(tab$amplicon))
+for( amplicon_ID in unique(paa_pl_a_pl_p$amplicon_id))
 {
-  cat( amplicon, "\n")
-  
-  # get amplicon start
-  aStart <- filter(tab, amplicon_name == amplicon, primer_strand == 'forward')$primer_start
-  ampliconStart <- c( ampliconStart, aStart)
-  
-  # get amplicon end
-  aEnd <- filter(tab, amplicon_name == amplicon, primer_strand == 'reverse')$primer_end
-  ampliconEnd <- c( ampliconEnd, aEnd)
-  
-  # get target start
-  tStart <- filter(tab, amplicon_name == amplicon, primer_strand == 'forward')$primer_end + 1
+  # target start
+  tStart <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$primer_end
+  tStart <- tStart + 1
   targetStart <- c(targetStart, tStart)
-  # get target end
-  tEnd <- filter(tab, amplicon_name == amplicon, primer_strand == 'reverse')$primer_start - 1
+  # target end
+  tEnd <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'reverse')$primer_start
+  tEnd <- tEnd - 1
   targetEnd <- c(targetEnd, tEnd)
   
-  # get chromosome info
-  chr <- filter(tab, amplicon_name == amplicon, primer_strand == 'forward')$chromosome
+  # chromosome
+  chr <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$chromosome
   chromosome <- c(chromosome, chr)
   
-  # get amplicon name
-  aName <- filter(tab, amplicon_name == amplicon, primer_strand == 'forward')$amplicon_name
-  ampliconName <- c(ampliconName, aName)
-  
+  # amplicon name
+  amplicon_name <- filter( paa_pl_a_pl_p, amplicon_id == amplicon_ID &  primer_strand == 'forward')$amplicon_name
+  ampliconName <- c(ampliconName, amplicon_name)
 }
 
-ampliconTab <- data.frame( chromosome=chromosome, start=ampliconStart, end=ampliconEnd, 
-                           strand=rep(strand, length(chromosome)), ampliconName=ampliconName, stringsAsFactors = F)
-ampliconTabUniq <- makeTargetsUniq(ampliconTab)
+targetTable <- data.frame( chromosome=chromosome, targetStart=targetStart, 
+                           targetEnd=targetEnd, strand=rep(strand, length(chromosome)), ampliconName=ampliconName)
 
+targetTable <- arrange(targetTable, chromosome, targetStart)
 
-write.table(ampliconTabUniq, file = 'amplicons_v1.txt', col.names = F, row.names = F, quote = F, sep='\t')
-
-ampliconTabUniq <- mutate(ampliconTabUniq, start=start-1)
-
-ampliconTabUniq <- select(ampliconTabUniq, -strand)
-
-write.table( ampliconTabUniq, file = 'amplicons_v1.bed', col.names = F, row.names = F, quote = F, sep='\t')
-
-
-
-# target files
-targetTab <- data.frame( chromosome=chromosome, start=targetStart, end=targetEnd, 
-                         strand=rep(strand, length(chromosome)), ampliconName=ampliconName, stringsAsFactors = F)
-targetTabUniq <- makeTargetsUniq(targetTab)
-
-write.table(targetTabUniq, file = 'target_v1.txt', col.names = F, row.names = F, quote = F, sep='\t')
-
-targetTabUniq <- mutate(targetTabUniq, start = start -1)
-
-targetTabUniq <- select(targetTabUniq, -strand)
-write.table(targetTabUniq, file = 'target_v1.bed', col.names = F, row.names = F, quote = F, sep='\t')
+write.table(x=targetTable, file='targets_v1.0.txt',
+            row.names = FALSE, col.names = FALSE, quote=FALSE, se='\t'
+           )
 

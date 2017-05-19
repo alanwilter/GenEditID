@@ -32,6 +32,6 @@ See [docs/project_description.md](docs/project_description.md)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
 
-## Panning discussion and TODO list
+## Planning discussion and TODO list
 
 See [planning](planning.md)
