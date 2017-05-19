@@ -61,7 +61,7 @@ LOGGING = {
 }
 
 
-def get_custom_logger(logfile=None, noemail=False):
+def get_custom_logger(logfile=None, noemail=True):
     if logfile:
         if not os.path.exists(os.path.dirname(logfile)):
             os.makedirs(os.path.dirname(logfile))

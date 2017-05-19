@@ -5,6 +5,7 @@ import pandas
 from dnascissors.config import cfg
 from dnascissors.model import Base
 from dnascissors.model import Project
+from dnascissors.model import Genome
 from dnascissors.model import Target
 from dnascissors.model import Guide
 from dnascissors.model import Amplicon
@@ -34,7 +35,7 @@ class LayoutLoader(ExcelLoader):
         self.log = logging.getLogger('dnascissors')
         self.session = session
         self.xls = pandas.ExcelFile(workbook_file)
-        self.genome_assembly = None
+        self.genome = None
 
     def to_strand(self, value, i):
         if self.get_value(value):
@@ -114,16 +115,26 @@ class LayoutLoader(ExcelLoader):
             project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
                 raise Exception('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
+            if not row.species:
+                raise Exception('Species is required on row {:d}'.format(i))
+            if not row.assembly:
+                raise Exception('Genome assembly is required on row {:d}'.format(i))
+            # Find or create genome
+            genome = self.session.query(Genome).filter(Genome.species == row.species).filter(Genome.assembly == row.assembly).first()
+            if not genome:
+                genome = Genome(species=row.species, assembly=row.assembly)
+                self.session.add(genome)
+                self.log.info('Created genome species {:s}, assembly {:s}'.format(genome.species, genome.assembly))
+            self.genome = genome
+            # Find or create target
             if not row.name:
                 raise Exception('Target name is required on row {:d}'.format(i))
             target = self.session.query(Target).filter(Target.name == row.name).first()
             if target:
                 self.log.info("Already have a target called {:s}. It's from the project {:s}.".format(target.name, target.project.name))
                 return
-            target = Target(project=project)
+            target = Target(project=project, genome=self.genome)
             target.name = row.name
-            target.species = row.species
-            target.assembly = row.assembly
             target.gene_id = row.gene_id
             target.chromosome = str(row.chromosome)
             target.start = int(row.start)
@@ -132,7 +143,6 @@ class LayoutLoader(ExcelLoader):
             target.description = self.get_string(row.description, 1024)
             self.session.add(target)
             self.log.info('Created target {:s}'.format(target.name))
-            self.genome_assembly = target.assembly
 
     def load_guides(self):
         sheet = self.xls.parse('Guide')
@@ -144,7 +154,7 @@ class LayoutLoader(ExcelLoader):
                 raise Exception('Target "{:s}" does not exist (row {:d})'.format(row.target_name, i))
             if not row.name:
                 raise Exception('Guide name is required on row {:d}'.format(i))
-            guide = Guide(target=target)
+            guide = Guide(target=target, genome=self.genome)
             guide.name = row.name
             guide.guide_sequence = row.guide_sequence
             guide.pam_sequence = row.pam_sequence
@@ -165,20 +175,18 @@ class LayoutLoader(ExcelLoader):
             if not guide:
                 raise Exception('Guide "{:s}" does not exist (row {:d})'.format(row.guide_name, i))
             # Find or create the amplicon
-            amplicon_name = '{:s}_chr{:s}_{:d}_off'.format(self.genome_assembly, str(row.chromosome), int(row.forward_primer_start))
-            if bool(row.is_on_target):
-                amplicon_name = '{:s}_chr{:s}_{:d}_on'.format(self.genome_assembly, str(row.chromosome), int(row.forward_primer_start))
-            amplicon = self.session.query(Amplicon).filter(Amplicon.name == amplicon_name).first()
+            amplicon = self.session.query(Amplicon).filter(Amplicon.genome == self.genome)\
+                                                   .filter(Amplicon.chromosome == str(row.chromosome))\
+                                                   .filter(Amplicon.start == int(row.forward_primer_start))\
+                                                   .filter(Amplicon.end == int(row.reverse_primer_start)).first()
             if not amplicon:
-                amplicon = Amplicon()
-                amplicon.name = amplicon_name
-                amplicon.is_on_target = bool(row.is_on_target)
+                amplicon = Amplicon(genome=self.genome)
                 amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
                 amplicon.chromosome = str(row.chromosome)
                 amplicon.start = int(row.forward_primer_start)
                 amplicon.end = int(row.reverse_primer_start)
                 self.session.add(amplicon)
-                self.log.info('Created amplicon {:s}'.format(amplicon.name))
+                self.log.info('Created amplicon {:s}_chr{:s}_{:d}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start))
             # Find or create the amplicon selection
             strand = self.to_strand(row.guide_strand, i)
             if strand:
@@ -197,42 +205,42 @@ class LayoutLoader(ExcelLoader):
                 selection.experiment_type = row.experiment_type
                 selection.guide_location = int(row.guide_location)
                 selection.guide_strand = strand
-                if not row.score and row.score != 'NA':
+                selection.is_on_target = bool(row.is_on_target)
+                if not pandas.isnull(row.score): # and row.score != 'NA':
                     selection.score = int(row.score)
+                selection.description = self.get_string(row.description, 1024)
                 self.session.add(selection)
-                self.log.info('Created amplicon selection of amplicon {:s} at {:d}'.format(amplicon.name, selection.guide_location))
+                self.log.info('Created amplicon selection of amplicon {:s}_chr{:s}_{:d} at {:d}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, selection.guide_location))
             # Find or create forward primer
             if not row.forward_primer_geid:
                 raise Exception('Forward primer GEID is required on row {:d}'.format(i))
             forward_primer = self.session.query(Primer).filter(Primer.geid == row.forward_primer_geid).first()
             if not forward_primer:
-                forward_primer = Primer()
+                forward_primer = Primer(genome=self.genome)
                 forward_primer.geid = row.forward_primer_geid
                 forward_primer.sequence = row.forward_primer_sequence
                 forward_primer.strand = 'forward'
                 forward_primer.start = int(row.forward_primer_start)
                 forward_primer.end = int(row.forward_primer_end)
-                forward_primer.description = self.get_string(row.description, 1024)
                 self.session.add(forward_primer)
                 self.log.info('Created primer {:s}'.format(forward_primer.geid))
             forward_primer.amplicons.append(amplicon)
-            self.log.info('Linked amplicon {:s} with forward primer {:s}'.format(amplicon.name, forward_primer.geid))
+            self.log.info('Linked amplicon {:s}_chr{:s}_{:d} with forward primer {:s}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, forward_primer.geid))
             # Find or create reverse primer
             if not row.reverse_primer_geid:
                 raise Exception('Reverse primer GEID is required on row {:d}'.format(i))
             reverse_primer = self.session.query(Primer).filter(Primer.geid == row.reverse_primer_geid).first()
             if not reverse_primer:
-                reverse_primer = Primer()
+                reverse_primer = Primer(genome=self.genome)
                 reverse_primer.geid = row.reverse_primer_geid
                 reverse_primer.sequence = row.reverse_primer_sequence
                 reverse_primer.strand = 'reverse'
                 reverse_primer.start = int(row.reverse_primer_start)
                 reverse_primer.end = int(row.reverse_primer_end)
-                reverse_primer.description = self.get_string(row.description, 1024)
                 self.session.add(reverse_primer)
                 self.log.info('Created primer {:s}'.format(reverse_primer.geid))
             reverse_primer.amplicons.append(amplicon)
-            self.log.info('Linked amplicon {:s} with forward primer {:s}'.format(amplicon.name, reverse_primer.geid))
+            self.log.info('Linked amplicon {:s}_chr{:s}_{:d} with forward primer {:s}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, reverse_primer.geid))
 
     def load_experiment_layout(self):
         sheet = self.xls.parse('ExperimentLayout')
@@ -260,9 +268,9 @@ class LayoutLoader(ExcelLoader):
                 self.log.info('Created experiment layout {:s} in project {:s}'.format(layout.geid, project.geid))
             # Cell line
             if self.get_value(row.cell_line_name):
-                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
+                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).filter(CellLine.genome == self.genome).first()
                 if not cell_line:
-                    cell_line = CellLine(name=row.cell_line_name)
+                    cell_line = CellLine(name=row.cell_line_name, genome=self.genome)
                     self.session.add(cell_line)
                     self.log.info('Created cell line {:s}'.format(cell_line.name))
             # Clone

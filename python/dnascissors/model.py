@@ -28,6 +28,14 @@ class Project(Base):
     description = Column(String(1024))
 
 
+class Genome(Base):
+    __tablename__ = 'genome'
+    id = Column(Integer, primary_key=True)
+    species = Column(String(32), nullable=False, index=True)
+    assembly = Column(String(32), nullable=False, index=True)
+    UniqueConstraint('species', 'assembly', name='unique_genome_species_assembly')
+
+
 class Target(Base):
     """
     template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Target
@@ -39,9 +47,9 @@ class Target(Base):
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
-    name = Column(String(32), nullable=False, index=True)
-    species = Column(String(32), nullable=False, index=True)
-    assembly = Column(String(32), nullable=False, index=True)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome = relationship(Genome)
+    name = Column(String(32), unique=True, nullable=False, index=True)
     gene_id = Column(String(32), nullable=False, index=True)
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
@@ -61,7 +69,8 @@ class Guide(Base):
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
-    #amplicon_selections = relationship('Amplicon', back_populates="guide")
+    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome = relationship(Genome)
     name = Column(String(32), nullable=False, index=True)
     guide_sequence = Column(String(250), nullable=False)
     pam_sequence = Column(String(6), nullable=False)
@@ -73,13 +82,12 @@ class Guide(Base):
 class Amplicon(Base):
     __tablename__ = 'amplicon'
     id = Column(Integer, primary_key=True)
-    #amplicon_selections = relationship('AmpliconSelection', back_populates="amplicon")
-    name = Column(String(32), unique=True, nullable=False, index=True)
-    is_on_target = Column(Boolean, nullable=False)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome = relationship(Genome)
     dna_feature = Column(Enum('gene', 'precursor', 'non-coding', name='dna_feature'))
     chromosome = Column(String(32), nullable=False, index=True)
-    start = Column(Integer, nullable=True) # should be calculate when loading primers
-    end = Column(Integer, nullable=True) # should be calculate when loading primers
+    start = Column(Integer, nullable=False)
+    end = Column(Integer, nullable=False)
 
 
 class AmpliconSelection(Base):
@@ -100,7 +108,9 @@ class AmpliconSelection(Base):
     experiment_type = Column(String(32))
     guide_location = Column(Integer, nullable=False)
     guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
+    is_on_target = Column(Boolean, nullable=False)
     score = Column(Integer)
+    description = Column(String(1024))
 
 
 primer_amplicon_association = Table('primer_amplicon_association', Base.metadata,
@@ -112,18 +122,21 @@ primer_amplicon_association = Table('primer_amplicon_association', Base.metadata
 class Primer(Base):
     __tablename__ = 'primer'
     id = Column(Integer, primary_key=True)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome = relationship(Genome)
     amplicons = relationship('Amplicon', secondary=primer_amplicon_association)
     geid = Column(String(8), unique=True, nullable=False, index=True)
     sequence = Column(String(250), nullable=False)
     strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
-    description = Column(String(1024))
 
 
 class CellLine(Base):
     __tablename__ = 'cell_line'
     id = Column(Integer, primary_key=True)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome = relationship(Genome)
     name = Column(String(32), unique=True, nullable=False, index=True)
     description = Column(String(1024))
 
@@ -246,7 +259,7 @@ class VariantResult(Base):
     consequence = Column(String(32))
     gene_id = Column(String(32))
     gene = Column(String(32))
-    cDNA_effect = Column(String(250))
+    cdna_effect = Column(String(250))
     protein_effect = Column(String(250))
     codons = Column(String(250))
     chromosome = Column(String(32))

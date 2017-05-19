@@ -26,7 +26,7 @@ def load_variant_results(log, session, file_name, variant_type):
             result.consequence = row['Variant_type_consequence']
             result.gene_id = row['Symbol_Gene_ID']
             result.gene = row['Gene']
-            result.cDNA_effect = row['cDNA_effect']
+            result.cdna_effect = row['cDNA_effect']
             result.protein_effect = row['Protein_effect']
             result.codons = row['Codons']
             result.chromosome = row['Chromosome']
