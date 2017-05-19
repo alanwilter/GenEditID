@@ -178,13 +178,13 @@ class LayoutLoader(ExcelLoader):
             amplicon = self.session.query(Amplicon).filter(Amplicon.genome == self.genome)\
                                                    .filter(Amplicon.chromosome == str(row.chromosome))\
                                                    .filter(Amplicon.start == int(row.forward_primer_start))\
-                                                   .filter(Amplicon.end == int(row.reverse_primer_start)).first()
+                                                   .filter(Amplicon.end == int(row.reverse_primer_end)).first()
             if not amplicon:
                 amplicon = Amplicon(genome=self.genome)
                 amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
                 amplicon.chromosome = str(row.chromosome)
                 amplicon.start = int(row.forward_primer_start)
-                amplicon.end = int(row.reverse_primer_start)
+                amplicon.end = int(row.reverse_primer_end)
                 self.session.add(amplicon)
                 self.log.info('Created amplicon {:s}_chr{:s}_{:d}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start))
             # Find or create the amplicon selection
