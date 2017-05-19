@@ -36,6 +36,7 @@ shinyUI(fluidPage(
             ),
             conditionalPanel(
                condition = "input.EAradio == 3",
+               #fillPage(plotlyOutput('NGS.positionalPlot', height="800px"))
                column(4, plotlyOutput('NGS.mutationsPlot'),
                          plotlyOutput('NGS.distancetocutsitePlot')),
                column(4, plotlyOutput('NGS.variantsPlot'),

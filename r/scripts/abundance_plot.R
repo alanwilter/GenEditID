@@ -5,11 +5,7 @@
 library(dplyr)
 library(plotly)
 
-fun.protein_readDB <- function() {
-  # connect to database
-  #db <- src_sqlite("crispr.sqlite")
-  db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
-  
+fun.protein_readDB <- function(db) {
   # connect to tables
   well <- tbl(db, "well") %>% rename(well_id=id)
   abundance <- tbl(db, "abundance") %>% rename(abundance_id=id)
@@ -50,8 +46,8 @@ fun.protein_readDB <- function() {
 fun.protein_calcratio <- function(pad) {
   # pad: protein_abundance_data
   
-  protein_abundance_data['ratio800to700'] <- pad['Channel800']/pad['Channel700']
-  return(protein_abundance_data)
+    pad['ratio800to700'] <- pad['Channel800']/pad['Channel700']
+  return(pad)
 }
 
 # -----------------------------
@@ -61,7 +57,7 @@ fun.protein_calcratio <- function(pad) {
 fun.protein_plot <- function(pad) {
   # pad: protein_abundance_data
   
-  protein_abundance_plot <- protein_abundance_data %>%
+  protein_abundance_plot <- pad %>%
                           group_by(Content, Plate, Well) %>%
                           plot_ly(.,
                                   x = ~Content,
