@@ -81,9 +81,18 @@ slxid <- 'SLX-13775'
 data <- loadData(conn, slxid)
 print(data)
 
+
 # amplicon coordinates
-write.table(x=select(data, -slxid, -target_chr, -target_start, -target_end, -target_strand, -target_name), file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+amplicon_coordinates <- select(data, contains( 'amplicon') ) %>% 
+  arrange( amplicon_chr, amplicon_start)
+write.table(x=amplicon_coordinates, file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
 
 # target coordinates
-write.table(x=select(data, -slxid, -amplicon_chr, -amplicon_start, -amplicon_end, -amplicon_strand, -amplicon_name), file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+# target_start = forward_primer_end + 1
+# target_end  = reverse_primer_start - 1
+target_coordinates <- select(data, contains( 'target') ) %>% 
+  mutate( target_start = target_start + 1, target_end=target_end-1) %>% 
+  arrange( target_chr, target_start)
+write.table(x=target_coordinates, file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+
 
