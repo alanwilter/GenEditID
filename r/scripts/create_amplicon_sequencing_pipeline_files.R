@@ -80,6 +80,7 @@ conn <- dbConnect(driver, user="gene", password="gene", host="bioinf-ge001.cri.c
 slxid <- 'SLX-13775'
 data <- loadData(conn, slxid)
 print(data)
+<<<<<<< HEAD
 
 # amplicon coordinates
 amplicon_coordinates <- select(data, contains( 'amplicon') ) %>% 
@@ -93,4 +94,12 @@ target_coordinates <- select(data, contains( 'target') ) %>%
   mutate( target_start = target_start + 1, target_end=target_end-1) %>% 
   arrange( target_chr, target_start)
 write.table(x=target_coordinates, file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+=======
+
+# amplicon coordinates
+write.table(x=select(data, -slxid, -target_chr, -target_start, -target_end, -target_strand, -target_name), file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+
+# target coordinates
+write.table(x=select(data, -slxid, -amplicon_chr, -amplicon_start, -amplicon_end, -amplicon_strand, -amplicon_name), file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+>>>>>>> 9c4b10625af12543101a1074948fefdf11d3b6da
 
