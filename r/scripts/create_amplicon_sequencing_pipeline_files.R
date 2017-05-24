@@ -9,6 +9,8 @@ library( 'RPostgreSQL')
 # forward primer   reverse primer
 # >>>>>>>                 <<<<<<<
 #        <---- Target --->
+# target_start = forward_primer_end + 1
+# target_end  = reverse_primer_start - 1
 
 # --------------------------------------------------------------------------------
 # Questions?
@@ -22,35 +24,35 @@ library( 'RPostgreSQL')
 # Functions
 # --------------------------------------------------------------------------------
 # load data from database using amplicon query
-loadData <- function(db_connection, slxid) 
+loadData <- function(db_connection, slxid)
 {
   sql <- paste0(
-    "select distinct 
+    "select distinct
         sequencing_library.slxid,
         -- amplicon
-        'chr' || amplicon.chromosome as amplicon_chr, 
-        amplicon.start as amplicon_start, 
+        'chr' || amplicon.chromosome as amplicon_chr,
+        amplicon.start as amplicon_start,
         amplicon.end as amplicon_end,
-        case when amplicon_selection.guide_strand = 'forward' then '+' else '-' end as amplicon_strand,
-        genome.assembly || '_chr' || amplicon.chromosome || '_' || amplicon.start as amplicon_name, 
+        '+' as amplicon_strand,
+        genome.assembly || '_chr' || amplicon.chromosome || '_' || amplicon.start as amplicon_name,
         -- target
-        'chr' || amplicon.chromosome as target_chr, 
-        forward_primer.end as target_start, 
-        reverse_primer.start as target_end,
-        case when amplicon_selection.guide_strand = 'forward' then '+' else '-' end as target_strand,
+        'chr' || amplicon.chromosome as target_chr,
+        forward_primer.end + 1 as target_start,
+        reverse_primer.start - 1 as target_end,
+        '+' as target_strand,
         genome.assembly || '_chr' || amplicon.chromosome || '_' || forward_primer.end as target_name
-    from sequencing_library, 
-        sequencing_library_content, 
-        well, 
-        well_content, 
-        guide_well_content_association, 
-        guide, 
-        amplicon_selection, 
-        amplicon, 
-        genome, 
-        primer_amplicon_association as forward_association, 
-        primer_amplicon_association as reverse_association, 
-        primer as forward_primer, 
+    from sequencing_library,
+        sequencing_library_content,
+        well,
+        well_content,
+        guide_well_content_association,
+        guide,
+        amplicon_selection,
+        amplicon,
+        genome,
+        primer_amplicon_association as forward_association,
+        primer_amplicon_association as reverse_association,
+        primer as forward_primer,
         primer as reverse_primer
     where sequencing_library_content.sequencing_library_id=sequencing_library.id
         and sequencing_library_content.well_id=well.id
@@ -66,7 +68,8 @@ loadData <- function(db_connection, slxid)
         and reverse_association.amplicon_id=amplicon.id
         and reverse_association.primer_id=reverse_primer.id
         and reverse_primer.strand='reverse'
-        and sequencing_library.slxid='", slxid, "'")
+        and sequencing_library.slxid='", slxid, 
+    "' order by amplicon_chr, amplicon_start")
 
   query <- as.data.frame(dbGetQuery(db_connection, sql))
   query
@@ -81,18 +84,8 @@ slxid <- 'SLX-13775'
 data <- loadData(conn, slxid)
 print(data)
 
-
 # amplicon coordinates
-amplicon_coordinates <- select(data, contains( 'amplicon') ) %>% 
-  arrange( amplicon_chr, amplicon_start)
-write.table(x=amplicon_coordinates, file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+write.table(x=select(data, contains('amplicon')), file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
 
 # target coordinates
-# target_start = forward_primer_end + 1
-# target_end  = reverse_primer_start - 1
-target_coordinates <- select(data, contains( 'target') ) %>% 
-  mutate( target_start = target_start + 1, target_end=target_end-1) %>% 
-  arrange( target_chr, target_start)
-write.table(x=target_coordinates, file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
-
-
+write.table(x=select(data, contains('target')), file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
