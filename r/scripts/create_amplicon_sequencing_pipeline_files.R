@@ -19,6 +19,7 @@ library( 'RPostgreSQL')
 # Not clear, needs to discuss with Matt
 # Currently all the coordinates are forward strand based
 # (2) Should target name be different from amplicon name?
+# No, both amplicon and target names should be identical, therefore using amplicon names for both
 
 # --------------------------------------------------------------------------------
 # Functions
@@ -88,4 +89,5 @@ print(data)
 write.table(x=select(data, contains('amplicon')), file='amplicons.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
 
 # target coordinates
-write.table(x=select(data, contains('target')), file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
+write.table(x=select(data, target_chr, target_start, target_end, target_strand, amplicon_name),
+            file='targets.txt', row.names=FALSE, col.names=FALSE, quote=FALSE, se='\t')
