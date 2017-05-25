@@ -37,11 +37,18 @@
 
 
 ## What's next? Our TODO list...
-- [ ] need to modify variantFilter_V1.0.R to get the cut site from database
-- [ ] load data from both indels and snvs into variantFilter_V1.0.R
+- [ ] tidy up scripts
+- [ ] meet with bioformatics teams from Sanger and AZ
+- [ ] current analysis is per single project > update to process multiple projects
+- [ ] prepare a knock-in donor table to include in database
+- [ ] pipeline to work with human and mouse genomes
+- [x] need to modify variantFilter_V1.0.R to get the cut site from database
+- [x] load data from both indels and snvs into variantFilter_V1.0.R
+- [ ] generate final user report from app (html report?)
 - [ ] issue with shiny app: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
 - [ ] Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously - need to add an 'allele_number' field to the database
 - [ ] There are large frameshifts missing in either haplotype or Vardict callers, so it could be that we need to merge results from both?
+- [ ] currently, one sql query per datase (NGS, growth, protein). Perhaps one query for all (that allows for missing datasets)
 
 **Following Friday 5th May 2017 3 month review:**
 - primer design automation and loading data in DB (primer blast)
@@ -49,3 +56,9 @@
 - base content of variants and coordinates
 - analyse different projects together
 - web app
+
+## Problems to solve
+- [] In NGSplot.R, fun.NGS_readDB() gives a table with NGS data. In field 'plate', we get plates of all types (NGS, PCR, dilution...) and consequently duplicated barcodes. I have pushed a corrected version of the spreadsheet tab 'Plate' (20170127_GEP00001_problemPlate.csv, *not* updated in the Excel file), where all layouts are connected to their respective plate barcodes, so NGSdata can be filtered to yield only NGS plates.
+- [] from tab Guide add 'target_name' to fun.NGS_readDB() in NGSplot.R. This is needed to calculate zygosities in target and off-targets independently within fun.NGS_exploratory()
+- [] from tab AmpliconSelection add 'guide_location' to fun.NGS_readDB() in NGSplot.R. This is needed in NGSplot.R, line 192. In geom_vline(xintercept = guide_location, color = 'steelblue', linetype = "dotted"), 'xintercept' should be guide cut site (guide_location), dependent on guide and supplied from the database. Currently only valid for project1.
+- [] problem with NGS sql query (or database itself?), with incorrect assignment guide/amplicon. See result of running sql_problem.R (e.g. first line, guide 3.1 has amplicon  STAT3.2.in__STAT3.3.in__STAT3.4.in)
