@@ -27,7 +27,7 @@
 
 ## Today's plan
 - [ ] Rich: load data from db in shiny app
-- [ ] Ruben: put Rich plot in shiny app
+- [x] Ruben: put Rich plot in shiny app
 - [ ] Chandu: modify script to read from db
 - [ ] Chandu: move script
 - [x] Anne: git move?
@@ -38,6 +38,7 @@
 
 ## What's next? Our TODO list...
 - [ ] tidy up scripts
+-- [ ] layout_plot.R to use data from all plates
 - [ ] meet with bioformatics teams from Sanger and AZ
 - [ ] current analysis is per single project > update to process multiple projects
 - [ ] prepare a knock-in donor table to include in database
