@@ -170,13 +170,6 @@ fun.NGS_exploratory <- function(NGSdata) {
   return(NGSdata_zygosities)
 }
 
-# merge data from funNGS.indelranges and fun.NGS_exploratory
-  # create 'ids' factor for merging in NGSdata
-NGSdata <- fun.NGS_readDB(db)
-NGSdata.full <- mutate(NGSdata, 'ids' = do.call(paste, c(list(sample, type, guide), list(sep = '.')))) %>%
-  inner_join(., fun.NGS_indelranges(NGSdata), by = c('sample', 'position')) %>%
-  inner_join(., fun.NGS_exploratory(NGSdata), by = c('ids', 'gene'))
-
 # function to calculate percentages of element counts in a variable, used in the plots
 fun.percent <- function(a) {
   table(a) %>%
