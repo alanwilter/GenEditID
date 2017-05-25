@@ -1,47 +1,8 @@
 library(dplyr)
 library(ggplot2)
 library(svglite)
-library(RColorBrewer)
 
 ## Plot function, stolen from "PlateLayout".
-
-testPlot <- function(plotDat, plateName, palette, saveTo = NULL)
-{
-    conditionToPlot <- "Content"
-
-    ContentFactors = as.factor(plotDat$Content)
-    plotDat$Content <- factor(ContentFactors, levels=levels(ContentFactors))
-    
-    boxColCodes <- colorRampPalette(palette)(length(levels(ContentFactors)))
-    
-    RowLabels <- as.factor(plotDat$Row)
-    plotDat$Row <- factor(RowLabels, levels=rev(levels(RowLabels)))
-    
-    NumberOfColumns <- max(plotDat$Column)
-
-    passes <- plotDat$Score >= 3
-    boxColCodes <- factor(ifelse(passes, "green", "red"))
-    
-    print(boxColCodes)
-    
-    plot <- ggplot(plotDat) +
-        geom_tile(aes(x=Column, y=Row, fill=passes), colour="black")  +
-        scale_x_continuous(breaks=1:NumberOfColumns, position="top") +
-        scale_fill_manual(values=levels(boxColCodes), na.translate=FALSE, labels=c("<3", ">=3")) +
-        theme(axis.text.x=element_text(size=20), axis.text.y=element_text(size=20),
-              axis.title.x=element_blank(), axis.title.y=element_blank()) +
-        ggtitle(paste0(plateName, " Plate Layout")) +
-        labs(fill="Score")
-    
-    if (!is.null(saveTo))
-    {
-        plotWidth <- 1.1 * NumberOfColumns + 1.5
-        ggsave(saveTo, height = 5, width = plotWidth)
-    }
-    
-    plot
-}
-
 
 create_classifier <- function(cellline, clone, guide, content)
 {
@@ -95,12 +56,14 @@ variant_result <- tbl(db, "variant_result") %>% rename(variant_result_id=id)
 
 ## TODO: Pass plate identifier as argument to script.
 
-plateId <- 'GEP00001_03'
+plateId <- 'GEP00001_01_ICW'
 
-plateDat <- loadPlateData(db, plateId)
-
-plot <- testPlot(plateDat, plateId, brewer.pal(12, "Set3"), paste0(plateId, "_layout.svg"))
-
-print(plot)
+plot.plate <- loadPlateData(db, plateId) %>%
+  mutate(Score = coalesce(Score, 0L)) %>% # replace NA's with 0's
+  plot_ly(x = ~Column, y = ~Row,
+        mode = "markers", type = "scatter", color = ~Score, colors = c('grey80', 'green4'),
+        marker = list(size = 40)
+        ) %>%
+  layout(yaxis = list(autorange = "reversed"))
 
 RPostgreSQL::dbDisconnect(db$con)
