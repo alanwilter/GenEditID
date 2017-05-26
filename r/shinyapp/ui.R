@@ -36,11 +36,20 @@ shinyUI(fluidPage(
             ),
             conditionalPanel(
                condition = "input.EAradio == 3",
-               #fillPage(plotlyOutput('NGS.positionalPlot', height="800px"))
-               column(4, plotlyOutput('NGS.mutationsPlot'),
-                         plotlyOutput('NGS.distancetocutsitePlot')),
-               column(4, plotlyOutput('NGS.variantsPlot'),
-                         plotlyOutput('NGS.zygosityPlot'))
+               tabsetPanel(
+                 tabPanel('Indel positional ranges',
+                          plotlyOutput('indelrangesPlot')
+                 ),
+                 tabPanel('Proportions',
+                    column(4, plotlyOutput('NGS.mutationsPlot'),
+                              plotlyOutput('NGS.distancetocutsitePlot'),
+                              plotlyOutput('NGS.allelesPlot')
+                           ),
+                    column(4, plotlyOutput('NGS.variantsPlot'),
+                              plotlyOutput('NGS.zygosityPlot')
+                           )
+                 )
+               )
             ),
             conditionalPanel(
                condition = "input.EAradio == 4",
@@ -61,7 +70,9 @@ shinyUI(fluidPage(
       p(),
       sidebarLayout(
         sidebarPanel('Clones'),
-        mainPanel('Plots')
+        mainPanel('Plots',
+                  plotlyOutput('plate.scoresPlot')
+        )
       )
     )
     

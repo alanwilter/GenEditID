@@ -262,9 +262,10 @@ fun.NGS_plotzygosity <- function(NGSdatafull) {
     summarise('total' = n(), 'homo' = sum(homo), 'mutwt' = sum(mutwt), 'muthet' = sum(muthet), 'offtargets' = sum(has.offtargets)) %>%
     mutate_at(vars(homo, muthet, mutwt, offtargets), funs(round(.*100/total, 2))) %>%
     select(-total) %>%
-    melt(id.vars = 'guide')
+    melt(id.vars = 'guide') %>%
+    rename(zygosity = variable, Freq = value)
   
-  plot_ly(zygosity, type = 'scatter', mode = 'markers', x = ~variable, y = ~value, color = ~guide) %>%
+  plot_ly(zygosity, type = 'scatter', mode = 'markers', x = ~zygosity, y = ~Freq, color = ~guide) %>%
     layout(xaxis = list(title = 'Zygosity'), yaxis = list(title = '%'))
 }
 
@@ -297,7 +298,7 @@ fun.NGS_plotalleles <- function(NGSdatafull) {
     select(guide, alleles, indellength, type) %>%
     mutate(indellength = coalesce(indellength, 0L)) %>%  #substitute NA's by 0's
     mutate(indeltype = sapply(indellength, fun.indeltype)) %>%
-    mutate(guide = as.factor(guide))
+    mutate(guide = as.factor(guide), alleles = as.factor(alleles))
  
   frequencies <- table(alleles$guide, alleles$alleles) %>%
     prop.table(margin = 1) %>%

@@ -55,16 +55,17 @@ shinyServer(function(input, output, session) {
   output$growthcurvePlot <- renderPlotly(clone_growth_curve)
   output$growthratePlot <- renderPlotly(clone_growth_rate)
   output$combinedPlot <- renderPlotly(ICWincuNGS_plotly)
-  output$NGS.positionalPlot <- renderPlotly(NGS.positional_plot)
-  #output$NGS.mutationsPlot <- renderPlotly(NGS.mutations)
-  #output$NGS.variantsPlot <- renderPlotly(NGS.variants)
-  #output$NGS.zygosityPlot <- renderPlotly(NGS.zygosity)
-  #output$NGS.distancetocutsitePlot <- renderPlotly(NGS.distancetocutsite)
   
+  output$NGS.indelrangesPlot <- renderPlot(NGS.plotindel_ranges)
+  output$NGS.mutationsPlot <- renderPlotly(NGS.plotmutations)
+  output$NGS.variantsPlot <- renderPlotly(NGS.plotvariants)
+  output$NGS.zygosityPlot <- renderPlotly(NGS.plotzygosity)
+  output$NGS.distancetocutsitePlot <- renderPlotly(NGS.plotdistance)
+  output$NGS.allelesPlot <- renderPlotly(NGS.plotalleles)
   
 # --------------------------------------------------------------------------------
 # RESULTS TAB
-
+  output$plate.scoresPlot <- renderPlotly(plate.plotscores)
 })
 
             
