@@ -45,7 +45,7 @@ fun.layoutplot <- function(conn, layoutId){
           mutate(ge_score = coalesce(ge_score, 0L)) %>% # replace NA's with 0's
           plot_ly(x = ~column, y = ~row,
                   mode = "markers", type = "scatter", color = ~ge_score, colors = c('grey90', 'orange', 'green4'),
-                  marker = list(size = 40),
+                  marker = list(size = 15),
                   # Hover text:
                   text = ~paste0(row, column, ' score: ', ge_score)
           ) %>%

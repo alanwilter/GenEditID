@@ -15,22 +15,17 @@ library(RColorBrewer) # to create color palettes for plotting
 # --------------------------------------------------------------------------------
 # SCRIPTS. Loading of functions used for data processing and plotting
 
-#scriptsDir <- file.path(dirname(getwd()), "scripts") # if in shiny, all paths are relative to the shiny root directory
-
-#source(file.path(scriptsDir, 'growth_plot.R'))
 source('growth_plot.R')
   # fun.growth_readDB
   # fun.growth_calcslope
   # fun.growth_plotcurves
   # fun.growth_plotrates
 
-#source(file.path(scriptsDir, 'abundance_plot.R'))
 source('abundance_plot.R')
   # fun.protein_readDB
   # fun.protein_calcratio
   # fun.protein_plot
 
-#source(file.path(scriptsDir, 'NGS_plot.R'))
 source('NGS_plot.R')
   # fun.NGS_readDB
   # fun.NGS_indelranges

@@ -27,12 +27,12 @@ shinyUI(fluidPage(
         mainPanel(
             conditionalPanel(
                condition = "input.EAradio == 1",
-               column(6, plotlyOutput('growthcurvePlot', height = "600px")),
-               column(6, plotlyOutput('growthratePlot', height = "800px"))
+               column(6, plotlyOutput('growthcurvePlot')),
+               column(6, plotlyOutput('growthratePlot'))
             ),
             conditionalPanel(
                condition = "input.EAradio == 2",
-               plotlyOutput('proteinPlot', height = "800px")
+               plotlyOutput('proteinPlot', height = "600px")
             ),
             conditionalPanel(
                condition = "input.EAradio == 3",
@@ -41,12 +41,12 @@ shinyUI(fluidPage(
                           plotlyOutput('indelrangesPlot')
                  ),
                  tabPanel('Proportions',
-                    column(4, plotlyOutput('NGS.mutationsPlot'),
-                              plotlyOutput('NGS.distancetocutsitePlot'),
-                              plotlyOutput('NGS.allelesPlot')
+                    column(5, plotlyOutput('NGS.mutationsPlot', height = '200px'),
+                              plotlyOutput('NGS.distancetocutsitePlot', height = '200px'),
+                              plotlyOutput('NGS.zygosityPlot', height = '200px')
                            ),
-                    column(4, plotlyOutput('NGS.variantsPlot'),
-                              plotlyOutput('NGS.zygosityPlot')
+                    column(7, plotlyOutput('NGS.variantsPlot', height = '200px'),
+                              plotlyOutput('NGS.allelesPlot')
                            )
                  )
                )
@@ -71,7 +71,7 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel('Clones'),
         mainPanel('Plots',
-                  plotlyOutput('plate.scoresPlot')
+                  plotlyOutput('plate.scoresPlot', height = '200px', width = '400px')
         )
       )
     )

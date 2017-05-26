@@ -198,21 +198,21 @@ fun.NGS_plotindelranges <- function(NGSdatafull) {
   
 
   # split data into guides (because guides have different locations and they mess with xaxis ranges)
+  NGSdatafull <- subset(NGSdatafull, has.offtargets == F) #do not plot samples with offtargets
   data.perguide <- split(NGSdatafull, NGSdatafull$guide, drop = T)
   
   fun.plot <- function(a) {
     #create plot with no synonymous mutations
-    p <-  ggplot(subset(a, indel.IRanges.width > 0 & has.offtargets == F), aes(xmin = start, xmax = end, ymin = 0, ymax = allelefraction, color = indelID)) +
-        geom_rect(mapping = aes(fill = type)) +
-        facet_grid( sample ~ guide, scales = 'free_x') +
-        geom_vline(xintercept = unique(a$guide_location), color = 'steelblue', linetype = "dotted") +
-        theme_classic() +
-        theme(axis.text.x = element_text(angle = 20)) +
-        xlim((min(a$start) - 5), (max(a$end) + 5))
-     
-     #if there are synonymous mutations, add them to the plot with a different color and as a point instea of a rectangle
-    synonymous <- subset(a, indel.IRanges.width == 0 & has.offtargets == F)
-    if(nrow(synonymous) != 0) p <- p + geom_point(data = synonymous, aes(x = Position.IRanges, y = allelefraction), color = 'black')
+    p <-  ggplot() +
+      geom_rect(data = subset(a, type == 'INDEL'),
+                mapping = aes(xmin = start, xmax = end, ymin = 0, ymax = allelefraction), fill = 'green4', color = 'grey20') +
+      geom_point(data = subset(a, type == 'SNV'),
+                mapping = aes(x = start , y = allelefraction), color = 'black') +
+      facet_grid(sample ~ guide, scales = 'free_x') +
+      geom_vline(xintercept = unique(a$guide_location), color = 'steelblue', linetype = "dotted") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 20)) +
+      xlim((min(a$start) - 5), (max(a$end) + 5))
     
     return(p)
   }

@@ -68,7 +68,7 @@ fun.protein_plot <- function(pad) {
                                   # Hover text:
                                   text = ~paste("Content:Plate:Well ", Content, Plate, Well)
                                   ) %>%
-                          layout(xaxis = list(title ='Cell line'), yaxis = list(title = 'Relative protein abundance'))
+                          layout(xaxis = list(title ='Cell line', showticklabels = FALSE), yaxis = list(title = 'Relative protein abundance'))
 
 return(protein_abundance_plot)
 }
