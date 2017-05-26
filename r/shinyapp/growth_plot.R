@@ -141,7 +141,7 @@ return(clone_growth_curve)
 fun.growth_plotrates <- function(cgdg) {
   #cgdg: clone_growth_data_grofitsum
 
-clone_growth_rate <- subset(clone_growth_data_grofitsum, !is.na(mu)) %>%
+clone_growth_rate <- subset(cgdg, !is.na(mu)) %>%
                      group_by(Content, Plate, Well) %>%
                      plot_ly(.,
                              x = ~Content,
