@@ -48,18 +48,21 @@ fun.NGS_readDB <- function(db) {
              left join plate p on p.experiment_layout_id = el.id
              inner join well_content wc on w.well_content_id = wc.id
              left join guide_well_content_association gwca on gwca.well_content_id = wc.id
-             inner join guide g on gwca.guide_id = g.id'
+             inner join guide g on gwca.guide_id = g.id
+         where
+             vr.allele_fraction > 0.1'
+         
+         # rows with allelefraction < 0.1 are likely PCR or sequencing errors
   
-  NGSdata <- dbGetQuery(db$con, sql) %>%
-    filter(allelefraction > 0.1)         # rows with allelefraction < 0.1 are likely PCR or sequencing errors
+    NGSdata <- dbGetQuery(db$con, sql) 
   
-  # TO FIX!
-  # Plate should be filtered to yield only "NGS plates"
-  NGSdata <- filter(NGSdata, grepl('incu', plate)) # temporary workaround until we fix the plate_NGS problems
-  data.guide_location <- data.frame('guide' = unique(NGSdata$guide), 'guide_location' = c(40497619, 40497633, 40498696, 40497587), stringsAsFactors = F)
-  NGSdata <- inner_join(NGSdata, data.guide_location, by = 'guide')
-  
-  return(NGSdata)
+    # TO FIX!
+    # Plate should be filtered to yield only "NGS plates"
+    NGSdata <- filter(NGSdata, grepl('incu', plate)) # temporary workaround until we fix the plate_NGS problems
+    data.guide_location <- data.frame('guide' = unique(NGSdata$guide), 'guide_location' = c(40497619, 40497633, 40498696, 40497587), stringsAsFactors = F)
+    NGSdata <- inner_join(NGSdata, data.guide_location, by = 'guide')
+
+    return(NGSdata)
 }
 
 

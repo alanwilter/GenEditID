@@ -6,6 +6,36 @@ library(dplyr)
 library(grofit)
 library(plotly)
 
+# Started this work but not completed. Keeping for reference.
+fun.growth_readDB.DBI <- function(db) {
+    
+    sql <- '
+        select distinct
+            cl.name as cellline,
+            c.name as clone,
+            g.name as guide,
+            wc.content_type as type,
+            p.geid as plate,
+            concat(w.row, w.column) as well,
+            t.name as target,
+            gr.hours as elapsed,
+            gr.confluence_percentage as confluence
+        from well w
+            inner join growth gr on gr.well_id = w.id
+            inner join well_content wc on w.well_content_id = wc.id
+            inner join experiment_layout el on w.experiment_layout_id = el.id
+            inner join plate p on p.experiment_layout_id = el.id
+            left join clone c on wc.clone_id = c.id
+            inner join cell_line cl on c.cell_line_id = c.id
+            left join guide_well_content_association gwca on gwca.well_content_id = wc.id
+            inner join guide g on gwca.guide_id = g.id
+            inner join target t on g.target_id = t.id
+        where
+            gr.confluence_percentage is not null' 
+    
+    clone_growth_data <- dbGetQuery(db$con, sql)
+}
+
 fun.growth_readDB <- function(db) {
     
     # connect to tables
