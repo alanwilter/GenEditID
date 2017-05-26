@@ -26,14 +26,14 @@
 ### Interactive plots next
 
 ## Today's plan
-- [ ] Rich: load data from db in shiny app
+- [x] Rich: load data from db in shiny app
 - [x] Ruben: put Rich plot in shiny app
-- [ ] Chandu: modify script to read from db
-- [ ] Chandu: move script
+- [x] Chandu: modify script to read from db
+- [x] Chandu: move script
 - [x] Anne: git move?
 - [x] Anne: clean python loader code
 - [ ] Anne: add mismatch table
-- [ ] Anne: look at python webapp options and framework
+- [x] Anne: look at python webapp options and framework
 
 
 ## What's next? Our TODO list...
@@ -64,7 +64,7 @@
 - [] from tab AmpliconSelection add 'guide_location' to fun.NGS_readDB() in NGSplot.R. This is needed in NGSplot.R, line 192. In geom_vline(xintercept = guide_location, color = 'steelblue', linetype = "dotted"), 'xintercept' should be guide cut site (guide_location), dependent on guide and supplied from the database. Currently only valid for project1.
 - [] problem with NGS sql query (or database itself?), with incorrect assignment guide/amplicon. See result of running sql_problem.R (e.g. first line, guide 3.1 has amplicon  STAT3.2.in__STAT3.3.in__STAT3.4.in)
 - [] in growth_plot.R, fun.growth_readDB(db) gives a tbl with NA's in target_id and guide_id ('guide' information is needed to sort the plots)
-- [] in growth_plot.R, something happened to the data, for some reason now we can't calculate slopes! (no errors, but slopes don't work). This could be related to the incorrect create_classifier() output (see that e.g. "MCF7 clone3 STAT3.3 normalisation" should not exist). This odd output applies also to the protein data query. In both growth_plot.R and abundance_plot.R we are using the dplyr queries.
+- [x] in growth_plot.R, something happened to the data, for some reason now we can't calculate slopes! (no errors, but slopes don't work). This could be related to the incorrect create_classifier() output (see that e.g. "MCF7 clone3 STAT3.3 normalisation" should not exist). This odd output applies also to the protein data query. In both growth_plot.R and abundance_plot.R we are using the dplyr queries. (@pajanne I do believe it is now sorted after fixing a bug in the loader)
 
     #unique(clone_growth_data$Content)
     # [1] "MCF7 clone3 normalisation"         "MCF7 clone3 STAT3.3"               "MCF7 clone3 STAT3.3 normalisation"

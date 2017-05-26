@@ -206,7 +206,7 @@ class LayoutLoader(ExcelLoader):
                 selection.guide_location = int(row.guide_location)
                 selection.guide_strand = strand
                 selection.is_on_target = bool(row.is_on_target)
-                if not pandas.isnull(row.score): # and row.score != 'NA':
+                if pandas.notnull(row.score): # and row.score != 'NA':
                     selection.score = int(row.score)
                 selection.description = self.get_string(row.description, 1024)
                 self.session.add(selection)
@@ -244,8 +244,8 @@ class LayoutLoader(ExcelLoader):
 
     def load_experiment_layout(self):
         sheet = self.xls.parse('ExperimentLayout')
-        guide = None
         for i, row in enumerate(sheet.itertuples(), 1):
+            guide = None
             # Need to find project.
             if not row.project_geid:
                 raise Exception('Project identifier is required on row {:d}'.format(i))
@@ -257,7 +257,7 @@ class LayoutLoader(ExcelLoader):
                 guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
                 if not guide:
                     raise Exception("There is no guide with the name {:s}".format(str(row.guide_name)))
-            # Experiment layout
+            # Find or create experiment layout
             if not row.geid:
                 raise Exception('Experiment layout GEID is required on row {:d}'.format(i))
             layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()

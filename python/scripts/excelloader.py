@@ -1,10 +1,13 @@
 from datetime import datetime
+import pandas
 
 
 class ExcelLoader:
 
     def get_value(self, value):
         if not value:
+            return None
+        elif pandas.isnull(value):
             return None
         elif str(value) == 'nan':
             return None
