@@ -38,7 +38,7 @@ shinyUI(fluidPage(
                condition = "input.EAradio == 3",
                tabsetPanel(
                  tabPanel('Indel positional ranges',
-                          plotlyOutput('indelrangesPlot')
+                          plotlyOutput('NGS.indelrangesPlot')
                  ),
                  tabPanel('Proportions',
                     column(5, plotlyOutput('NGS.mutationsPlot', height = '200px'),

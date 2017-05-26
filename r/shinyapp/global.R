@@ -62,9 +62,23 @@ db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.o
 tryCatch(
     {
         # ------------------
-        # DATA processing
+        # DATA processing and plotting
+      
+        # clone growth curves
+        growth.data <- fun.growth_readDB(db)
+        #growth.data$cLayout <- as.factor(sapply(growth.data$Content, function(a) strsplit(a, " ")[[1]][3]))
+        growth.curve <- fun.growth_plotcurves(growth.data)
         
-        # NGS data
+          # clone growth rates
+          growth.data_grofitsum <- fun.growth_calcslope(growth.data)
+          growth.rate <- fun.growth_plotrates(growth.data_grofitsum)
+          
+          
+        # protein abundance
+        protein.data <- fun.protein_readDB(db) %>% fun.protein_calcratio()
+        protein.plot <- fun.protein_plot(protein.data)
+        
+        # NGS
           # merge data from funNGS.indelranges and fun.NGS_exploratory. Create 'ids' factor for merging in NGSdata
         NGSdata <- fun.NGS_readDB(db)
         NGSdata.full <- mutate(NGSdata, 'ids' = do.call(paste, c(list(sample, type, guide), list(sep = '.')))) %>%
@@ -72,26 +86,7 @@ tryCatch(
           inner_join(., fun.NGS_exploratory(NGSdata), by = c('ids', 'gene'))
         
         
-        # ------------------
-        # PLOTS
-        
-        # plot clone growth curves
-        clone_growth_data <- fun.growth_readDB(db)
-        #clone_growth_data$cLayout <- as.factor(sapply(clone_growth_data$Content, function(a) strsplit(a, " ")[[1]][3]))
-        clone_growth_curve <- fun.growth_plotcurves(clone_growth_data)
-        
-        # plot clone growth rates
-  #      clone_growth_data_grofitsum <- fun.growth_calcslope(clone_growth_data)
-   #     clone_growth_rate <- fun.growth_plotrates
-        
-        # plot ratio against cell line
-        protein_abundance_data <- fun.protein_readDB(db) %>% fun.protein_calcratio()
-        protein_abundance_plot <- fun.protein_plot(protein_abundance_data)
-          
-        #--------
-        # NGS plots
-        
-        ## exploratory plots
+        # NGS exploratory plots
         NGS.plotindel_ranges <- fun.NGS_plotindelranges(NGSdata.full) #note that sql query for this needs fixing (see planning.md)
         NGS.plotmutations    <- fun.NGS_plotmutations(NGSdata.full)
         NGS.plotvariants     <- fun.NGS_plotvariants(NGSdata.full)
@@ -101,6 +96,9 @@ tryCatch(
         
         
         # plot combined data (growth + NGS + protein)
+        growth.data_grofitsum
+        protein.data
+        NGSdata.full
         
         # plot combined data (growth + protein)
         

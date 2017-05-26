@@ -51,12 +51,12 @@ shinyServer(function(input, output, session) {
   
 # --------------------------------------------------------------------------------
 # EXPLORATORY ANALYSIS TAB
-  output$proteinPlot <- renderPlotly(protein_abundance_plot)
-  output$growthcurvePlot <- renderPlotly(clone_growth_curve)
-  output$growthratePlot <- renderPlotly(clone_growth_rate)
+  output$proteinPlot <- renderPlotly(protein.plot)
+  output$growthcurvePlot <- renderPlotly(growth.curve)
+  output$growthratePlot <- renderPlotly(growth.rate)
   output$combinedPlot <- renderPlotly(ICWincuNGS_plotly)
   
-  output$NGS.indelrangesPlot <- renderPlot(NGS.plotindel_ranges)
+  output$NGS.indelrangesPlot <- renderPlot(NGS.plotindel_ranges)  # not working. There seems to be a problem with gridExtra and shiny, documented on the web, but I haven't been able to fix it
   output$NGS.mutationsPlot <- renderPlotly(NGS.plotmutations)
   output$NGS.variantsPlot <- renderPlotly(NGS.plotvariants)
   output$NGS.zygosityPlot <- renderPlotly(NGS.plotzygosity)

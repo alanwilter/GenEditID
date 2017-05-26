@@ -198,29 +198,38 @@ fun.NGS_plotindelranges <- function(NGSdatafull) {
   
 
   # split data into guides (because guides have different locations and they mess with xaxis ranges)
-  NGSdatafull <- subset(NGSdatafull, has.offtargets == F) #do not plot samples with offtargets
+  fun.shortnumber <- function(a) { #this function shortens coordinate numbers into a shortened, plottable version (e.g. 45678987 to 987) 
+    a %>%
+      as.character() %>%
+      substr(nchar(.)-2, nchar(.)) %>%
+      as.integer()
+  }
+  
+  NGSdatafull <- subset(NGSdatafull, has.offtargets == F) %>%   #do not plot samples with offtargets
+    mutate(short.start = fun.shortnumber(start), short.end = fun.shortnumber(end), fun.shortnumber(start))
   data.perguide <- split(NGSdatafull, NGSdatafull$guide, drop = T)
   
   fun.plot <- function(a) {
     #create plot with no synonymous mutations
     p <-  ggplot() +
       geom_rect(data = subset(a, type == 'INDEL'),
-                mapping = aes(xmin = start, xmax = end, ymin = 0, ymax = allelefraction), fill = 'green4', color = 'grey20') +
+                mapping = aes(xmin = short.start, xmax = short.end, ymin = 0, ymax = allelefraction), fill = 'green4', color = 'grey20') +
       geom_point(data = subset(a, type == 'SNV'),
-                mapping = aes(x = start , y = allelefraction), color = 'black') +
-      facet_grid(sample ~ guide, scales = 'free_x') +
-      geom_vline(xintercept = unique(a$guide_location), color = 'steelblue', linetype = "dotted") +
-      theme_classic() +
-      theme(axis.text.x = element_text(angle = 20)) +
-      xlim((min(a$start) - 5), (max(a$end) + 5))
+                mapping = aes(x = short.start , y = allelefraction), color = 'black') +
+      geom_vline(xintercept = fun.shortnumber(unique(a$guide_location)), color = 'red', linetype = "dotted", size = 1) +
+      xlim((min(a$short.start) - 5), (max(a$short.end) + 5)) +
+      xlab('coordinate') +
+      theme_bw() +
+      theme(strip.text.y = element_text(angle = 0),
+            strip.background = element_rect(colour = 'white')) +
+      facet_grid(sample ~ guide, scales = 'free_x')
     
     return(p)
   }
   
-  gridplot <- lapply(data.perguide, fun.plot) %>%
-    do.call(grid.arrange,.)
+  return(lapply(data.perguide, fun.plot) %>%
+    do.call(grid.arrange,.))
     
-  return(grid.draw(gridplot))
 }
 
 # Type of mutation (INDEL vs SNV, per guide)
