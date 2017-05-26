@@ -63,3 +63,11 @@
 - [] from tab Guide add 'target_name' to fun.NGS_readDB() in NGSplot.R. This is needed to calculate zygosities in target and off-targets independently within fun.NGS_exploratory()
 - [] from tab AmpliconSelection add 'guide_location' to fun.NGS_readDB() in NGSplot.R. This is needed in NGSplot.R, line 192. In geom_vline(xintercept = guide_location, color = 'steelblue', linetype = "dotted"), 'xintercept' should be guide cut site (guide_location), dependent on guide and supplied from the database. Currently only valid for project1.
 - [] problem with NGS sql query (or database itself?), with incorrect assignment guide/amplicon. See result of running sql_problem.R (e.g. first line, guide 3.1 has amplicon  STAT3.2.in__STAT3.3.in__STAT3.4.in)
+- [] in growth_plot.R, fun.growth_readDB(db) gives a tbl with NA's in target_id and guide_id ('guide' information is needed to sort the plots)
+- [] in growth_plot.R, something happened to the data, for some reason now we can't calculate slopes! (no errors, but slopes don't work). This could be related to the incorrect create_classifier() output (see that e.g. "MCF7 clone3 STAT3.3 normalisation" should not exist). This odd output applies also to the protein data query. In both growth_plot.R and abundance_plot.R we are using the dplyr queries.
+
+    #unique(clone_growth_data$Content)
+    # [1] "MCF7 clone3 normalisation"         "MCF7 clone3 STAT3.3"               "MCF7 clone3 STAT3.3 normalisation"
+    # [4] "MCF7 clone3 STAT3.4"               "MCF7 clone3 STAT3.4 normalisation" "MCF7 clone3 STAT3.1"              
+    # [7] "MCF7 clone3 STAT3.2"               "MCF7 clone3 STAT3.3 background"    "MCF7 clone3 STAT3.3 knock-out"    
+    #[10] "MCF7 clone3 STAT3.3 wild-type"
