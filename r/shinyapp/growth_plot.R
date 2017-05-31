@@ -149,9 +149,10 @@ clone_growth_rate <- subset(cgdg, !is.na(mu)) %>%
                              type = 'scatter',
                              mode = 'markers',
                              # Hover text:
-                             text = ~paste("Content:Plate:Well ", Content, Plate, Well)
+                             text = ~paste("Content:Plate:Well ", Content, Plate, Well),
+                             color = ~Content
                              ) %>%
-                     layout(xaxis = list(title ='Clone'), yaxis = list(title = 'Maximum growth slope'))
+                     layout(xaxis = list(title ='Clone', showticklabels = FALSE), yaxis = list(title = 'Maximum growth slope'))
 
 return(clone_growth_rate)
 }
