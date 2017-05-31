@@ -8,9 +8,10 @@ with open(os.path.join(here, 'README.txt')) as f:
 
 requires = [
     'pyramid',
-    'pyramid_jinja2',
+    'pyramid_chameleon',
     'pyramid_debugtoolbar',
     'pyramid_tm',
+    'deform',
     'SQLAlchemy',
     'transaction',
     'zope.sqlalchemy',

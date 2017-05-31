@@ -9,3 +9,13 @@ psycopg2==2.7
 openpyxl
 pandas
 xlrd
+
+# Web application
+pyramid
+pyramid_chameleon'
+pyramid_debugtoolbar
+pyramid_tm
+deform
+transaction
+zope.sqlalchemy
+waitress

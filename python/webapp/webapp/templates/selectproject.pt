@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<div metal:use-macro="load: layout.pt">
+    <div id="content" metal:fill-slot="content">
+        <h1>CRISPR Gene Editing</h1>
+    
+        <p>
+            This is the Genome Editing Core's CRISPR application.
+        </p>
+        
+        <p>
+            Choose your project:
+        </p>
+        
+        <ol>
+            <li tal:repeat="project projects">
+                <a href="${request.route_url('project_view', projectid=project.id)}">
+                    ${project.geid}&nbsp;-&nbsp;${project.name}
+                </a>
+            </li>
+        </ol>
+    </div>
+</div>
+</html>

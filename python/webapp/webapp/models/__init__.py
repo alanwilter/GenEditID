@@ -43,10 +43,10 @@ def get_tm_session(session_factory, transaction_manager):
               dbsession = get_tm_session(session_factory, transaction.manager)
 
     """
-    session = session_factory()
+    dbsession = session_factory()
     zope.sqlalchemy.register(
-        session, transaction_manager=transaction_manager)
-    return session
+        dbsession, transaction_manager=transaction_manager)
+    return dbsession
 
 
 def includeme(config):
@@ -68,6 +68,6 @@ def includeme(config):
     config.add_request_method(
         # r.tm is the transaction manager used by pyramid_tm
         lambda r: get_tm_session(session_factory, r.tm),
-        'session',
+        'dbsession',
         reify=True
     )

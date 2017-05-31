@@ -9,9 +9,9 @@ from dnascissors.model import Project
 @view_config(route_name='home', renderer='../templates/mytemplate.pt')
 def my_view(request):
     try:
-        query = request.session.query(Project)
+        query = request.dbsession.query(Project)
         one = query.first()
-        query = request.session.query(Project)
+        query = request.dbsession.query(Project)
         all = query.all()
     except DBAPIError:
         return Response(db_err_msg, content_type='text/plain', status=500)
