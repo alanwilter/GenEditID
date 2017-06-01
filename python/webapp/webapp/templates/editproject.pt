@@ -1,0 +1,24 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<body>
+<div metal:use-macro="load: layout.pt">
+    <div metal:fill-slot="content">
+        <div class="content">
+        
+            <h1>${project.geid}</h1>
+
+            <div tal:replace="structure edit_form"></div>
+
+            <hr/>
+            
+            <p>            
+                <a href="${request.route_url('projects')}">Back to projects list</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

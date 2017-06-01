@@ -29,6 +29,10 @@
                 </tr>
             </table>
 
+            <p>
+                <a href="${request.route_url('project_edit', projectid=project.id)}">Edit this project</a>
+            </p>
+
             <hr/>
             
             <p>            
