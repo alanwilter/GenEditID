@@ -12,7 +12,7 @@ xlrd
 
 # Web application
 pyramid
-pyramid_chameleon'
+pyramid_chameleon
 pyramid_debugtoolbar
 pyramid_tm
 deform

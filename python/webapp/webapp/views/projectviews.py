@@ -41,6 +41,8 @@ class ProjectViews(object):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).first()
         
+        title = "Gene Editing Project %s" % project.geid
+        
         edit_form = self.projects_form
         
         if 'submit' in self.request.params:
@@ -48,12 +50,15 @@ class ProjectViews(object):
             fields = self.request.POST.items()
             
             try:
-                appstruct = projects_form.validate(fields)
+                appstruct = edit_form.validate(fields)
             except deform.ValidationFailure as e:
-                return dict(project=project, form=e.render())
+                return dict(project=project, form=e.render(), title=title)
             
-            #project.geid = appstruct['geid']
-            #project.name = appstruct['name']
+            print("New id = %s" % appstruct['geid'])
+            print("New name = %s" % appstruct['name'])
+            
+            project.geid = appstruct['geid']
+            project.name = appstruct['name']
             
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
@@ -62,8 +67,7 @@ class ProjectViews(object):
         
         form = edit_form.render(projectMap)
         
-        return dict(edit_form=form, projectid=project.id,
-                    project=project, title="Gene Editing Project %s" % project.geid)
+        return dict(edit_form=form, projectid=project.id, project=project, title=title)
 
         
 '''    

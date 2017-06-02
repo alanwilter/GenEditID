@@ -10,7 +10,29 @@
         
             <h1>${project.geid}</h1>
 
-            <div tal:replace="structure edit_form"></div>
+            <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+
+                <table>
+                    <tr>
+                        <td>GEID:</td>
+                        <td>
+                            <input id="geid_text_field" type="text" name="geid" maxlength="10" value="${project.geid}"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Name:</td>
+                        <td>
+                            <input id="name_text_field" type="text" name="name" maxlength="64" value="${project.name}"></input>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p>
+                    <input type="submit" name="submit" value="Update"></input>
+                </p>
+    
+                <!-- <div tal:replace="structure edit_form"></div> -->
+            </form>
 
             <hr/>
             
