@@ -22,6 +22,12 @@
                 </a>
             </li>
         </ol>
+        
+        <p>
+            <a href="${request.route_url('project_add')}">
+                Create Project
+            </a>
+        </p>
     </div>
 </div>
 </html>
