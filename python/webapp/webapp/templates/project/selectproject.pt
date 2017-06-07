@@ -3,7 +3,7 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
-<div metal:use-macro="load: layout.pt">
+<div metal:use-macro="load: ../layout.pt">
     <div id="content" metal:fill-slot="content">
         <h1>CRISPR Gene Editing</h1>
     
