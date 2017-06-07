@@ -22,26 +22,26 @@ class ProjectViews(object):
         self.request = request
         self.dbsession = request.dbsession
     
-    @property
-    def projects_form(self):
+    def projects_form(self, buttonTitle):
         schema = ProjectContent().bind(request=self.request)
-        return deform.Form(schema, buttons=('submit',))
+        submitButton = deform.form.Button(name='submit', title=buttonTitle)
+        return deform.Form(schema, buttons=(submitButton,))
 
-    @view_config(route_name="projects", renderer="../templates/selectproject.pt")
+    @view_config(route_name="projects", renderer="../templates/project/selectproject.pt")
     def view_projects(self):
         return dict(projects=self.dbsession.query(Project).all(), title="Gene Editing Projects")
     
-    @view_config(route_name="project_view", renderer="../templates/viewproject.pt")
+    @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
     def view_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).first()
         return dict(project=project, title="Gene Editing Project %s" % project.geid)
     
-    @view_config(route_name="project_add", renderer="../templates/addproject.pt")
+    @view_config(route_name="project_add", renderer="../templates/project/addproject.pt")
     def add_project(self):
         title = "Create New Gene Editing Project"
         
-        add_form = self.projects_form
+        add_form = self.projects_form("Create Project")
         
         if 'submit' in self.request.params:
             
@@ -65,18 +65,16 @@ class ProjectViews(object):
             url = self.request.route_url('projects')
             return HTTPFound(url)
         
-        form = add_form.render(dict())
-        
-        return dict(add_form=form, title=title)
+        return dict(title=title)
 
-    @view_config(route_name="project_edit", renderer="../templates/editproject.pt")
+    @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).first()
         
         title = "Gene Editing Project %s" % project.geid
         
-        edit_form = self.projects_form
+        edit_form = self.projects_form("Update")
         
         if 'submit' in self.request.params:
             
@@ -96,23 +94,4 @@ class ProjectViews(object):
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
         
-        projectMap = dict(id=project.id, geid=project.geid, name=project.name)
-        
-        form = edit_form.render(projectMap)
-        
-        return dict(edit_form=form, projectid=project.id, project=project, title=title)
-
-        
-'''    
-    @view_config(route_name="projects", renderer="../templates/selectproject.pt")
-    def view_projects(self):
-        
-        form = self.projects_form().render()
-        
-        projects = self.dbsession.query(Project).all()
-        map = dict()
-        for p in projects:
-            map[p.id] = p.name
-        return dict(projects_form=form, projects=map)
-'''
-    
+        return dict(projectid=project.id, project=project, title=title)
