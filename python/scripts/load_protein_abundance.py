@@ -8,6 +8,13 @@ from dnascissors.config import cfg
 from dnascissors.model import Base, Plate, Well, ProteinAbundance
 
 
+def to_float(text):
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
 def load_ICW(log, session, plate_id, file_name):
 
     plate = session.query(Plate).filter(Plate.geid == plate_id).first()
@@ -60,9 +67,9 @@ def load_ICW(log, session, plate_id, file_name):
                         session.add(abundance)
 
                     if channel == 700:
-                        abundance.intensity_channel_700 = float(line[column - 1])
+                        abundance.intensity_channel_700 = to_float(line[column - 1])
                     elif channel == 800:
-                        abundance.intensity_channel_800 = float(line[column - 1])
+                        abundance.intensity_channel_800 = to_float(line[column - 1])
 
                 row = row + 1
 

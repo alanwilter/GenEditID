@@ -66,6 +66,8 @@ class LayoutLoader(ExcelLoader):
                 return 'sample'
             elif value == 'empty':
                 return 'empty'
+            elif value == 'empty-vector':
+                return 'empty'
             raise Exception("Well content type not recognised: {:s} (row {:d})".format(str(value), i))
         else:
             return 'empty'
