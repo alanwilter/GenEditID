@@ -198,7 +198,7 @@ class WellContent(Base):
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty', name='content_type'), nullable=False)
+    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
 
 

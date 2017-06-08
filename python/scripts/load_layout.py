@@ -66,6 +66,8 @@ class LayoutLoader(ExcelLoader):
                 return 'sample'
             elif value == 'empty':
                 return 'empty'
+            elif value == 'empty-vector':
+                return 'empty-vector'
             raise Exception("Well content type not recognised: {:s} (row {:d})".format(str(value), i))
         else:
             return 'empty'
@@ -246,6 +248,8 @@ class LayoutLoader(ExcelLoader):
         sheet = self.xls.parse('ExperimentLayout')
         for i, row in enumerate(sheet.itertuples(), 1):
             guide = None
+            clone = None
+            content = None
             # Need to find project.
             if not row.project_geid:
                 raise Exception('Project identifier is required on row {:d}'.format(i))
