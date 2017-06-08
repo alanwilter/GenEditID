@@ -10,6 +10,12 @@ from sqlalchemy import Table, Column, Integer, String, Date, DateTime, Float, Bo
 Base = declarative_base()
 
 
+guide_well_content_association = Table('guide_well_content_association', Base.metadata,
+    Column('well_content_id', Integer, ForeignKey('well_content.id', ondelete='CASCADE')),
+    Column('guide_id', Integer, ForeignKey('guide.id', ondelete='CASCADE'))
+)
+
+
 class Project(Base):
     """
     template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Project
@@ -71,6 +77,7 @@ class Guide(Base):
         backref=backref('guides', uselist=True, cascade='delete,all'))
     genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
     genome = relationship(Genome)
+    well_contents = relationship('WellContent', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     name = Column(String(32), nullable=False, index=True)
     guide_sequence = Column(String(250), nullable=False)
     pam_sequence = Column(String(6), nullable=False)
@@ -180,12 +187,6 @@ class Plate(Base):
     barcode = Column(String(32), index=True)
     geid = Column(String(32), unique=True, nullable=False, index=True)
     description = Column(String)
-
-
-guide_well_content_association = Table('guide_well_content_association', Base.metadata,
-    Column('well_content_id', Integer, ForeignKey('well_content.id', ondelete='CASCADE')),
-    Column('guide_id', Integer, ForeignKey('guide.id', ondelete='CASCADE'))
-)
 
 
 class WellContent(Base):
