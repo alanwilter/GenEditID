@@ -25,11 +25,12 @@ library( 'RPostgreSQL')
 # Functions
 # --------------------------------------------------------------------------------
 # load data from database using amplicon query
-loadData <- function(db_connection, slxid)
+loadData <- function(db_connection, slxid, projectid)
 {
   sql <- paste0(
     "select distinct
         sequencing_library.slxid,
+        cast(amplicon.chromosome as integer) as chr_number,
         -- amplicon
         'chr' || amplicon.chromosome as amplicon_chr,
         amplicon.start as amplicon_start,
@@ -48,6 +49,8 @@ loadData <- function(db_connection, slxid)
         well_content,
         guide_well_content_association,
         guide,
+        target,
+        project,
         amplicon_selection,
         amplicon,
         genome,
@@ -58,6 +61,8 @@ loadData <- function(db_connection, slxid)
     where sequencing_library_content.sequencing_library_id=sequencing_library.id
         and sequencing_library_content.well_id=well.id
         and well.well_content_id=well_content.id
+        and guide.target_id=target.id
+        and target.project_id=project.id
         and guide_well_content_association.guide_id=guide.id
         and guide_well_content_association.well_content_id=well_content.id
         and amplicon_selection.guide_id=guide.id
@@ -70,7 +75,8 @@ loadData <- function(db_connection, slxid)
         and reverse_association.primer_id=reverse_primer.id
         and reverse_primer.strand='reverse'
         and sequencing_library.slxid='", slxid, 
-    "' order by amplicon_chr, amplicon_start")
+      "'and project.geid='", projectid, "'
+    order by chr_number, amplicon_start")
 
   query <- as.data.frame(dbGetQuery(db_connection, sql))
   query
@@ -81,8 +87,9 @@ loadData <- function(db_connection, slxid)
 # --------------------------------------------------------------------------------
 driver <- dbDriver("PostgreSQL")
 conn <- dbConnect(driver, user="gene", password="gene", host="bioinf-ge001.cri.camres.org", port=5432, dbname="geneediting")
-slxid <- 'SLX-13775'
-data <- loadData(conn, slxid)
+projectid <- 'GEP00002'
+slxid <- 'SLX-13774'
+data <- loadData(conn, slxid, projectid)
 print(data)
 
 # amplicon coordinates
