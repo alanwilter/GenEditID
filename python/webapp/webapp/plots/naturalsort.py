@@ -8,4 +8,5 @@ def alphanum_key(s):
 def natural_sort(l):
     """ Sort the given list in the way that humans expect.
     """
-    l.sort(key=alphanum_key)
+    if (len(l) > 1):
+        l.sort(key=alphanum_key)

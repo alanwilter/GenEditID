@@ -2,7 +2,6 @@ import re
 import colorlover
 
 import plotly
-#import plotly.plotly as py
 import plotly.graph_objs as go
 import plotly.offline as py
 
@@ -17,11 +16,9 @@ from dnascissors.model import *
 
 from naturalsort import natural_sort
 
-#from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
-
 class Plotter:
     
-    def create_classifier(self, cell_line, clone, guide, content):
+    def create_classifier(self, cell_line, clone, guide, well_content):
         
         parts = []
         
@@ -34,8 +31,10 @@ class Plotter:
         if guide:
             parts.append(guide.name)
         
-        if content and content not in ['empty', 'sample']:
-            parts.append(content)
+        if well_content:
+            content = well_content.content_type
+            if content and content not in ['empty', 'sample']:
+                parts.append(content)
         
         return " ".join(parts)
         
@@ -104,7 +103,7 @@ class Plotter:
             for guide in well.well_content.guides:
                 target = guide.target
             
-                row = [ self.create_classifier(cell_line, clone, guide, well.well_content.content_type),
+                row = [ self.create_classifier(cell_line, clone, guide, well.well_content),
                         plate.geid, target.name, guide.name, position, growth.hours, growth.confluence_percentage ]
             
                 data.append(row)
@@ -164,6 +163,127 @@ class Plotter:
         py.plot(figure, filename="growth_plate_%s.html" % plateid)
 
 
+    def abundance_plot(self, dbsession, projectid, plateid):
+        
+        # The dplyr R version:
+        """
+            left_join(well, abundance, by="well_id") %>%
+            left_join(., well_content, by="well_content_id") %>%
+            left_join(., clone, by="clone_id") %>%
+            left_join(., cell_line, by="cell_line_id") %>%
+            left_join(., plate, by="plate_id") %>%
+            left_join(., guide_well_content_association, by="well_content_id") %>%
+            left_join(., guide, by="guide_id") %>%
+            left_join(., target, by="target_id") %>%
+            collect %>%
+            filter(!is.na(content_type)) %>%
+            mutate(Well = paste0(row, column)) %>%
+            mutate(classifier=create_classifier(cell_line_name, clone_name, guide_name, content_type)) %>%
+            select(classifier, plate_id, Well, intensity_channel_700, intensity_channel_800) %>%
+            rename(Content=classifier, Plate = plate_id, Channel700=intensity_channel_700, Channel800=intensity_channel_800) %>%
+            filter(!grepl('background', Content)) %>%            #the background control (no antibodies is not meaningful for proteini amount)
+            mutate('ratio800to700' = Channel800/Channel700) %>%  #calculate relative protein abundance, ratio 800 to 700
+            mutate(Plate = as.factor(Plate), Well = as.factor(Well))  #change Plate and position to factors, so grouping in ggplot can work
+        """
+        
+        query = dbsession.query(ProteinAbundance).\
+                join(ProteinAbundance.plate).\
+                join(ProteinAbundance.well).\
+                join(Well.well_content).\
+                join(Well.experiment_layout).\
+                outerjoin(WellContent.clone).\
+                join(Clone.cell_line).\
+                outerjoin(WellContent.guides).\
+                join(Guide.target).\
+                join(Target.project).\
+                filter(Project.id == projectid).\
+                filter(Plate.geid == plateid).\
+                filter(WellContent.content_type != 'background')
+
+        all_abundance = query.all()
+        
+        # Assemble list of lists to create a data frame.
+        
+        data = []
+        
+        for abundance in all_abundance:
+            well = abundance.well
+            clone = well.well_content.clone
+            cell_line = clone.cell_line
+            plate = abundance.plate
+            
+            position = "%s%d" % (well.row, well.column)
+            
+            for guide in well.well_content.guides:
+                target = guide.target
+            
+                row = [ self.create_classifier(cell_line, clone, guide, well.well_content),
+                        plate.geid, position, abundance.intensity_channel_800 / abundance.intensity_channel_700 ]
+            
+                data.append(row)
+        
+        # Pandas data frame
+        
+        data = DataFrame(data, columns=['content', 'plate', 'well', 'channelratio'])
+
+        unique_content = data.content.unique()
+        natural_sort(unique_content)
+        
+        #colours = colorlover.scales[str(len(sorted_wells))]['div']
+        #colours = colorlover.scales['3']['div']['RdYlBu']
+        #print(colours)
+        #colours = colorlover.interp(colours, len(unique_content))
+        #print(colours)
+        
+        #colour_map = dict()
+        #for i in range(0, len(unique_content)):
+        #    colour_map[unique_content[i]] = colours[i]
+        
+        # Need to assemble several plot objects for each line.
+        
+        colour = 'blue'
+    
+        plots = []
+        
+        for content in unique_content:
+        
+            contentdata = data[data.content == content]
+            
+            print(content)
+            print(contentdata)
+            
+            plots.append(
+                go.Scatter(
+                    mode='markers',
+                    line=dict(color=colour),
+                    x=contentdata.content,
+                    y=contentdata.channelratio,
+                    name=contentdata.content,
+                    hoverinfo='none'
+                )
+            )
+        """
+        
+        plots = go.Scatter(
+                mode='markers',
+                line=dict(color=colour),
+                x=unique_content,
+                y=data.channelratio,
+                name=unique_content,
+                hoverinfo='none',
+            )
+        """
+
+        layout = go.Layout(
+            title="Protein Abundance of Plate %s" % plate.geid,
+            xaxis=dict(title="Cell Line", ticks=False, fixedrange=True),
+            yaxis=dict(title="Relative protein abundance")
+        )
+
+        figure = go.Figure(data=plots, layout=layout)
+        
+        py.plot(figure, filename="abundance_plate_%s.html" % plateid)
+
 def main():
 
     logging.basicConfig(level=logging.DEBUG,
@@ -179,6 +299,8 @@ def main():
         plotter = Plotter()
         
         plotter.growth_plot(session, 1, 'GEP00001_01_incu')
+        
+        plotter.abundance_plot(session, 1, 'GEP00001_02_ICW')
     
     except Exception as e:
         logging.exception(e)
