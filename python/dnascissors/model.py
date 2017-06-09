@@ -282,6 +282,43 @@ class VariantResult(Base):
     ge_score = Column(Integer)
 
 
+class VariantRawResult(Base):
+    __tablename__ = 'variant_raw_result'
+    id = Column(Integer, primary_key=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_raw_results_fk', ondelete='CASCADE'), nullable=True)
+    sequencing_library_content = relationship(
+        SequencingLibraryContent,
+        backref=backref('variant_raw_results', uselist=True, cascade='delete,all'))
+    variant_caller = Column(Enum('VarDict', 'HaplotypeCaller', 'FreeBayes', name='variant_caller'), nullable=False, index=True)
+    variant_type = Column(Enum('INDEL', 'SNV', name='variant_type'), nullable=False, index=True)
+    consequence = Column(String(32))
+    gene_id = Column(String(32))
+    gene = Column(String(32))
+    cdna_effect = Column(String(250))
+    protein_effect = Column(String(250))
+    codons = Column(String(250))
+    chromosome = Column(String(32))
+    position = Column(Integer)
+    ref = Column(String(250))
+    alt = Column(String(250))
+    allele_fraction = Column(Float)
+    depth = Column(Integer)
+    quality = Column(Integer)
+    amplicon = Column(String(250))
+    exon = Column(String(32))
+    intron = Column(String(32))
+    existing_variation = Column(String(250))
+    sift = Column(String(250))
+    polyphen = Column(String(250))
+    clinical_significance = Column(String(250))
+    gmaf = Column(String(250))
+    offset_from_primer_end = Column(Integer)
+    indel_length = Column(Integer)
+    forward_context = Column(String(250))
+    alleles = Column(String(250))
+    reverse_context = Column(String(250))
+
+
 class ProteinAbundance(Base):
     __tablename__ = 'abundance'
     id = Column(Integer, primary_key=True)

@@ -18,6 +18,10 @@ do
   python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid}_incu --file=${PROJDIR}/${PROJNAME}_${plateid}_incu.txt
 done
 
+echo 'Loading sequencing raw variant results'
+python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13775.vardict.variants.xlsx --caller=VarDict
+python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13775.haplotypeCaller.variants.xlsx --caller=HaplotypeCaller
+
 echo 'Loading sequencing variant results'
 python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsINDELsResults.csv --type=INDEL
 python python/scripts/load_variant_results.py --file=${PROJDIR}/${PROJNAME}_NGS_VariantsSNVsResults.csv --type=SNV
