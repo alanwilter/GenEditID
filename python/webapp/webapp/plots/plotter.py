@@ -226,13 +226,14 @@ class Plotter:
         
         data = DataFrame(data, columns=['content', 'plate', 'well', 'channelratio'])
 
-        unique_content = data.content.unique()
+        unique_content = data.content.unique().tolist()
         natural_sort(unique_content)
         
-        #colours = colorlover.scales[str(len(sorted_wells))]['div']
         #colours = colorlover.scales['3']['div']['RdYlBu']
         #print(colours)
-        #colours = colorlover.interp(colours, len(unique_content))
+        #print(unique_content)
+        #if len(unique_content) > 3:
+        #    colours = colorlover.interp(colours, len(unique_content) + 1)
         #print(colours)
         
         #colour_map = dict()
@@ -258,21 +259,10 @@ class Plotter:
                     line=dict(color=colour),
                     x=contentdata.content,
                     y=contentdata.channelratio,
-                    name=contentdata.content,
+                    name=content,
                     hoverinfo='none'
                 )
             )
-        """
-        
-        plots = go.Scatter(
-                mode='markers',
-                line=dict(color=colour),
-                x=unique_content,
-                y=data.channelratio,
-                name=unique_content,
-                hoverinfo='none',
-            )
-        """
 
         layout = go.Layout(
             title="Protein Abundance of Plate %s" % plate.geid,
@@ -298,7 +288,7 @@ def main():
     try:
         plotter = Plotter()
         
-        plotter.growth_plot(session, 1, 'GEP00001_01_incu')
+        #plotter.growth_plot(session, 1, 'GEP00001_01_incu')
         
         plotter.abundance_plot(session, 1, 'GEP00001_02_ICW')
     
