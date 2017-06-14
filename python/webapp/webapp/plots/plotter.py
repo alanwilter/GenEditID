@@ -14,10 +14,14 @@ from pandas.core.frame import DataFrame
 from dnascissors.config import cfg
 from dnascissors.model import *
 
-from naturalsort import natural_sort
+from webapp.plots.naturalsort import natural_sort
 
 
 class Plotter:
+    
+    def __init__(self):
+        self.output_type = "div"
+        self.include_js = False
     
     def create_classifier(self, cell_line, clone, guide, well_content):
         
@@ -40,7 +44,7 @@ class Plotter:
         return " ".join(parts)
         
 
-    def growth_plot(self, dbsession, projectid, plateid):
+    def growth_plot(self, dbsession, projectid, plateid, file=None):
         
         query = dbsession.query(CellGrowth).\
                 join(CellGrowth.well).\
@@ -49,7 +53,7 @@ class Plotter:
                 join(ExperimentLayout.project).\
                 outerjoin(WellContent.clone).\
                 join(Clone.cell_line).\
-                filter(Project.id == projectid).\
+                filter(Project.geid == projectid).\
                 filter(ExperimentLayout.geid == plateid)
                 #filter(CellGrowth.confluence_percentage != None)
 
@@ -65,8 +69,6 @@ class Plotter:
             cell_line = clone.cell_line
             layout = well.experiment_layout
             
-            #guideNames = [lambda g: g.name for g in well.well_content.guides]
-            #guides = ', '.join(guideNames)
             guides = ', '.join([g.name for g in well.well_content.guides])
             
             position = "%s%d" % (well.row, well.column)
@@ -131,10 +133,14 @@ class Plotter:
 
         figure = go.Figure(data=plots, layout=layout)
         
-        py.plot(figure, filename="growth_plate_%s.html" % plateid)
+        if not file:
+            file = "growth_plate_%s.html" % plateid
+        
+        return py.plot(figure, filename=file, auto_open=False, show_link=False,
+                       include_plotlyjs=self.include_js, output_type=self.output_type)
 
 
-    def abundance_plot(self, dbsession, projectid, plateid):
+    def abundance_plot(self, dbsession, projectid, plateid, file=None):
         
         query = dbsession.query(ProteinAbundance).\
                 join(ProteinAbundance.well).\
@@ -143,7 +149,7 @@ class Plotter:
                 join(ExperimentLayout.project).\
                 outerjoin(WellContent.clone).\
                 join(Clone.cell_line).\
-                filter(Project.id == projectid).\
+                filter(Project.geid == projectid).\
                 filter(ExperimentLayout.geid == plateid).\
                 filter(WellContent.content_type != 'background')
 
@@ -216,7 +222,11 @@ class Plotter:
 
         figure = go.Figure(data=plots, layout=layout)
         
-        py.plot(figure, filename="abundance_plate_%s.html" % plateid)
+        if not file:
+            file = "abundance_plate_%s.html" % plateid
+        
+        return py.plot(figure, filename=file, auto_open=False, show_link=False,
+                       include_plotlyjs=self.include_js, output_type=self.output_type)
 
 def main():
 
@@ -231,10 +241,12 @@ def main():
     
     try:
         plotter = Plotter()
+        plotter.output_type = "File"
+        plotter.include_js = True
         
-        plotter.growth_plot(session, 1, 'GEP00001_01')
+        plotter.growth_plot(session, 'GEP00001', 'GEP00001_01')
         
-        plotter.abundance_plot(session, 1, 'GEP00001_02')
+        plotter.abundance_plot(session, 'GEP00001', 'GEP00001_02')
     
     except Exception as e:
         logging.exception(e)

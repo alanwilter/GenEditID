@@ -33,6 +33,20 @@
                 <a href="${request.route_url('project_edit', projectid=project.id)}">Edit this project</a>
             </p>
 
+            <h2>Experiments</h2>
+            
+            <p>
+                Select an experiment layout to view.
+            </p>
+            
+            <ul>
+                <li tal:repeat="layout project.experiment_layouts">
+                    <a href="${request.route_url('experiment_view', layoutid=layout.id)}">
+                        ${layout.geid}
+                    </a>
+                </li>
+            </ul>
+
             <hr/>
             
             <p>            

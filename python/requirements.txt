@@ -13,6 +13,7 @@ xlrd
 # Web application
 pyramid
 pyramid_chameleon
+pyramid_jinja2
 pyramid_debugtoolbar
 pyramid_tm
 deform
