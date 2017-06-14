@@ -34,7 +34,9 @@ class ProjectViews(object):
     @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
     def view_project(self):
         id = self.request.matchdict['projectid']
+        
         project = self.dbsession.query(Project).filter(Project.id == id).one()
+        
         return dict(project=project, title="Gene Editing Project %s" % project.geid)
     
     @view_config(route_name="project_add", renderer="../templates/project/addproject.pt")

@@ -9,6 +9,7 @@ with open(os.path.join(here, 'README.txt')) as f:
 requires = [
     'pyramid',
     'pyramid_chameleon',
+    'pyramid_jinja2',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'deform',
