@@ -20,7 +20,6 @@ from webapp.plots.naturalsort import natural_sort
 class Plotter:
     
     def __init__(self):
-        self.output_type = "div"
         self.include_js = False
     
     def create_classifier(self, cell_line, clone, guide, well_content):
@@ -55,7 +54,6 @@ class Plotter:
                 join(Clone.cell_line).\
                 filter(Project.geid == projectid).\
                 filter(ExperimentLayout.geid == plateid)
-                #filter(CellGrowth.confluence_percentage != None)
 
         all_growth = query.all()
         
@@ -126,21 +124,23 @@ class Plotter:
             )
         
         layout = go.Layout(
-            title="Growth of Plate %s" % plateid,
+            title="Cell Growth of Plate {}".format(plateid),
             xaxis=dict(title="Time (h)"),
             yaxis=dict(title="Confluence (%)", range=[0, 100])
         )
 
         figure = go.Figure(data=plots, layout=layout)
         
+        output_type = "file"
         if not file:
+            output_type = "div"
             file = "growth_plate_%s.html" % plateid
         
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
-                       include_plotlyjs=self.include_js, output_type=self.output_type)
+                       include_plotlyjs=self.include_js, output_type=output_type)
 
 
-    def abundance_plot(self, dbsession, projectid, plateid, file=None):
+    def abundance_plot(self, dbsession, projectid, plateid=None, file=None):
         
         query = dbsession.query(ProteinAbundance).\
                 join(ProteinAbundance.well).\
@@ -150,8 +150,10 @@ class Plotter:
                 outerjoin(WellContent.clone).\
                 join(Clone.cell_line).\
                 filter(Project.geid == projectid).\
-                filter(ExperimentLayout.geid == plateid).\
                 filter(WellContent.content_type != 'background')
+
+        if plateid:
+            query = query.filter(ExperimentLayout.geid == plateid)
 
         all_abundance = query.all()
         
@@ -214,19 +216,28 @@ class Plotter:
                 )
             )
 
+        if plateid:
+            what = "Plate"
+            id = plateid
+        else:
+            what = "Project"
+            id = projectid
+
         layout = go.Layout(
-            title="Protein Abundance of Plate %s" % plateid,
+            title="Protein Abundance of {} {}".format(what, id),
             xaxis=dict(title="Cell Line", ticks=False, fixedrange=True),
             yaxis=dict(title="Relative protein abundance")
         )
 
         figure = go.Figure(data=plots, layout=layout)
         
+        output_type = "file"
         if not file:
+            output_type = "div"
             file = "abundance_plate_%s.html" % plateid
         
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
-                       include_plotlyjs=self.include_js, output_type=self.output_type)
+                       include_plotlyjs=self.include_js, output_type=output_type)
 
 def main():
 

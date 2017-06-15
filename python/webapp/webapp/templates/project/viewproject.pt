@@ -47,6 +47,14 @@
                 </li>
             </ul>
 
+            <h2>Plots</h2>
+            
+            <h3>Protein Abundance</h3>
+
+            <div id="proteinabundance" class="proteinabundance">
+                ${structure: proteinabundanceplot}
+            </div>
+
             <hr/>
             
             <p>            

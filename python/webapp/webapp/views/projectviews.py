@@ -7,6 +7,9 @@ from pyramid.view import view_config
 
 from dnascissors.model import Project
 
+from webapp.plots.plotter import Plotter
+
+
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
 
 # File uploads: http://docs.pylonsproject.org/projects/pyramid-cookbook/en/latest/forms/file_uploads.html
@@ -37,7 +40,11 @@ class ProjectViews(object):
         
         project = self.dbsession.query(Project).filter(Project.id == id).one()
         
-        return dict(project=project, title="Gene Editing Project %s" % project.geid)
+        plotter = Plotter()
+        
+        return dict(project=project,
+                    title="Gene Editing Project %s" % project.geid,
+                    proteinabundanceplot=plotter.abundance_plot(self.dbsession, project.geid))
     
     @view_config(route_name="project_add", renderer="../templates/project/addproject.pt")
     def add_project(self):
