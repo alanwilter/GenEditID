@@ -1,0 +1,37 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<div metal:use-macro="load: ../layout.pt">
+    <div id="content" metal:fill-slot="content">
+        <h1>Create Project and Layout</h1>
+    
+        <p>
+            This page allows projects and its experiment layouts to be loaded from a
+            completed layout Excel work book. 
+        </p>
+        
+        <p>
+            If the project already exists it will be replaced by the uploaded file.
+        </p>
+
+        <form action="/loadlayout" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+            <p>
+                <label for="upload">Project file:</label>
+                <input id="upload" name="layoutfile" type="file" value=""></input>
+            </p>
+            
+            <p>
+                <input type="submit" name="submit" value="Load Project"></input>
+            </p>
+        </form>
+
+        <hr/>
+        
+        <p>            
+            <a href="${request.route_url('projects')}">Back to projects list</a>
+        </p>
+    </div>
+</div>
+</html>

@@ -24,8 +24,8 @@
         </ol>
         
         <p>
-            <a href="${request.route_url('project_add')}">
-                Create Project
+            <a href="${request.route_url('load_layout')}">
+                Create project by uploading layout file
             </a>
         </p>
     </div>
