@@ -1,4 +1,3 @@
-import csv
 import sqlalchemy
 import pandas
 
@@ -9,17 +8,7 @@ from dnascissors.config import cfg
 from dnascissors.model import Base
 from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantRawResult
-from dnascissors.model import VariantResult
-
-
-def to_int(text):
-    if pandas.isnull(text):
-        return None
-    else:
-        try:
-            return int(text)
-        except ValueError:
-            return None
+import excelloader
 
 
 def load_variant_raw_results_per_sheet(log, sheet, session, variant_caller, variant_type):
@@ -59,6 +48,7 @@ def load_variant_raw_results_per_sheet(log, sheet, session, variant_caller, vari
     sheet.columns = header
     for i, row in enumerate(sheet.itertuples(), 1):
         log.debug(row)
+        xlsloader = excelloader.ExcelLoader()
         seq_lib_content = session.query(SequencingLibraryContent) \
                                  .filter(SequencingLibraryContent.sequencing_sample_name == row.sample) \
                                  .filter(SequencingLibraryContent.sequencing_barcode == row.barcode) \
@@ -68,32 +58,32 @@ def load_variant_raw_results_per_sheet(log, sheet, session, variant_caller, vari
         result = VariantRawResult(sequencing_library_content=seq_lib_content)
         result.variant_caller = variant_caller
         result.variant_type = variant_type
-        result.consequence = row.variant_type_consequence
-        result.gene_id = row.symbol_gene_id
-        result.cdna_effect = row.cdna_effect
-        result.protein_effect = row.protein_effect
-        result.codons = row.codons
-        result.chromosome = row.chromosome
-        result.position = to_int(row.position)
-        result.ref = row.ref
-        result.alt = row.alt
-        result.allele_fraction = float(row.allele_fraction)
-        result.depth = to_int(row.depth)
-        result.quality = to_int(row.quality)
-        result.amplicon = row.amplicon
-        result.gene = row.gene
-        result.exon = row.exon
-        result.intron = row.intron
-        result.existing_variation = row.existing_variation
-        result.sift = row.sift
-        result.polyphen = row.polyphen
-        result.clinical_significance = row.clinical_significance
-        result.gmaf = row.gmaf
-        result.offset_from_primer_end = to_int(row.offset_from_primer_end)
-        result.indel_length = to_int(row.indel_length)
-        result.forward_context = row.forward_context
-        result.alleles = row.alleles
-        result.reverse_context = row.reverse_context
+        result.consequence = xlsloader.get_value(row.variant_type_consequence)
+        result.gene_id = xlsloader.get_value(row.symbol_gene_id)
+        result.cdna_effect = xlsloader.get_value(row.cdna_effect)
+        result.protein_effect = xlsloader.get_value(row.protein_effect)
+        result.codons = xlsloader.get_value(row.codons)
+        result.chromosome = xlsloader.get_value(row.chromosome)
+        result.position = xlsloader.get_int(row.position)
+        result.ref = xlsloader.get_value(row.ref)
+        result.alt = xlsloader.get_value(row.alt)
+        result.allele_fraction = xlsloader.get_float(row.allele_fraction)
+        result.depth = xlsloader.get_int(row.depth)
+        result.quality = xlsloader.get_int(row.quality)
+        result.amplicon = xlsloader.get_value(row.amplicon)
+        result.gene = xlsloader.get_value(row.gene)
+        result.exon = xlsloader.get_value(row.exon)
+        result.intron = xlsloader.get_value(row.intron)
+        result.existing_variation = xlsloader.get_value(row.existing_variation)
+        result.sift = xlsloader.get_value(row.sift)
+        result.polyphen = xlsloader.get_value(row.polyphen)
+        result.clinical_significance = xlsloader.get_value(row.clinical_significance)
+        result.gmaf = xlsloader.get_value(row.gmaf)
+        result.offset_from_primer_end = xlsloader.get_int(row.offset_from_primer_end)
+        result.indel_length = xlsloader.get_int(row.indel_length)
+        result.forward_context = xlsloader.get_value(row.forward_context)
+        result.alleles = xlsloader.get_value(row.alleles)
+        result.reverse_context = xlsloader.get_value(row.reverse_context)
         session.add(result)
         log.info("Variant result added for {:s} sample with {:s} barcode".format(row.sample, row.barcode))
     session.commit()

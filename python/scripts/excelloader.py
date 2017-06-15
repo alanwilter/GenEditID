@@ -4,20 +4,20 @@ import pandas
 
 class ExcelLoader:
 
-    def get_value(self, value):
-        if not value:
+    def get_value(self, text):
+        if not text:
             return None
-        elif pandas.isnull(value):
+        elif pandas.isnull(text):
             return None
-        elif str(value) == 'nan':
+        elif str(text) == 'nan':
             return None
-        elif value == '':
+        elif text == '':
             return None
-        return value
+        return text
 
-    def get_string(self, value, max_length=-1):
-        if self.get_value(value):
-            value = str(value).strip()
+    def get_string(self, text, max_length=-1):
+        if self.get_value(text):
+            value = str(text).strip()
             if max_length >= 0 and len(value) > max_length:
                 if max_length > 20:
                     return value[:max_length - 3] + "..."
@@ -25,14 +25,26 @@ class ExcelLoader:
                     return value[:max_length]
             return value
 
-    def get_int(self, value):
-        if self.get_value(value):
-            return int(value)
+    def get_int(self, text):
+        if self.get_value(text):
+            try:
+                return int(text)
+            except ValueError:
+                return None
+        return None
 
-    def get_float(self, value):
-        if self.get_value(value):
-            return float(value)
+    def get_float(self, text):
+        if self.get_value(text):
+            try:
+                return float(text)
+            except ValueError:
+                return None
+        return None
 
-    def get_date(self, value, format='%Y%m%d'):
-        if self.get_value(value):
-            return datetime.strptime(str(value), '%Y%m%d')
+    def get_date(self, text, format='%Y%m%d'):
+        if self.get_value(text):
+            try:
+                return datetime.strptime(str(text), '%Y%m%d')
+            except ValueError:
+                return None
+        return None
