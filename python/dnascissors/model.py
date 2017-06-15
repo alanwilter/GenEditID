@@ -287,7 +287,7 @@ class VariantResult(Base):
     cut_site_on_target = Column(Boolean)
     cut_site_position = Column(Integer)
     distance = Column(Integer)
-    ge_score = Column(Integer)
+    ge_score = Column(Float)
 
 
 class ProteinAbundance(Base):

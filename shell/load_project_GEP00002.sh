@@ -18,5 +18,5 @@ do
 done
 
 echo 'Loading sequencing variant results'
-python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13774.vardict.variants.xlsx --caller=VarDict
-python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13774.haplotypeCaller.variants.xlsx --caller=HaplotypeCaller
+python python/scripts/load_variant_results.py --project_geid=${PROJNAME} --file=${PROJDIR}/SLX-13774.vardict.variants.xlsx --caller=VarDict
+python python/scripts/load_variant_results.py --project_geid=${PROJNAME} --file=${PROJDIR}/SLX-13774.haplotypeCaller.variants.xlsx --caller=HaplotypeCaller

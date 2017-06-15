@@ -13,6 +13,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", dest="file", action="store", help="The variant raw results excel file e.g. 'data/20170127_GEP00001/SLX-13775.vardict.variants.xlsx'.", required=True)
+    parser.add_argument("--project_geid", dest="project_geid", action="store", help="The project geid e.g. 'GEP00001'", required=True)
     parser.add_argument("--caller", dest="variant_caller", action="store", help="The type of variant caller used.", choices=['VarDict', 'HaplotypeCaller', 'FreeBayes'], required=True)
     parser.add_argument("--clean", dest="clean_db", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
@@ -23,7 +24,7 @@ def main():
     Base.metadata.bind = engine
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
     session = DBSession()
-    loader = VariantLoader(session, options.file, options.variant_caller)
+    loader = VariantLoader(session, options.project_geid, options.file, options.variant_caller)
 
     try:
         if options.clean_db:
