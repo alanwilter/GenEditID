@@ -318,6 +318,10 @@ class VariantRawResult(Base):
     forward_context = Column(String(250))
     alleles = Column(String(250))
     reverse_context = Column(String(250))
+    cut_site_on_target = Column(Boolean)
+    cut_site_position = Column(Integer)
+    distance = Column(Integer)
+    ge_score = Column(Integer)
 
 
 class ProteinAbundance(Base):
