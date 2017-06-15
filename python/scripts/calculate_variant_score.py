@@ -2,7 +2,7 @@ import os
 import sqlalchemy
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from dnascissors.model import VariantRawResult
+from dnascissors.model import VariantResult
 from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import Well
 from dnascissors.model import ExperimentLayout
@@ -43,16 +43,16 @@ def main():
     Base.metadata.bind = engine
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
     dbsession = DBSession()
-    results = dbsession.query(VariantRawResult)\
-                       .join(VariantRawResult.sequencing_library_content)\
+    results = dbsession.query(VariantResult)\
+                       .join(VariantResult.sequencing_library_content)\
                        .join(SequencingLibraryContent.well)\
                        .join(Well.well_content)\
                        .join(Well.experiment_layout)\
                        .join(ExperimentLayout.project)\
                        .filter(Project.geid == 'GEP00001')\
-                       .filter(VariantRawResult.allele_fraction > 0.15)\
-                       .filter(VariantRawResult.allele_fraction < 0.90)\
-                       .filter(sqlalchemy.or_(VariantRawResult.sift.like('tolerated%'), VariantRawResult.sift == None))\
+                       .filter(VariantResult.allele_fraction > 0.15)\
+                       .filter(VariantResult.allele_fraction < 0.90)\
+                       .filter(sqlalchemy.or_(VariantResult.sift.like('tolerated%'), VariantResult.sift == None))\
                        .all()
 
     for result in results:
