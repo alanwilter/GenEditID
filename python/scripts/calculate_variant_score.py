@@ -1,8 +1,14 @@
 import os
 import sqlalchemy
 from dnascissors.config import cfg
+from dnascissors.model import Base
+from dnascissors.model import VariantRawResult
+from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import Well
+from dnascissors.model import ExperimentLayout
+from dnascissors.model import Project
 import log as logger
-import pandas
+
 
 """
 filtering step:
@@ -34,93 +40,56 @@ scoring step:
 def main():
     log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'calculate_variant_score.log'))
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
-    query = """
-   with guide_names as (
-      select
-         guide_well_content_association.well_content_id,
-         string_agg(guide.name, ', ') as guide_names
-      from
-         guide_well_content_association
-         inner join guide on guide_well_content_association.guide_id = guide.id
-      group by guide_well_content_association.well_content_id
-   ),
+    Base.metadata.bind = engine
+    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
+    dbsession = DBSession()
+    results = dbsession.query(VariantRawResult)\
+                       .join(VariantRawResult.sequencing_library_content)\
+                       .join(SequencingLibraryContent.well)\
+                       .join(Well.well_content)\
+                       .join(Well.experiment_layout)\
+                       .join(ExperimentLayout.project)\
+                       .filter(Project.geid == 'GEP00001')\
+                       .filter(VariantRawResult.allele_fraction > 0.15)\
+                       .filter(VariantRawResult.allele_fraction < 0.90)\
+                       .filter(sqlalchemy.or_(VariantRawResult.sift.like('tolerated%'), VariantRawResult.sift == None))\
+                       .all()
 
-   cut_sites as (
-      select
-         guide_well_content_association.well_content_id,
-         string_agg(concat('chr', amplicon.chromosome, '_', amplicon_selection.guide_location, '_', amplicon_selection.is_on_target), ', ') as cut_sites
-      from
-         guide_well_content_association
-         inner join guide on guide_well_content_association.guide_id = guide.id
-         inner join amplicon_selection on amplicon_selection.guide_id = guide.id
-         inner join amplicon on amplicon.id = amplicon_selection.amplicon_id
-      group by guide_well_content_association.well_content_id
-   )
-
-  select
-      experiment_layout.geid as experiment_layout_geid,
-      concat(well.row, well.column) as well,
-      cell_line.name as cell_line_name,
-      clone.name as clone_name,
-      guide_names.guide_names,
-      cut_sites.cut_sites,
-      well_content.is_control,
-      well_content.content_type,
-      sequencing_library_content.dna_source,
-      sequencing_library_content.sequencing_sample_name,
-      sequencing_library_content.sequencing_barcode,
-      sequencing_library.slxid,
-      variant_raw_result.*
-   from
-      well
-      inner join experiment_layout on experiment_layout.id = well.experiment_layout_id
-      inner join project on project.id = experiment_layout.project_id
-      left join well_content on well_content.id = well.well_content_id
-      left join guide_names on guide_names.well_content_id = well_content.id
-      left join cut_sites on cut_sites.well_content_id = well_content.id
-      left join clone on clone.id = well_content.clone_id
-      left join cell_line on cell_line.id = clone.cell_line_id
-      left join sequencing_library_content on sequencing_library_content.well_id = well.id
-      inner join sequencing_library on sequencing_library.id = sequencing_library_content.sequencing_library_id
-      inner join variant_raw_result on variant_raw_result.sequencing_library_content_id = sequencing_library_content.id
-   where
-      project.geid = 'GEP00001'
-      and variant_raw_result.allele_fraction > 0.15
-      and variant_raw_result.allele_fraction < 0.90
-      and not variant_raw_result.sift = 'tolerated%%'
-
-    """
-    with engine.connect() as con:
-        df = pandas.read_sql(query, con)
-        for row in df.itertuples():
-            # check amplicon and variant are on the same chromosome
-            variant_chr = row.chromosome
-            amplicon_genome, amplicon_chr, amplicon_start = row.amplicon.split('_')
-            if not amplicon_chr == variant_chr:
-                raise ValueError('Amplicon on {:s} and variant on {:s}'.format(amplicon_chr, variant_chr))
-            if row.cut_sites:
-                # create list of cut sites
-                cut_sites = row.cut_sites.split(', ')
-                # find which cut site match variant_chr
-                the_cut_site_chr, the_cut_site_position, the_cut_site_on_target = None, None, None
-                for cut_site in cut_sites:
-                    cut_site_chr, cut_site_position, cut_site_on_target = cut_site.split('_')
-                    if cut_site_chr == variant_chr:
-                        the_cut_site_chr, the_cut_site_position, the_cut_site_on_target = cut_site_chr, cut_site_position, cut_site_on_target
-                # report on/off target information
-                # report cut site position
-                # calculate the distance between cut site and variant positions
-                distance = abs(int(row.position) - int(the_cut_site_position))
-                # calculate score based on distance
-                if distance == 0:
-                    score = 1
-                elif distance <= 5 and distance > 0:
-                    score = 0.75
-                elif distance < 10 and distance > 5:
-                    score = 0.50
-                else:
-                    score = 0.25
-                log.debug('onTarget: {:s}, cutSite: {:s}, distance: {:d}, score: {:f}'.format(the_cut_site_on_target, the_cut_site_position, distance, score))
+    for result in results:
+        log.info('----------')
+        log.info('variant: {} {}'.format(result.chromosome, result.position))
+        sequencing_library_content = result.sequencing_library_content
+        well = sequencing_library_content.well
+        # check amplicon and allele are on the same chromosome
+        if not result.amplicon.split('_')[1] == result.chromosome:
+            raise ValueError('Amplicon on {:s} and variant on {:s}'.format(result.amplicon.split('_')[1], result.chromosome))
+        if len(well.well_content.guides) == 1:
+            # find which cut sites match the variant
+            guide = well.well_content.guides[0]
+            matched_amplicon_selection = None
+            for amplicon_selection in guide.amplicon_selections:
+                if result.chromosome.endswith(amplicon_selection.amplicon.chromosome) and result.position >= amplicon_selection.amplicon.start and result.position <= amplicon_selection.amplicon.end:
+                    matched_amplicon_selection = amplicon_selection
+                    # calculate the distance between cut site and variant position
+                    distance = abs(int(result.position) - int(amplicon_selection.guide_location))
+                    # calculate score based on distance
+                    if distance == 0:
+                        score = 1
+                    elif distance <= 5 and distance > 0:
+                        score = 0.75
+                    elif distance < 10 and distance > 5:
+                        score = 0.50
+                    else:
+                        score = 0.25
+            if matched_amplicon_selection:
+                # store result in database
+                log.info('guide: {}, onTarget: {}, cutSite: {}, distance: {}, score: {}'.format(guide.name, matched_amplicon_selection.is_on_target, matched_amplicon_selection.guide_location, distance, score))
+            else:
+                log.info('guide: {}, not match found for this variant (position outside start/end of all amplicons), no score calculated'.format(guide.name))
+        elif len(well.well_content.guides) > 1:
+            raise Exception('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
+        else:
+            log.info('No guide found, no score calculated')
 
 
 if __name__ == '__main__':
