@@ -16,3 +16,7 @@ do
   echo 'Loading data for plate' ${plateid}
   python python/scripts/load_protein_abundance.py --plateid=${PROJNAME}_${plateid}_ICW --file=${PROJDIR}/${PROJNAME}_${plateid}_ICW.csv
 done
+
+echo 'Loading sequencing variant results'
+python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13774.vardict.variants.xlsx --caller=VarDict
+python python/scripts/load_variant_raw_results.py --file=${PROJDIR}/SLX-13774.haplotypeCaller.variants.xlsx --caller=HaplotypeCaller
