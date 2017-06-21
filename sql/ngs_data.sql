@@ -27,8 +27,8 @@ select
    variant_result.codons,
    variant_result.chromosome,
    variant_result.position,
-   variant_result.sequence_ref,
-   variant_result.sequence_alt,
+   variant_result.ref,
+   variant_result.alt,
    variant_result.allele_fraction,
    variant_result.depth,
    variant_result.quality,
@@ -37,7 +37,7 @@ select
    variant_result.exon,
    variant_result.offset_from_primer_end,
    variant_result.indel_length,
-   variant_result.sequence_alleles,
+   variant_result.alleles,
    variant_result.variant_type,
    variant_result.ge_score
 from
