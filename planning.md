@@ -74,3 +74,62 @@
   ```  
 - [ ] P7. in growth.data <- fun.growth_readDB(db), column 'barcode' is incorrect and shows the same value as column 'geid'
 - [ ] P8. regarding point 12 in TODO list, currently we are merging growth, protein and NGS to generate a combined plot. Merging by plate and well is not possible because they are not unique (we have cells or gDNA coming from the same well), so the ideal merger would be 'sample', but it's not present in all datasets. Instead of trying to fix this, would it be better to go for a single query, where the query gives a value for presence/absence of a certain dataset (growth, protein, NGS) that tells us which plots we can make?
+- [ ] P9. Code for NGS data below (this one was created to build the heatmap data for Rasmus) is missing values from the original uploaded files SLX-13775.haplotypeCaller.variants.xlsx and SLX-13775.vardict.variants.xlsx. The code below gives 74 rows, while the files gives > 100 rows. It looks like it's missing some allele values, e.g. P1C9 has a frameshift and an inframe.del in the excel data, but only the frameshift in the NGS data. I tried `unique(NGSdata$barcode) %>% length` in the result table and it gives 59 barcodes, so the problem is not that all combinations of plate-well-sample are unique.
+
+              `  sql.NGS <- c("
+                             with guide_list as (
+                   select
+                             guide_well_content_association.well_content_id,
+                             string_agg(guide.name, ', ') as guide_names
+                             from
+                             guide_well_content_association
+                             inner join guide on guide_well_content_association.guide_id = guide.id
+                             group by guide_well_content_association.well_content_id
+                )
+                
+                select
+                experiment_layout.geid as experiment_layout_geid,
+                concat(well.row, well.column) as well,
+                cell_line.name as cell_line_name,
+                clone.name as clone_name,
+                guide_list.guide_names,
+                well_content.is_control,
+                well_content.content_type,
+                sequencing_library_content.dna_source,
+                sequencing_library_content.sequencing_sample_name,
+                sequencing_library_content.sequencing_barcode,
+                sequencing_library.slxid,
+                variant_result.consequence,
+                variant_result.gene_id,
+                variant_result.cdna_effect,
+                variant_result.protein_effect,
+                variant_result.codons,
+                variant_result.chromosome,
+                variant_result.position,
+                variant_result.sequence_ref,
+                variant_result.sequence_alt,
+                variant_result.allele_fraction,
+                variant_result.depth,
+                variant_result.quality,
+                variant_result.amplicon,
+                variant_result.gene,
+                variant_result.exon,
+                variant_result.offset_from_primer_end,
+                variant_result.indel_length,
+                variant_result.sequence_alleles,
+                variant_result.variant_type,
+                variant_result.ge_score
+                from
+                well
+                inner join experiment_layout on well.experiment_layout_id = experiment_layout.id
+                left join well_content on well.well_content_id = well_content.id
+                left join guide_list on guide_list.well_content_id = well_content.id
+                left join clone on well_content.clone_id = clone.id
+                left join cell_line on clone.cell_line_id = cell_line.id
+                left join sequencing_library_content on sequencing_library_content.well_id = well.id
+                inner join sequencing_library on sequencing_library_content.sequencing_library_id = sequencing_library.id
+                inner join variant_result on variant_result.sequencing_library_content_id = sequencing_library_content.id
+                where
+                variant_result.allele_fraction > 0.1
+                             ")
+                             `
