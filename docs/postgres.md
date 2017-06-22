@@ -1,4 +1,4 @@
-##### Installing Postgres
+# Installing Postgres
 
 Notes on installing Postgres on RHEL 7.
 
@@ -7,7 +7,7 @@ For this, I have installed Postgres 9.3 simply because the Clarity servers are r
 The shared instance is running on bioinf-srv003 until we get a dedicated VM.
 
 
-#### Installing Packages
+## Installing Packages
 
 (As root)
 
@@ -21,8 +21,8 @@ The shared instance is running on bioinf-srv003 until we get a dedicated VM.
     su - postgres
     /usr/pgsql-9.3/bin/initdb
     exit
-    
-##### On Ubuntu
+
+## On Ubuntu
 (As root)
 sudo apt install libpq-dev postgresql-client #the libpq-dev is required to install the R package RPostgreSQL, which otherwise throws
                                              #an error:
@@ -31,7 +31,7 @@ sudo apt install libpq-dev postgresql-client #the libpq-dev is required to insta
                                                #/usr/lib/R/etc/Makeconf:134: recipe for target 'RS-PQescape.o' failed
 
 
-#### Configuring Access to the Database
+## Configuring Access to the Database
 
 (As postgres)
 
@@ -64,7 +64,7 @@ Edit `/var/lib/pgsql/9.3/data/postgresql.conf` to change the `listen_addresses` 
     ALTER USER gene WITH PASSWORD 'gene';
 
 
-#### Accessing the Database from Elsewhere
+## Accessing the Database from Elsewhere
 
     psql -h bioinf-ge001.cri.camres.org -U gene geneediting
 

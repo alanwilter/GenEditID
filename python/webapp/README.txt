@@ -1,6 +1,8 @@
 Gene Editing CRISPR
 ===================
 
+Contents of this file has been copied to docs/webapp.md
+
 Getting Started
 ---------------
 

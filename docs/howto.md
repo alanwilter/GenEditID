@@ -6,7 +6,7 @@ We have a machine for this project: `bioinf-ge001.cri.camres.org`. This is a vir
 
 Anne, Chandu, Rich & Ruben have sudo root access to the machine.
 
-Information on setting this up can be found in [server_setup.md].
+Information on setting this up can be found in [Server set up](server_setup.md).
 
 ## Dependencies
 
@@ -28,6 +28,7 @@ pip install -r python/requirements.txt
 
 ### Database
 
+#### The options
 - [SQLite](https://sqlite.org/) for testing
   - Python3 module to connect to SQLite is called [sqlite3](https://docs.python.org/3.6/library/sqlite3.html#module-sqlite3) and comes by default with Python
 - [Postgresql](https://www.postgresql.org/) for production
@@ -36,12 +37,11 @@ pip install -r python/requirements.txt
   - [SQLAlchemy 1.1 Documentation](http://docs.sqlalchemy.org/en/rel_1_1/)
 - [Alembic](https://bitbucket.org/zzzeek/alembic) is an excellent solution for SQLAlchemy-based systems. It provides a methodical approach and supports auto-generation of migration scripts. See [article](https://www.compose.com/articles/schema-migrations-with-alembic-python-and-postgresql/).
 
-Installation instructions for Postgres on a Centos 7 server can be found [in this separate document](postgres.md).
+#### Installation instruction
+Installation instructions for Postgres on a Centos 7 server can be found [Installing Postgres](postgres.md).
 
 
 #### Postgres Drivers for R
-
-See [postgres.md] and then [server_setup.md].
 
 ## R
 
@@ -109,6 +109,11 @@ shell/load_project_GEP00001.sh
 
 ## NGS analysis
 
+See these files for more information:
+- [NGS Pipeline](ngs-pipeline.md)
+- [Run the Amplicon Sequencing Pipeline](ngs-run-pipeline.md)
+- [How to visualise NGS data and variants?](ngs-data-vis.md)
+- [NGS Downstream processing and plotting](ngs-downstream.md)
 
 ## Results in Shiny App
 
@@ -131,6 +136,13 @@ shell/load_project_GEP00001.sh
 
 ### How to run the shiny app from R or on the server.
 
-```
+```bash
 R -e "shiny::runApp('r/shinyapp', port=4700, host='0.0.0.0')"
 ```
+
+## Loaders and Results in WebApp
+
+Our first draft of our WebApp design
+![Image of web-design](web-design.jpg)
+
+For more information see [CRISPR WebApp](webapp.md).

@@ -39,7 +39,7 @@
 ## What's next? Our TODO list...
 - [ ] 1. tidy up scripts
   - [ ] 1b.layout_plot.R to use data from all plates
-- [ ] 2. meet with bioformatics teams from Sanger and AZ
+- [x] 2. meet with bioinformatics teams from Sanger and AZ
 - [ ] 3. current analysis is per single project > update to process multiple projects
 - [ ] 4. prepare a knock-in donor table to include in database
 - [ ] 5. pipeline to work with human and mouse genomes

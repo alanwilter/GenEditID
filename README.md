@@ -37,3 +37,11 @@ See [docs/project_description.md](docs/project_description.md)
 ## Planning discussion and TODO list
 
 See [planning](planning.md)
+
+## How to...
+
+See [How to...](docs/howto.md) install and run this project
+
+## Need help with Git?
+
+See [Getting started with Git](docs/git-help.md)

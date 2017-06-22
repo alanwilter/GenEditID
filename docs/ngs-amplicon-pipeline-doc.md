@@ -1,17 +1,8 @@
----
-title: "AmpliconSeq Analysis Pipeline Package"
-author: "Matt Eldridge, Cancer Research UK Cambridge Institute, University of Cambridge"
-output:
-  html_document:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 4
-    toc_float: yes
----
+# AmpliconSeq Analysis Pipeline Package
 
------------
+author: Matt Eldridge, Cancer Research UK Cambridge Institute, University of Cambridge
 
-### Introduction
+## Introduction
 
 AmpliconSeq is an analysis pipeline package that implements a workflow for
 calling single nucleotide variants (SNVs) and indels in targeted amplicon
@@ -44,8 +35,6 @@ alignment of sequences to a reference genome but this is included in the diagram
 to indicate that this is a necessary step in the bioinformatic analysis prior
 to running the pipeline.
 
-![Schematic overview of the AmpliconSeq workflow][workflow]
-
 The workflow is executed using the workflow engine developed by Richard Bowers
 at the Cancer Research UK Cambridge Institute (CRUK-CI) and distributes the
 computational workload across multiple processors either on a powerful
@@ -74,9 +63,9 @@ VarDict variant callers can be found within the config subdirectory.
 
 -----------
 
-### Installation
+## Installation
 
-#### Pre-requisites
+### Pre-requisites
 
 The following software needs to be installed:
 
@@ -101,7 +90,7 @@ The workflow system and GATK are both Java applications requiring a suitable
 Java Runtime Environment. You can test the availability and version Java of on
 your system using the following command:
 
-```
+```bash
 java -version
 ```
 
@@ -127,17 +116,17 @@ allele frequencies from the 1000 Genomes project. This is run in offline mode
 so additionally the cache files for the reference genome against which the
 sequence data were aligned are required.
 
-#### Installing the AmpliconSeq pipeline package
+### Installing the AmpliconSeq pipeline package
 
 The AmpliconSeq pipeline is available in pre-packaged form and can be unpacked
 as follows (note that the version number should be substituted in the following
 command).
 
-```
+```bash
 tar zxf ampliconseq-pipeline-X.Y-distribution.tar.gz
 ```
 
-#### Installing the GATK package
+### Installing the GATK package
 
 The GATK package cannot be redistributed within this package under the terms
 of Broad Institute Software License Agreement. Instead this needs to be
@@ -153,9 +142,9 @@ to be the full path for the GATK jar file.
 
 -----------
 
-### Running the pipeline
+## Running the pipeline
 
-#### Configuring the pipeline
+### Configuring the pipeline
 
 1. Copy a sample configuration file from the config subdirectory of the AmpliconSeq installation to a working directory.
 
@@ -176,25 +165,25 @@ set will override the value specified in the configuration file.
 
 To run on a compute cluster using the LSF scheduler:
 
-```
+```bash
 /path_to/ampliconseq/bin/run-pipeline --mode lsf config.xml
 ```
 
 Similarly, to run on a compute cluster using the Slurm scheduler:
 
-```
+```bash
 /path_to/ampliconseq/bin/run-pipeline --mode slurm config.xml
 ```
 
 To view other options that can be specified at run-time:
 
-```
+```bash
 /path_to/ampliconseq/bin/run-pipeline --help
 ```
 
 -----------
 
-### Configuration
+## Configuration
 
 The pipeline configuration file is an XML file in which a number of parameters
 or variables can be set for a given run. Examples for each variant caller supported
@@ -264,7 +253,7 @@ special property, @{user.dir}
 
 -----------
 
-### Pipeline inputs
+## Pipeline inputs
 
 The primary inputs to the pipeline are a sample metadata file that provides
 sample details for each sequencing library or dataset and a corresponding set
@@ -423,7 +412,7 @@ variantEffectPredictorReferenceSequence should be set to the version downloaded
 from Ensembl as part of the VEP cache to avoid some issues with HGVS annotations
 affecting the cDNA and protein effect columns in the output variant spreadsheet.
 
-#### Optional inputs
+### Optional inputs
 
 There are a number of optional input files relating to specific calling of
 known variants, blacklisting variants and specifying which SNVs to use in
@@ -432,7 +421,7 @@ below.
 
 -----------
 
-### Pipeline outputs
+## Pipeline outputs
 
 The pipeline produces separate SNV and indel VCF files for each dataset along
 with alignment summary and target coverage metrics files, including an HTML
@@ -465,14 +454,14 @@ alignment_coverage_report.html | HTML report containing alignment summary metric
 amplicon_coverage.xlsx         | Excel spreadsheet containing coverage for each library and amplicon pairing
 read_counts.txt                | Table of read counts for each base at every target position for all libraries
 snv.txt                        | Collated SNV calls for all sample/patient replicate libraries
-snv.filtered.txt               | Filtered SNV calls that exclude low-confidence calls not marked for specific calling 
+snv.filtered.txt               | Filtered SNV calls that exclude low-confidence calls not marked for specific calling
 snv_allele_fraction.xlsx       | Excel spreadsheet containing allele fractions for selected SNVs
 indel.txt                      | Collated indel calls for all sample/patient replicate libraries
-indel.filtered.txt             | Filtered indel calls that exclude low-confidence calls not marked for specific calling 
+indel.filtered.txt             | Filtered indel calls that exclude low-confidence calls not marked for specific calling
 variants.xlsx                  | Excel spreadsheet containing collated, filtered SNV and indel calls
 
 
-#### Variants tables
+### Variants tables
 
 The variants.xlsx Excel spreadsheet is the principal output from the pipeline
 and includes two tables for the SNV and indel calls.
@@ -490,7 +479,7 @@ The SNV tabular files, snv.txt and snv.filtered.txt, can be read into the
 visualization tool packaged with this pipeline (see the section on low allele
 fraction SNVs below for more details).
 
-#### VCF files
+### VCF files
 
 The pipeline generates indexed SNV and indel VCF files for each library which
 can amount to a large number of files. The output directory for these VCF files
@@ -498,7 +487,7 @@ defaults to a subdirectory named vcf within the output directory (specified usin
 the outputDir variable) but can be configured to be a different directory using
 the outputVcfDir variable.
 
-#### Coverage table
+### Coverage table
 
 In addition the alignment and coverage HTML report, an Excel spreadsheet is
 generated that contains the mean depth covered by each amplicon within each
@@ -506,7 +495,7 @@ dataset in tabular form. This uses conditional formatting to highlight
 library/amplicon pairs with low coverage; the coverageThreshold setting is
 used to set a threshold below which depth of coverage will be highlighted.
 
-#### SNV allele fraction table
+### SNV allele fraction table
 
 Allele fractions for a predetermined set of SNVs are calculated and can help
 in identifying sample swaps. A tab-delimited file containing the SNVs to be
@@ -520,7 +509,7 @@ replicates are highlighted and the number of SNVs flagged are tabulated in
 the Flagged column. The maximum tolerated difference in allele fraction can
 be set using the maxAlleleFractionDifference configuration variable.
 
-#### Read counts file
+### Read counts file
 
 The read counts file contains the number of reads for every allele at each
 target location. This is used in modelling the background noise and filtering
@@ -544,9 +533,9 @@ configuration file(s) for details.
 
 -----------
 
-### Notes
+## Notes
 
-#### Replicate libraries for each sample
+### Replicate libraries for each sample
 
 The annotated variant output file contains a single row for each variant within
 each sample in which the details for each replicate are collated, i.e. each row
@@ -567,7 +556,7 @@ FLD0096  NTC5(water)
 FLD0312  NTC6(water)
 ```
 
-#### Filters
+### Filters
 
 SNV and indel filtering is carried out using the GATK VariantFiltration tool.
 Filters are specified using the snvFilterExpression and indelFilterExpression
@@ -624,7 +613,7 @@ snvFilterExpression and indelFilterExpression variables. See the GATK
 documentation for more details about using JEXL expressions for filtering
 variants.
 
-#### Confidence level for variants called in replicate libraries
+### Confidence level for variants called in replicate libraries
 
 The variants in the collated variant output files are given a confidence level
 that can be high, medium or low. Factors in determining the confidence include
@@ -644,7 +633,7 @@ Low-confidence variants are excluded from the variant spreadsheet, variants.xlsx
 file, unless listed for specific calling. The tab-delimited files snv.txt and
 indel.txt include all variants called including those with low confidence.
 
-#### Depths and allele fractions
+### Depths and allele fractions
 
 Depths and allele fractions for variants called in one or more but not all
 replicates are included in the output variant tables but where a call was not
@@ -655,7 +644,7 @@ variant caller doesn't call the variant for a replicate or doesn't output the
 depth or allele fraction for a call, the values included in the final variants
 table will instead be those computed from the read counts.
 
-#### Specific variant calling
+### Specific variant calling
 
 There is support for "specific calling" for SNVs, i.e. the depth and allele
 fraction for specified SNVs will be included in the output variant spreadsheet
@@ -692,7 +681,7 @@ will be included in the indels worksheet in the variants spreadsheet with a
 "yes" in the Specific column and Ensembl VEP annotations but depth and allele
 fractions will only be available if the indel was called.
 
-#### Blacklisting variants
+### Blacklisting variants
 
 For some target amplicon panels it may be desirable to blacklist certain
 variants, e.g. where those variants are very common in the population at
@@ -707,7 +696,7 @@ If blacklisting is not needed this variable can be left unset.
 ```
 
 Both SNVs and indels can be included in the blacklist file, an example of
-which is given below. 
+which is given below.
 
 ```
 Chromosome  Position  Ref  Alt
@@ -720,7 +709,7 @@ chr17       7579920   A    AC
 Variants in the blacklist are excluded from the final variants spreadsheet
 unless these have also been specified for specific calling.
 
-#### SNV allele fraction table for identifying sample swaps
+### SNV allele fraction table for identifying sample swaps
 
 The SNV allele fraction spreadsheet can help in identifying possible sample
 swaps. This contains allele fractions for every sample for a predetermined
@@ -758,7 +747,7 @@ tolerated amount specified using the maxAlleleFractionDifference setting and
 where the depth is above a minimum value specified with the coverageThreshold
 variable.
 
-#### Differing depths reported by various tools within the pipeline
+### Differing depths reported by various tools within the pipeline
 
 Three different measures of the depth of sequencing are reported in the various
 output files for this pipeline.
@@ -792,7 +781,7 @@ will likely be higher than the number of reads used to call variants.
 
 -----------
 
-### Low allele fraction SNVs
+## Low allele fraction SNVs
 
 The AmpliconSeq pipeline supports calling of SNVs with low allele fractions through
 modelling the background noise in the sequence data. This allows for calling SNVs from
@@ -812,7 +801,7 @@ The GATK variant callers do not call variants with allele fractions below around
         <minimumAlleleFraction>0.001</minimumAlleleFraction>
 ```
 
-#### Background noise filters
+### Background noise filters
 
 A Beta probability distribution is fitted to the distribution of allele fractions for
 all datasets in the run at each target position and for each of the three possible
@@ -851,7 +840,7 @@ The sample configuration files provided in the pipeline distribution in the conf
 subdirectory contain filter expressions that are suitable for each of supported
 variant callers and include position and dataset filters.
 
-#### R/Shiny visualization tool
+### R/Shiny visualization tool
 
 The AmpliconSeq package contains a visualization tool written in R and using
 the Shiny framework. To start the application, navigate on the command line to
@@ -881,8 +870,6 @@ these are selected using a drop down menu and viewed separately. Superimposed on
 the scatter plot is a box and whiskers plot. The allele fraction threshold below
 which SNV calls should be filtered is shown as a red line.
 
-![Allele fraction scatter plot for a selected position and substitution for all library datasets within a pipeline run][scatter_plot]
-
 3. Within the *Locations* tab, select the *Density plot* tab to view the allele
 fractions in the form of a kernel density plot. Some filtering of the data points
 with the highest allele fractions and those with values of zero is performed to
@@ -892,14 +879,10 @@ data points to exclude from fitting can be modified using the dialog on the left
 hand side. Also, there is a choice of probability distribution that can be fitted
 with the Normal, Log Normal and Beta distributions available.
 
-![Density plot showing the distribution of allele fractions for a selected position and substitution for all library datasets within a pipeline run][density_plot]
-
 4. The *Cullen and Frey* graph shows the degree of kurtosis and skewness for the
 allele fractions for the selected position and substitution in the context of a
 number of theoretical distributions. In most cases, the beta distribution seems
 a good choice and is the distribution used in fitting by the AmpliconSeq pipeline.
-
-![Cullen and Frey graph][cullen_frey_plot]
 
 5. The scatter and density plots are interactive, supporting zooming, selection
 of data points and display of tooltips that provide a summary for each data point.
@@ -917,14 +900,12 @@ clicking on a column and filtering using the search box above the table or the
 individual column search boxes below the table. Selecting a SNV call in this
 table will update the selections in the Locations and Libraries tabs.
 
-![SNV table][snv_table]
-
 7. The *Libraries* tab is very similar to the *Locations* tab but shows the
 allele fractions for all substitutions within a selected library/dataset.
 
 -----------
 
-### Useful links
+## Useful links
 
 [Genome Analysis Toolkit (GATK)](https://www.broadinstitute.org/gatk)
 
@@ -934,18 +915,18 @@ allele fractions for all substitutions within a selected library/dataset.
 
 -----------
 
-### License
+## License
 
 The AmpliconSeq pipeline is made available under the MIT License (see separate
 LICENSE file).
 
-##### VarDict copyright and license
+### VarDict copyright and license
 
 The scripts teststrandbias.R and var2vcf_valid.pl from the VarDict package are
 redistributed in the scripts subdirectory under the MIT license (see
 LICENSE.VarDict in the licenses subdirectory).
 
-##### Highcharts license
+### Highcharts license
 
 The visualization tool uses the Highcharts JavaScript library via the highcharter
 R package. This is free for non-profit organizations. For commercial use, licensing

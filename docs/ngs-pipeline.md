@@ -1,5 +1,4 @@
-# CRISPR NGS pipeline
-
+# NGS pipeline
 
 ## Sanger pipe line
 
@@ -24,7 +23,7 @@
 Therefore we decided not to proceed with sanger pipeline.
 
 
-## Alignment aginst amblicons or whole genome?
+## Alignment against amplicons or whole genome?
 
 * Whole genome
     *   slower
@@ -35,11 +34,6 @@ Therefore we decided not to proceed with sanger pipeline.
     *   Needs to create references every time
     *   Needs to map the amplicon and genomics coordinates
     *   Forces to reds to map, even if read is not from that region
-    
-    
-We decided initially we use both the options and compare.
 
 
-        
-
-  
+We decided initially we use both options and compare.

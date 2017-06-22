@@ -1,4 +1,4 @@
-# NGS Data
+# NGS Downstream processing and plotting
 
 ## Result table, one per sample
 
