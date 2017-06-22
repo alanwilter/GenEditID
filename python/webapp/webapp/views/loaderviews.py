@@ -1,6 +1,7 @@
 import os
 import uuid
 import shutil
+import logging
 
 import colander
 import deform.widget
@@ -10,6 +11,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from dnascissors.model import Project
+from dnascissors.loader import LayoutLoader, ExistingEntityException
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -19,18 +21,27 @@ from dnascissors.model import Project
 class LoaderViews(object):
     
     def __init__(self, request):
+        self.logger = logging.getLogger('webapp')
         self.request = request
         self.dbsession = request.dbsession
     
     @view_config(route_name="load_layout", renderer="../templates/loader/layoutsetup.pt")
     def load_layout(self):
         
+        return_map = dict(title="Load Layout File")
+        
         if 'submit' in self.request.params:
             
             filename = self.request.POST['layoutfile'].filename
             filedata = self.request.POST['layoutfile'].file
             
-            print("Uploaded = %s" % filename)
+            clean_existing = False
+            try:
+                clean_existing = self.request.POST['blat']
+            except KeyError:
+                pass
+            
+            self.logger.info("Uploaded = %s" % filename)
             
             file_path = os.path.join('uploads/', '%s.xlsx' % uuid.uuid4())
     
@@ -43,28 +54,36 @@ class LoaderViews(object):
                 
                 os.rename(temp_file_path, file_path)
                 
-                # Now do the load, after cleaning project.
-                
                 statinfo = os.stat(file_path)
                 
-                print("Uploaded a file of {:d} bytes".format(statinfo.st_size))
+                self.logger.info("Uploaded a file of {:d} bytes".format(statinfo.st_size))
+                
+                # Now do the load, after cleaning project.
+                
+                loader = LayoutLoader(self.dbsession, file_path)
+                
+                try:
+                    loader.load_all(clean_existing)
+
+                    url = self.request.route_url('projects')
+                    return HTTPFound(url)
+                
+                except ExistingEntityException as e:
+                    return_map['error'] = e.message
                 
             except Exception as e:
-                return dict(title="Load Layout File")
+                self.logger.error("Have an unexpected error while creating project: {}".format(e))
+                return_map['error'] = str(e)
+            
             finally:
                 try:
                     os.remove(temp_file_path)
                 except OSError:
-                    # Do nothing.
                     pass
                     
                 try:
                     os.remove(file_path)
                 except OSError:
-                    # Do nothing.
                     pass
-
-            url = self.request.route_url('projects')
-            return HTTPFound(url)
         
-        return dict(title="Load Layout File")
+        return return_map

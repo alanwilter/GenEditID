@@ -17,6 +17,8 @@
         </p>
 
         <form action="/loadlayout" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+            <input name="blat" type="hidden" value="true"></input>
+            
             <p>
                 <label for="upload">Project file:</label>
                 <input id="upload" name="layoutfile" type="file" value=""></input>

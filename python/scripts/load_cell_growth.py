@@ -26,8 +26,10 @@ def main():
 
     try:
         loader.load()
+        session.commit()
     except Exception as e:
         log.exception(e)
+        session.rollback()
     finally:
         session.close()
 

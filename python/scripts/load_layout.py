@@ -28,8 +28,10 @@ def main():
         if options.clean_db:
             loader.clean()
         loader.load_all()
+        session.commit()
     except Exception as e:
         log.exception(e)
+        session.rollback()
     finally:
         session.close()
 

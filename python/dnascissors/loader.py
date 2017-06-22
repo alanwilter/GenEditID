@@ -25,6 +25,25 @@ from dnascissors.model import VariantResult
 
 
 # --------------------------------------------------------------------------------
+# Loader exceptions
+# --------------------------------------------------------------------------------
+
+class ExistingEntityException(Exception):
+    
+    def __init__(self, objtype, key, msg=None):
+        if msg is None:
+            msg="Already have a {:s} identified by {:s}.".format(type(objtype).__name__, str(key))
+            
+        super(ExistingEntityException, self).__init__(msg)
+        
+        self.object_type = type
+        self.key = key
+        self.message = msg
+    
+    def __str__(self):
+        return self.message
+
+# --------------------------------------------------------------------------------
 # Loader class
 # --------------------------------------------------------------------------------
 class Loader:
@@ -121,7 +140,11 @@ class LayoutLoader(Loader):
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
 
-    def clean(self):
+    def clean(self, project):
+        
+        self.session.delete(project)
+        
+        """
         delete_count = self.session.query(CellGrowth).delete()
         self.log.info('Deleted {:d} cell growths'.format(delete_count))
 
@@ -172,34 +195,38 @@ class LayoutLoader(Loader):
 
         delete_count = self.session.query(Project).delete()
         self.log.info('Deleted {:d} projects'.format(delete_count))
+        """
+        
+        self.session.flush()
 
-        self.session.commit()
 
-    def load_all(self):
-        self.load_projects()
-        self.session.commit()
+    def load_all(self, clean_if_exists=False):
+        self.load_projects(clean_if_exists)
         self.load_targets()
-        self.session.commit()
         self.load_guides()
-        self.session.commit()
         self.load_amplicon_selection()
-        self.session.commit()
         self.load_experiment_layout()
-        self.session.commit()
         self.load_plates()
-        self.session.commit()
         self.load_sequencing_libraries()
-        self.session.commit()
 
-    def load_projects(self):
+    def load_projects(self, clean_if_exists=False):
         sheet = self.xls.parse('Project')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.geid:
                 raise Exception('Project identifier is required on row {:d}'.format(i))
+            
             project = self.session.query(Project).filter(Project.geid == row.geid).first()
+            
             if project:
-                self.log.info("Already have a project {:s} ({:s})".format(project.geid, project.name))
-                return
+                if clean_if_exists:
+                    self.log.info("Already have a project {:s} ({:s})".format(project.geid, project.name))
+                    self.log.info("Removing this project and its associated data.")
+                    
+                    self.clean(project)
+                else:
+                    raise ExistingEntityException(Project, row.geid,
+                                                  "Already have project {:s}. Will not overwrite it.".format(project.geid))
+            
             project = Project()
             project.geid = row.geid
             project.name = row.name
@@ -500,7 +527,6 @@ class ProteinAbundanceLoader(Loader):
                         elif channel == 800:
                             abundance.intensity_channel_800 = self.get_float(line[column - 1])
                     row = row + 1
-        self.session.commit()
 
 
 # --------------------------------------------------------------------------------
@@ -558,7 +584,6 @@ class CellGrowthLoader(Loader):
                             growth.timestamp = time
                             self.session.add(growth)
                         growth.confluence_percentage = value
-        self.session.commit()
 
 
 # --------------------------------------------------------------------------------
@@ -576,7 +601,6 @@ class VariantLoader(Loader):
     def clean(self):
         delete_count = self.session.query(VariantResult).delete()
         self.log.info('Deleted {:d} variant results'.format(delete_count))
-        self.session.commit()
 
     def load_sheet(self, sheet_name, variant_type):
         sheet = self.xls.parse(sheet_name, header=None, skiprows=1)
@@ -652,8 +676,7 @@ class VariantLoader(Loader):
             result.reverse_context = self.get_value(row.reverse_context)
             self.session.add(result)
             self.log.info("Variant result added for {:s} sample with {:s} barcode".format(row.sample, row.barcode))
-        self.session.commit()
-        
+
     def load(self):
         self.load_sheet('SNVs', 'SNV')
         self.load_sheet('Indels', 'INDEL')
