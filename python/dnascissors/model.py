@@ -252,10 +252,10 @@ class SequencingLibraryContent(Base):
 class VariantResult(Base):
     __tablename__ = 'variant_result'
     id = Column(Integer, primary_key=True)
-    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_raw_results_fk', ondelete='CASCADE'), nullable=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_result_fk', ondelete='CASCADE'), nullable=True)
     sequencing_library_content = relationship(
         SequencingLibraryContent,
-        backref=backref('variant_raw_results', uselist=True, cascade='delete,all'))
+        backref=backref('variant_results', uselist=True, cascade='delete,all'))
     variant_caller = Column(Enum('VarDict', 'HaplotypeCaller', 'FreeBayes', name='variant_caller'), nullable=False, index=True)
     variant_type = Column(Enum('INDEL', 'SNV', name='variant_type'), nullable=False, index=True)
     consequence = Column(String(250))
