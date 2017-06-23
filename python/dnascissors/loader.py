@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 import csv
 import pandas
-import sqlalchemy
 
 from dnascissors.model import Project
 from dnascissors.model import Genome
@@ -22,26 +21,27 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import CellGrowth
 from dnascissors.model import ProteinAbundance
 from dnascissors.model import VariantResult
+from dnascissors.model import MutationSummary
 
 
 # --------------------------------------------------------------------------------
 # Loader exceptions
 # --------------------------------------------------------------------------------
-
 class ExistingEntityException(Exception):
-    
+
     def __init__(self, objtype, key, msg=None):
         if msg is None:
             msg="Already have a {:s} identified by {:s}.".format(type(objtype).__name__, str(key))
-            
+
         super(ExistingEntityException, self).__init__(msg)
-        
+
         self.object_type = type
         self.key = key
         self.message = msg
-    
+
     def __str__(self):
         return self.message
+
 
 # --------------------------------------------------------------------------------
 # Loader class
@@ -141,64 +141,8 @@ class LayoutLoader(Loader):
         self.genome = None
 
     def clean(self, project):
-        
         self.session.delete(project)
-        
-        """
-        delete_count = self.session.query(CellGrowth).delete()
-        self.log.info('Deleted {:d} cell growths'.format(delete_count))
-
-        delete_count = self.session.query(ProteinAbundance).delete()
-        self.log.info('Deleted {:d} protein abundances'.format(delete_count))
-
-        delete_count = self.session.query(VariantResult).delete()
-        self.log.info('Deleted {:d} variant results'.format(delete_count))
-
-        delete_count = self.session.query(Plate).delete()
-        self.log.info('Deleted {:d} plates'.format(delete_count))
-
-        delete_count = self.session.query(SequencingLibrary).delete()
-        self.log.info('Deleted {:d} sequencing libraries'.format(delete_count))
-
-        delete_count = self.session.query(SequencingLibraryContent).delete()
-        self.log.info('Deleted {:d} sequencing library contents'.format(delete_count))
-
-        delete_count = self.session.query(Primer).delete()
-        self.log.info('Deleted {:d} primers'.format(delete_count))
-
-        delete_count = self.session.query(AmpliconSelection).delete()
-        self.log.info('Deleted {:d} amplicon selections'.format(delete_count))
-
-        delete_count = self.session.query(Amplicon).delete()
-        self.log.info('Deleted {:d} amplicons'.format(delete_count))
-
-        delete_count = self.session.query(Guide).delete()
-        self.log.info('Deleted {:d} guides'.format(delete_count))
-
-        delete_count = self.session.query(CellLine).delete()
-        self.log.info('Deleted {:d} cell lines'.format(delete_count))
-
-        delete_count = self.session.query(Clone).delete()
-        self.log.info('Deleted {:d} clones'.format(delete_count))
-
-        delete_count = self.session.query(WellContent).delete()
-        self.log.info('Deleted {:d} well contents'.format(delete_count))
-
-        delete_count = self.session.query(Well).delete()
-        self.log.info('Deleted {:d} wells'.format(delete_count))
-
-        delete_count = self.session.query(ExperimentLayout).delete()
-        self.log.info('Deleted {:d} experiment layouts'.format(delete_count))
-
-        delete_count = self.session.query(Target).delete()
-        self.log.info('Deleted {:d} targets'.format(delete_count))
-
-        delete_count = self.session.query(Project).delete()
-        self.log.info('Deleted {:d} projects'.format(delete_count))
-        """
-        
         self.session.flush()
-
 
     def load_all(self, clean_if_exists=False):
         self.load_projects(clean_if_exists)
@@ -214,19 +158,15 @@ class LayoutLoader(Loader):
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.geid:
                 raise Exception('Project identifier is required on row {:d}'.format(i))
-            
             project = self.session.query(Project).filter(Project.geid == row.geid).first()
-            
             if project:
                 if clean_if_exists:
                     self.log.info("Already have a project {:s} ({:s})".format(project.geid, project.name))
                     self.log.info("Removing this project and its associated data.")
-                    
                     self.clean(project)
                 else:
-                    raise ExistingEntityException(Project, row.geid,
-                                                  "Already have project {:s}. Will not overwrite it.".format(project.geid))
-            
+                    raise ExistingEntityException(Project, row.geid, "Already have project {:s}. Will not overwrite it.".format(project.geid))
+
             project = Project()
             project.geid = row.geid
             project.name = row.name
@@ -680,3 +620,91 @@ class VariantLoader(Loader):
     def load(self):
         self.load_sheet('SNVs', 'SNV')
         self.load_sheet('Indels', 'INDEL')
+
+
+# --------------------------------------------------------------------------------
+# MutationLoader class
+# --------------------------------------------------------------------------------
+class MutationLoader(Loader):
+
+    def __init__(self, session, project_geid):
+        self.log = logging.getLogger('dnascissors')
+        self.session = session
+        self.project_geid = project_geid
+
+    def clean(self):
+        delete_count = self.session.query(MutationSummary).delete()
+        self.log.info('Deleted {:d} mutation summaries'.format(delete_count))
+
+    def __get_mutations__(self, well, variant_results, variant_caller='VarDict'):
+        mutations = []
+        nb_variants = 0
+        for variant in variant_results:
+            # select INDEL variants only from VarDict caller
+            if variant.variant_caller == variant_caller and variant.variant_type == 'INDEL':
+                nb_variants += 1
+                self.log.info('--- variant: {} {} {}'.format(variant.variant_caller, variant.variant_type, variant.allele_fraction))
+                # check amplicon and allele are on the same chromosome
+                if not variant.amplicon.split('_')[1] == variant.chromosome:
+                    raise ValueError('Amplicon on {:s} and variant on {:s}'.format(variant.amplicon.split('_')[1], variant.chromosome))
+                if len(well.well_content.guides) == 1:
+                    # find which cut sites match the variant
+                    guide = well.well_content.guides[0]
+                    matched_amplicon_selection = None
+                    for amplicon_selection in guide.amplicon_selections:
+                        if variant.chromosome.endswith(amplicon_selection.amplicon.chromosome) and variant.position >= amplicon_selection.amplicon.start and variant.position <= amplicon_selection.amplicon.end:
+                            matched_amplicon_selection = amplicon_selection
+                    if matched_amplicon_selection:
+                        # select mutation only if within the amplicon range
+                        mutations.append(variant)
+                elif len(well.well_content.guides) > 1:
+                    raise Exception('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
+            return mutations, nb_variants
+
+    def __characterise_mutations__(self, mutations, nb_variants):
+        # caracterise the mutations
+        mutation_zygosity = None
+        mutation_consequence = None
+        mutation_has_off_target = None
+        if len(mutations) == nb_variants:
+            if len(mutations) > 0:
+                mutation_has_off_target = False
+                if len(mutations) == 1:
+                    if mutations[0].allele_fraction > 0.85:
+                        mutation_zygosity = 'homo'
+                    elif mutations[0].allele_fraction < 0.85 and mutations[0].allele_fraction > 0.35:
+                        mutation_zygosity = 'smut'
+                    else:
+                        mutation_zygosity = 'iffy'
+                elif len(mutations) == 2:
+                    if mutations[0].allele_fraction < 0.85 and mutations[0].allele_fraction > 0.35 and mutations[1].allele_fraction < 0.85 and mutations[1].allele_fraction > 0.35:
+                        mutation_zygosity = 'dmut'
+                    else:
+                        mutation_zygosity = 'iffy'
+                else:
+                    mutation_zygosity = 'iffy'
+                mutation_consequence = ','.join(set([m.consequence for m in mutations]))
+        else:
+            mutation_has_off_target = True
+        return mutation_zygosity, mutation_consequence, mutation_has_off_target
+
+    def load(self):
+        results = self.session.query(SequencingLibraryContent)\
+                              .join(SequencingLibraryContent.variant_results)\
+                              .join(SequencingLibraryContent.well)\
+                              .join(Well.well_content)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .all()
+        for sequencing_library_content in results:
+            well = sequencing_library_content.well
+            layout = well.experiment_layout
+            mutations, nb_variants = self.__get_mutations__(well, sequencing_library_content.variant_results, 'VarDict')
+            mutation_zygosity, mutation_consequence, mutation_has_off_target = self.__characterise_mutations__(mutations, nb_variants)
+            summary = MutationSummary(sequencing_library_content=sequencing_library_content)
+            summary.zygosity = mutation_zygosity
+            summary.consequence = mutation_consequence
+            summary.has_off_target = mutation_has_off_target
+            self.session.add(summary)
+            self.log.info('[{} {} {}{}] sample: {} | Mutation added: {}\t{}\t{}'.format(layout.project.geid, layout.geid, well.row, well.column, sequencing_library_content.sequencing_barcode, summary.zygosity, summary.has_off_target, summary.consequence))

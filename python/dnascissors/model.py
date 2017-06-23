@@ -236,7 +236,7 @@ class SequencingLibrary(Base):
 class SequencingLibraryContent(Base):
     __tablename__ = 'sequencing_library_content'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='well_sequencing_library_content_fk', ondelete='CASCADE'), nullable=True)
+    well_id = Column(Integer, ForeignKey('well.id', name='well_sequencing_library_content_fk', ondelete='CASCADE'), nullable=False)
     well = relationship(
         Well,
         backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
@@ -252,7 +252,7 @@ class SequencingLibraryContent(Base):
 class VariantResult(Base):
     __tablename__ = 'variant_result'
     id = Column(Integer, primary_key=True)
-    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_result_fk', ondelete='CASCADE'), nullable=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_result_fk', ondelete='CASCADE'), nullable=False)
     sequencing_library_content = relationship(
         SequencingLibraryContent,
         backref=backref('variant_results', uselist=True, cascade='delete,all'))
@@ -284,10 +284,18 @@ class VariantResult(Base):
     forward_context = Column(String(250))
     alleles = Column(String(250))
     reverse_context = Column(String(250))
-    #cut_site_on_target = Column(Boolean)
-    #cut_site_position = Column(Integer)
-    #distance = Column(Integer)
-    #ge_score = Column(Float)
+
+
+class MutationSummary(Base):
+    __tablename__ = 'mutation_summary'
+    id = Column(Integer, primary_key=True)
+    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_mutation_summary_fk', ondelete='CASCADE'), unique=True, nullable=False)
+    sequencing_library_content = relationship(
+        SequencingLibraryContent,
+        backref=backref('mutation_summaries', uselist=True, cascade='delete,all'))
+    zygosity = Column(Enum('homo', 'smut', 'dmut', 'iffy', name='zygosity'))
+    consequence = Column(String(250))
+    has_off_target = Column(Boolean)
 
 
 class ProteinAbundance(Base):
