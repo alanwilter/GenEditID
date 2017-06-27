@@ -639,9 +639,11 @@ class MutationLoader(Loader):
     def __get_mutations__(self, well, variant_results, variant_caller='VarDict'):
         mutations = []
         nb_variants = 0
+        self.log.debug('*** Number of variants: {}'.format(len(variant_results)))
         for variant in variant_results:
-            # select INDEL variants only from VarDict caller
-            if variant.variant_caller == variant_caller and variant.variant_type == 'INDEL':
+            self.log.debug('*** variant: {} {} {}'.format(variant.variant_caller, variant.variant_type, variant.allele_fraction))
+            # select INDEL variants only from VarDict caller with allele_fraction above 0.1
+            if variant.variant_caller == variant_caller and variant.variant_type == 'INDEL' and variant.allele_fraction > 0.1:
                 nb_variants += 1
                 self.log.info('--- variant: {} {} {}'.format(variant.variant_caller, variant.variant_type, variant.allele_fraction))
                 # check amplicon and allele are on the same chromosome
@@ -659,7 +661,7 @@ class MutationLoader(Loader):
                         mutations.append(variant)
                 elif len(well.well_content.guides) > 1:
                     raise Exception('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
-            return mutations, nb_variants
+        return mutations, nb_variants
 
     def __characterise_mutations__(self, mutations, nb_variants):
         # caracterise the mutations
@@ -668,7 +670,6 @@ class MutationLoader(Loader):
         mutation_has_off_target = None
         if len(mutations) == nb_variants:
             if len(mutations) > 0:
-                mutation_has_off_target = False
                 if len(mutations) == 1:
                     if mutations[0].allele_fraction > 0.85:
                         mutation_zygosity = 'homo'
@@ -684,8 +685,6 @@ class MutationLoader(Loader):
                 else:
                     mutation_zygosity = 'iffy'
                 mutation_consequence = ','.join(set([m.consequence for m in mutations]))
-        else:
-            mutation_has_off_target = True
         return mutation_zygosity, mutation_consequence, mutation_has_off_target
 
     def load(self):
@@ -698,13 +697,28 @@ class MutationLoader(Loader):
                               .filter(Project.geid == self.project_geid)\
                               .all()
         for sequencing_library_content in results:
+            self.log.debug('======================')
             well = sequencing_library_content.well
             layout = well.experiment_layout
+            self.log.debug('*** Number of variants: {}'.format(len(sequencing_library_content.variant_results)))
+            for variant in sequencing_library_content.variant_results:
+                self.log.debug('xxx variant: {} {} {}'.format(variant.variant_caller, variant.variant_type, variant.allele_fraction))
+
             mutations, nb_variants = self.__get_mutations__(well, sequencing_library_content.variant_results, 'VarDict')
             mutation_zygosity, mutation_consequence, mutation_has_off_target = self.__characterise_mutations__(mutations, nb_variants)
+            self.log.debug('*** Number of variants: {}'.format(nb_variants))
             summary = MutationSummary(sequencing_library_content=sequencing_library_content)
             summary.zygosity = mutation_zygosity
             summary.consequence = mutation_consequence
             summary.has_off_target = mutation_has_off_target
             self.session.add(summary)
+
+            self.log.debug('[{} {} {}{}] barcode: {}'.format(layout.project.geid, layout.geid, well.row, well.column, sequencing_library_content.sequencing_barcode))
+            self.log.debug('>>> mutation zygosity: {}'.format(mutation_zygosity))
+            self.log.debug('>>>       consequence: {}'.format(mutation_consequence))
+            self.log.debug('>>>    has off target: {}'.format(mutation_has_off_target))
+            for mutation in mutations:
+                self.log.debug('+++ mutation: {} {} {}'.format(mutation.variant_caller, mutation.variant_type, mutation.allele_fraction))
+
             self.log.info('[{} {} {}{}] sample: {} | Mutation added: {}\t{}\t{}'.format(layout.project.geid, layout.geid, well.row, well.column, sequencing_library_content.sequencing_barcode, summary.zygosity, summary.has_off_target, summary.consequence))
+            self.log.debug('======================')
