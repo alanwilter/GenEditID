@@ -44,16 +44,16 @@ Create a result table for each sequencing sample
 
 ## Plots
 
-### Indel ranges plot
+### Indel ranges plot (Ruben)
 
 issue with box size that needs to be calculated from position and indel length (positive: insertion with triangle bottom or negative: deletion with rectangle on top)
 
-### Indel length distribution plot
+### Indel length distribution plot (Ruben)
 
 per allele per variant caller
 plotting percentage of indel_length based on cut site
 
-### Mutation plot (replace it by Allele plot)
+### Mutation plot (replace it by Allele plot) (Anne)
 
 percentage of number of INDEL or SNV over total number of mutation found
 info from type column, separated per guide (each guide has one colour)
@@ -61,16 +61,16 @@ per variant caller
 
 three categories: SNV, Insertion (INDEL, positive), Deletion (INDEL, negative)
 
-### Allele plot
+### Allele plot (Anne)
 
 based on alleles column per caller and guide
 
-### Variant plot
+### Variant plot (chandu)
 
 based on consequence
 per allele over total number of mutation
 per variant caller
 
-### Zygosity plot
+### Zygosity plot (Chandu)
 
 per variant caller
