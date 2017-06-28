@@ -293,7 +293,7 @@ class MutationSummary(Base):
     sequencing_library_content = relationship(
         SequencingLibraryContent,
         backref=backref('mutation_summaries', uselist=True, cascade='delete,all'))
-    zygosity = Column(Enum('homo', 'smut', 'dmut', 'iffy', name='zygosity'))
+    zygosity = Column(Enum('homo', 'smut', 'dmut', 'iffy', 'warn', name='zygosity'))
     consequence = Column(String(250))
     has_off_target = Column(Boolean)
 
