@@ -32,7 +32,8 @@ class ProjectViews(object):
 
     @view_config(route_name="projects", renderer="../templates/project/selectproject.pt")
     def view_projects(self):
-        return dict(projects=self.dbsession.query(Project).all(), title="Gene Editing Projects")
+        list = self.dbsession.query(Project).order_by(Project.geid).all()
+        return dict(projects=list, title="Gene Editing Projects")
     
     @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
     def view_project(self):

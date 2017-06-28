@@ -20,16 +20,20 @@
 
             <h2>Plots</h2>
             
-            <h3>Cell Growth</h3>
-
-            <div id="cellgrowth" class="cellgrowth">
-                ${structure: cellgrowthplot}
+            <div tal:condition="cellgrowthplot">
+                <h3>Cell Growth</h3>
+    
+                <div id="cellgrowth" class="cellgrowth">
+                    ${structure: cellgrowthplot}
+                </div>
             </div>
 
-            <h3>Protein Abundance</h3>
-
-            <div id="proteinabundance" class="proteinabundance">
-                ${structure: proteinabundanceplot}
+            <div tal:condition="proteinabundanceplot">
+                <h3>Protein Abundance</h3>
+    
+                <div id="proteinabundance" class="proteinabundance">
+                    ${structure: proteinabundanceplot}
+                </div>
             </div>
 
             <hr/>

@@ -28,7 +28,7 @@ class LoaderViews(object):
     @view_config(route_name="load_layout", renderer="../templates/loader/layoutsetup.pt")
     def load_layout(self):
         
-        return_map = dict(title="Load Layout File")
+        return_map = dict(title="Load Layout File", clash=False)
         
         if 'submit' in self.request.params:
             
@@ -70,6 +70,8 @@ class LoaderViews(object):
                 
                 except ExistingEntityException as e:
                     return_map['error'] = e.message
+                    return_map['clash'] = e
+                    return_map['layoutfile'] = self.request.POST['layoutfile']
                 
             except Exception as e:
                 self.logger.error("Have an unexpected error while creating project: {}".format(e))
