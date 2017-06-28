@@ -12,12 +12,23 @@
             completed layout Excel work book. 
         </p>
         
-        <p>
+        <p tal:condition="not clash">
             If the project already exists it will be replaced by the uploaded file.
         </p>
 
         <form action="/loadlayout" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-            <input name="blat" type="hidden" value="true"></input>
+            <div tal:condition="clash">
+                <p>
+                    The project that you are loading, ${clash.key}, already exists.
+                </p>
+                
+                <p>
+                    Set this check box to remove the existing project and
+                    create it again.
+                    
+                    <input name="blat" type="checkbox" value="true"></input>
+                </p>
+            </div> 
             
             <p>
                 <label for="upload">Project file:</label>

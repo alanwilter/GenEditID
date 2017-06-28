@@ -57,6 +57,9 @@ class Plotter:
 
         all_growth = query.all()
         
+        if len(all_growth) == 0:
+            return None
+        
         # Assemble list of lists to create a data frame.
         
         data = []
@@ -156,6 +159,9 @@ class Plotter:
             query = query.filter(ExperimentLayout.geid == plateid)
 
         all_abundance = query.all()
+        
+        if len(all_abundance) == 0:
+            return None
         
         # Assemble list of lists to create a data frame.
         
