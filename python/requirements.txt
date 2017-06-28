@@ -20,3 +20,6 @@ deform
 transaction
 zope.sqlalchemy
 waitress
+
+# plotting
+plotly
