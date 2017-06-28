@@ -5,6 +5,7 @@ def includeme(config):
     config.add_route('home', '/')
     
     config.add_route('load_layout', '/loadlayout')
+    config.add_route('load_icw', '/loadicw/{projectid}')
     
     config.add_route('projects', '/project')
     config.add_route('project_add', '/project/add')

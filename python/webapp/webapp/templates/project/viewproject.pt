@@ -33,6 +33,10 @@
                 <a href="${request.route_url('project_edit', projectid=project.id)}">Edit this project</a>
             </p>
 
+            <p>
+                <a href="${request.route_url('load_icw', projectid=project.id)}">Upload InCell Western data</a>
+            </p>
+            
             <h2>Experiments</h2>
             
             <p>
@@ -46,7 +50,7 @@
                     </a>
                 </li>
             </ul>
-
+            
             <h2>Plots</h2>
             
             <div tal:condition="proteinabundanceplot">

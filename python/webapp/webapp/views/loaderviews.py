@@ -11,7 +11,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from dnascissors.model import Project
-from dnascissors.loader import LayoutLoader, ExistingEntityException
+from dnascissors.loader import LayoutLoader, ProteinAbundanceLoader, ExistingEntityException
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -32,31 +32,16 @@ class LoaderViews(object):
         
         if 'submit' in self.request.params:
             
-            filename = self.request.POST['layoutfile'].filename
-            filedata = self.request.POST['layoutfile'].file
-            
             clean_existing = False
             try:
                 clean_existing = self.request.POST['blat']
             except KeyError:
                 pass
             
-            self.logger.info("Uploaded = %s" % filename)
+            file_path = None
             
-            file_path = os.path.join('uploads/', '%s.xlsx' % uuid.uuid4())
-    
-            temp_file_path = file_path + '~'
-    
             try:
-                filedata.seek(0)
-                with open(temp_file_path, 'wb') as output_file:
-                    shutil.copyfileobj(filedata, output_file)
-                
-                os.rename(temp_file_path, file_path)
-                
-                statinfo = os.stat(file_path)
-                
-                self.logger.info("Uploaded a file of {:d} bytes".format(statinfo.st_size))
+                file_path = self._upload("layoutfile", ".xlsx")
                 
                 # Now do the load, after cleaning project.
                 
@@ -78,14 +63,88 @@ class LoaderViews(object):
                 return_map['error'] = str(e)
             
             finally:
-                try:
-                    os.remove(temp_file_path)
-                except OSError:
-                    pass
-                    
-                try:
-                    os.remove(file_path)
-                except OSError:
-                    pass
+                if file_path:
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
         
         return return_map
+
+    @view_config(route_name="load_icw", renderer="../templates/loader/icwplateload.pt")
+    def load_icw(self):
+        
+        projectid = self.request.matchdict['projectid']
+        
+        project = self.dbsession.query(Project).filter(Project.id == projectid).one()
+        
+        return_map = dict(title="Load InCell Western Plates", project=project)
+        
+        if 'submit' in self.request.params:
+            
+            for index in range(1, 7):
+                
+                fileproperty = "icwfile{:d}".format(index)
+                idproperty = "icwid{:d}".format(index)
+                
+                if self.request.POST[fileproperty] != None and self.request.POST[idproperty]:
+                    
+                    file_path = None
+                    
+                    try:
+                        file_path = self._upload(fileproperty, ".csv")
+                        
+                        if file_path:
+                            
+                            plate_id = "{:s}_{:s}_ICW".format(project.geid, self.request.POST[idproperty]) 
+                            
+                            loader = ProteinAbundanceLoader(self.dbsession, file_path, plate_id)
+                            
+                            loader.load()
+                        
+                    except Exception as e:
+                        self.logger.error("Have an unexpected error while uploading ICW: {}".format(e))
+                        raise
+                    
+                    finally:
+                        if file_path:
+                            try:
+                                os.remove(file_path)
+                            except OSError:
+                                pass
+        
+        return return_map
+
+            
+    def _upload(self, property, suffix): 
+        
+        filename = self.request.POST[property].filename
+        filedata = self.request.POST[property].file
+        
+        if not filedata:
+            return None
+            
+        self.logger.debug("Uploaded = %s" % filename)
+            
+        file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), suffix))
+
+        temp_file_path = file_path + '~'
+
+        try:
+            filedata.seek(0)
+            with open(temp_file_path, 'wb') as output_file:
+                shutil.copyfileobj(filedata, output_file)
+            
+            os.rename(temp_file_path, file_path)
+            
+            statinfo = os.stat(file_path)
+            
+            self.logger.info("Uploaded a file of {:d} bytes".format(statinfo.st_size))
+            
+        finally:
+            try:
+                os.remove(temp_file_path)
+            except OSError:
+                pass
+        
+        return file_path

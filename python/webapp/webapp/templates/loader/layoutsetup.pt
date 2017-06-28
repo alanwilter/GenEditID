@@ -16,7 +16,7 @@
             If the project already exists it will be replaced by the uploaded file.
         </p>
 
-        <form action="/loadlayout" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+        <form action="${request.route_url('load_layout')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
             <div tal:condition="clash">
                 <p>
                     The project that you are loading, ${clash.key}, already exists.
