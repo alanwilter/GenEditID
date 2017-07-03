@@ -17,7 +17,7 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import Well
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
-
+from collections import Counter
 
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
 Base.metadata.bind = engine
@@ -53,8 +53,28 @@ for i in results:
     
 print(len(results))
 
-# plots
-plotly.offline.plot({
-    "data": [go.Histogram(x = zygosities)],
-    "layout": go.Layout(title="hello world")
-})
+# percentajes
+zygosities_counter = Counter(zygosities)
+zygosities_counts = zygosities_counter.values()
+zygosities_total = len(zygosities)
+zygosities_percent = {key: round((count/zygosities_total)*100,2) for key, count in zygosities_counter.items()}
+
+
+#------ plots
+trace = go.Bar(
+    x = list(zygosities_percent.keys()),
+    y = list(zygosities_percent.values())
+)
+
+# ordered values for categoric x axis
+vals = ['wt', 'homo', 'smut', 'dmut', 'iffy']
+
+layout = go.Layout(
+    title = 'Zygosities',
+    xaxis = {'categoryorder': 'array', 'categoryarray': vals},
+    yaxis = {'title': '% of submitted samples'}    
+)
+
+pyoff.plot(
+dict(data = [trace], layout = layout)
+)
