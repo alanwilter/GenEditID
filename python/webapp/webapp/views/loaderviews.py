@@ -71,50 +71,6 @@ class LoaderViews(object):
         
         return return_map
 
-    @view_config(route_name="load_icw", renderer="../templates/loader/icwplateload.pt")
-    def load_icw(self):
-        
-        projectid = self.request.matchdict['projectid']
-        
-        project = self.dbsession.query(Project).filter(Project.id == projectid).one()
-        
-        return_map = dict(title="Load InCell Western Plates", project=project)
-        
-        if 'submit' in self.request.params:
-            
-            for index in range(1, 7):
-                
-                fileproperty = "icwfile{:d}".format(index)
-                idproperty = "icwid{:d}".format(index)
-                
-                if self.request.POST[fileproperty] != None and self.request.POST[idproperty]:
-                    
-                    file_path = None
-                    
-                    try:
-                        file_path = self._upload(fileproperty, ".csv")
-                        
-                        if file_path:
-                            
-                            plate_id = "{:s}_{:s}_ICW".format(project.geid, self.request.POST[idproperty]) 
-                            
-                            loader = ProteinAbundanceLoader(self.dbsession, file_path, plate_id)
-                            
-                            loader.load()
-                        
-                    except Exception as e:
-                        self.logger.error("Have an unexpected error while uploading ICW: {}".format(e))
-                        raise
-                    
-                    finally:
-                        if file_path:
-                            try:
-                                os.remove(file_path)
-                            except OSError:
-                                pass
-        
-        return return_map
-
             
     def _upload(self, property, suffix): 
         

@@ -14,7 +14,9 @@
             
             <ul>
                 <li tal:repeat="plate layout.plates">
-                    ${plate.geid}
+                    <a href="${request.route_url('plate_load', plateid=plate.id)}">
+                        ${plate.geid}
+                    </a>
                 </li>
             </ul>
 

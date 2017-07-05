@@ -1,0 +1,70 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<body>
+<div metal:use-macro="load: ../layout.pt">
+    <div metal:fill-slot="content">
+        <div class="content">
+        
+            <h1>${plate.experiment_layout.project.geid} Plate ${plate.geid}</h1>
+
+            <p>
+                You can upload data for this plate. Errors can be overwritten as
+                each upload will clear the data connected to the plate.
+            </p>
+            
+            <div tal:condition="not incuplate">
+                <h3>InCell Western</h3>
+                
+                <p tal:condition="icwplate">
+                    This plate already has InCell Western protein abundance data.
+                    Uploading another file will overwrite this data.
+                </p>
+                
+                <form action="${request.route_url('plate_icw', plateid=plate.id)}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+                    <p>
+                        <label for="icw">ICW file:</label>
+                        <input id="icw" name="icwfile" type="file" value=""></input>
+                    </p>
+                    <p>
+                        <input type="submit" name="submiticw" value="Load ICW file"></input>
+                    </p>
+                </form>
+            </div>
+
+            <div tal:condition="not icwplate">
+                
+                <h3>Incucyte</h3>
+                
+                <p tal:condition="incuplate">
+                    This plate already has Incucyte cell growth data.
+                    Uploading another file will overwrite this data.
+                </p>
+                
+                <form action="${request.route_url('plate_incu', plateid=plate.id)}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+                    <p>
+                        <label for="incucyte">Incucyte file:</label>
+                        <input id="incucyte" name="incufile" type="file" value=""></input>
+                    </p>
+                    <p>
+                        <input type="submit" name="submitincu" value="Load Incucyte file"></input>
+                    </p>
+                    
+                    <p>
+                        Loading Incucyte data can take a few seconds for each file. Please be patient with this page.
+                    </p>
+                </form>
+            </div>
+            
+            <hr/>
+            
+            <p>            
+                <a href="${request.route_url('experiment_view', layoutid=plate.experiment_layout.id)}">Back to experiment</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
