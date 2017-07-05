@@ -93,7 +93,7 @@ vals = ['wt', 'homo', 'smut', 'dmut', 'iffy']
 layout = go.Layout(
     title = 'Zygosities',
     xaxis = {'categoryorder': 'array', 'categoryarray': vals},
-    yaxis = {'title': '% of submitted samples'}    
+    yaxis = {'title': '% of submitted samples per guide'}    
 )
 
 # plot
