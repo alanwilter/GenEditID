@@ -422,9 +422,12 @@ class ProteinAbundanceLoader(Loader):
         self.session = session
         self.csv_file = csv_file
         self.plate_id = plate_id
-        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).first()
+        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
             raise Exception('No plate {:s}'.format(plate_id))
+
+    def clean(self):
+        return self.session.query(ProteinAbundance).filter(ProteinAbundance.plate_id == plate.id).delete()
 
     def load(self):
         self.log.info("Loading InCell Western signal for plate {:s} from {:s}".format(self.plate_id, self.csv_file))
@@ -479,9 +482,12 @@ class CellGrowthLoader(Loader):
         self.session = session
         self.csv_file = csv_file
         self.plate_id = plate_id
-        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).first()
+        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
             raise Exception('No plate {:s}'.format(plate_id))
+
+    def clean(self):
+        return self.session.query(CellGrowth).filter(CellGrowth.plate_id == plate.id).delete()
 
     def load(self):
         self.log.info("Loading Incucyte growth information for plate {:s} from {:s}".format(self.plate_id, self.csv_file))
@@ -539,8 +545,20 @@ class VariantLoader(Loader):
         self.variant_caller = variant_caller
 
     def clean(self):
-        delete_count = self.session.query(VariantResult).delete()
-        self.log.info('Deleted {:d} variant results'.format(delete_count))
+        variants = self.session.query(VariantResult).\
+                   join(SequencingLibraryContent).\
+                   join(Well).\
+                   join(ExperimentLayout).\
+                   join(Project).\
+                   filter(Project.geid == project_geid).\
+                   all()
+        
+        for v in variants:
+            self.session.delete(v)
+        
+        self.session.flush()
+        
+        self.log.info('Deleted {:d} variant results'.format(len(variants)))
 
     def load_sheet(self, sheet_name, variant_type):
         sheet = self.xls.parse(sheet_name, header=None, skiprows=1)
@@ -633,8 +651,24 @@ class MutationLoader(Loader):
         self.project_geid = project_geid
 
     def clean(self):
-        delete_count = self.session.query(MutationSummary).delete()
-        self.log.info('Deleted {:d} mutation summaries'.format(delete_count))
+        
+        # Might be better:
+        # https://stackoverflow.com/questions/39773560/sqlalchemy-how-do-you-delete-multiple-rows-without-querying
+        
+        mutations = self.session.query(MutationSummary).\
+                    join(SequencingLibraryContent).\
+                    join(Well).\
+                    join(ExperimentLayout).\
+                    join(Project).\
+                    filter(Project.geid == project_geid).\
+                    all()
+        
+        for m in mutations:
+            self.session.delete(m)
+        
+        self.session.flush()
+        
+        self.log.info('Deleted {:d} mutation summaries'.format(len(mutations)))
 
     def __get_mutations__(self, well, variant_results, variant_caller='VarDict', allele_fraction_threshold=0.1):
         mutations = []

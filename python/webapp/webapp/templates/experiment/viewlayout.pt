@@ -20,6 +20,19 @@
                 </li>
             </ul>
 
+            <h2>Contents</h2>
+            
+            <table id="contenttable">
+                <thead>
+                    <th>Well</th>
+                    <th>Content</th>
+                </thead>
+                <tr tal:repeat="well layout.wells">
+                    <td>${well.row}${"{:02d}".format(well.column)}</td>
+                    <td>${well_contents[well.id]}</td>
+                </tr>
+            </table>
+
             <h2>Plots</h2>
             
             <div tal:condition="cellgrowthplot">
@@ -46,5 +59,16 @@
         </div>
     </div>
 </div>
+<script>
+$(document).ready(
+    function()
+    {
+        $('#contenttable').DataTable(
+        {
+            paging: false
+        });
+    }
+);
+</script>
 </body>
 </html>

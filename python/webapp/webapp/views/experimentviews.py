@@ -29,8 +29,27 @@ class ExperimentViews(object):
         
         plotter = Plotter()
         
+        well_contents = dict()
+        
+        for well in layout.wells:
+            clone = None
+            cell_line = None
+            guide = None
+            
+            if well.well_content:
+                clone = well.well_content.clone
+                cell_line = clone.cell_line
+                
+                if len(well.well_content.guides) > 0:
+                    guide = well.well_content.guides[0]
+            
+            classifier = plotter.create_classifier(cell_line, clone, guide, well.well_content)
+            
+            well_contents[well.id] = classifier
+        
         return dict(layout=layout,
                     title="Gene Editing Experiment %s" % layout.geid,
+                    well_contents=well_contents,
                     cellgrowthplot=plotter.growth_plot(self.dbsession, layout.project.geid, layout.geid),
                     proteinabundanceplot=plotter.abundance_plot(self.dbsession, layout.project.geid, layout.geid))
     
@@ -175,6 +194,8 @@ class ExperimentViews(object):
         return rows > 0
 
     def _remove_existing_rows(self, plateid):
+        
+        # Removes both cell growth and protein abundance since a plate can't be for both.
         
         self.dbsession.query(ProteinAbundance).filter(ProteinAbundance.plate_id == plateid).delete()
         self.dbsession.query(CellGrowth).filter(CellGrowth.plate_id == plateid).delete()
