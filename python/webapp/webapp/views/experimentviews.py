@@ -29,27 +29,39 @@ class ExperimentViews(object):
         
         plotter = Plotter()
         
-        well_contents = dict()
+        headers = [ "Well", "Sample", "Barcode", "Variant Caller", "Variant Type", "Guides" ]
+        rows = []
         
         for well in layout.wells:
             clone = None
             cell_line = None
             guide = None
-            
+
             if well.well_content:
-                clone = well.well_content.clone
-                cell_line = clone.cell_line
-                
                 if len(well.well_content.guides) > 0:
-                    guide = well.well_content.guides[0]
+                    guide = []
+                    for g in well.well_content.guides:
+                        guide.append(g.name)
+                    
+                    guide = ":".join(guide)
             
-            classifier = plotter.create_classifier(cell_line, clone, guide, well.well_content)
+            for slc in well.sequencing_library_contents:
+                for vc in slc.variant_results:
+                    
+                    row = []
+                    row.append("{:s}{:02}".format(well.row, well.column))
+                    row.append(slc.sequencing_sample_name)
+                    row.append(slc.sequencing_barcode)
+                    row.append(vc.variant_caller)
+                    row.append(vc.variant_type)
+                    row.append(guide)
+                    
+                    rows.append(row)
             
-            well_contents[well.id] = classifier
-        
         return dict(layout=layout,
                     title="Gene Editing Experiment %s" % layout.geid,
-                    well_contents=well_contents,
+                    column_headers=headers,
+                    rows=rows,
                     cellgrowthplot=plotter.growth_plot(self.dbsession, layout.project.geid, layout.geid),
                     proteinabundanceplot=plotter.abundance_plot(self.dbsession, layout.project.geid, layout.geid))
     

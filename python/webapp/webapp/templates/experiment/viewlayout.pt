@@ -24,12 +24,10 @@
             
             <table id="contenttable">
                 <thead>
-                    <th>Well</th>
-                    <th>Content</th>
+                    <th tal:repeat="header column_headers">${header}</th>
                 </thead>
-                <tr tal:repeat="well layout.wells">
-                    <td>${well.row}${"{:02d}".format(well.column)}</td>
-                    <td>${well_contents[well.id]}</td>
+                <tr tal:repeat="row rows">
+                    <td tal:repeat="cell row">${cell}</td>
                 </tr>
             </table>
 
