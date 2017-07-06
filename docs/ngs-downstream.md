@@ -48,10 +48,12 @@ Create a result table for each sequencing sample
 
 issue with box size that needs to be calculated from position and indel length (positive: insertion with triangle bottom or negative: deletion with rectangle on top)
 
-### Indel length distribution plot (Ruben)
+### Indel length distribution plot (On going)
 
 per allele per variant caller
 plotting percentage of indel_length based on cut site
+
+See script `python/scripts/plot_distances_ongoing.py`
 
 ### Mutation plot (replace it by Allele plot) (Anne)
 
@@ -65,12 +67,22 @@ three categories: SNV, Insertion (INDEL, positive), Deletion (INDEL, negative)
 
 based on alleles column per caller and guide
 
-### Variant plot (chandu)
+### Variant plot (On going)
 
 based on consequence
 per allele over total number of mutation
 per variant caller
 
-### Zygosity plot (Chandu)
+See script `python/scripts/plot_typeofvariant_ongoing.py`
+
+### Zygosity plot (Done)
 
 per variant caller
+
+See script `python/scripts/plot_zygosities.py`
+
+### Plot diagrams
+
+Plots are:
+- ![NGS Plots (1)](ngs_plot_01.jpg)
+- ![NGS Plots (2)](ngs_plot_02.jpg)
