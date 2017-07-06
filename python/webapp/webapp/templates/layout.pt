@@ -8,6 +8,8 @@
     <link href='/static/frames.css' rel='stylesheet' type='text/css' />
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
     
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
     <title>${title}</title>
     
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -27,8 +29,6 @@
     <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"
             integrity="sha384-aBL3Lzi6c9LNDGvpHkZrrm3ZVsIwohDD7CDozL0pk8FwCrfmV7H9w8j3L7ikEv6h"
             crossorigin="anonymous"></script>
-
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <!-- For jQuery DataTables -->
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
