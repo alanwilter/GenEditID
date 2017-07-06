@@ -33,10 +33,9 @@ class ExperimentViews(object):
         rows = []
         
         for well in layout.wells:
-            clone = None
-            cell_line = None
+            
             guide = None
-
+            
             if well.well_content:
                 if len(well.well_content.guides) > 0:
                     guide = []
@@ -44,6 +43,8 @@ class ExperimentViews(object):
                         guide.append(g.name)
                     
                     guide = ":".join(guide)
+            
+            anyDone = False
             
             for slc in well.sequencing_library_contents:
                 for vc in slc.variant_results:
@@ -57,6 +58,16 @@ class ExperimentViews(object):
                     row.append(guide)
                     
                     rows.append(row)
+                    
+                    anyDone = True
+            
+            """
+            if not anyDone:
+                    row = [None for i in range(len(headers))]
+                    row[0] = "{:s}{:02}".format(well.row, well.column)
+                    row[5] = guide
+                    rows.append(row)
+            """
             
         return dict(layout=layout,
                     title="Gene Editing Experiment %s" % layout.geid,
