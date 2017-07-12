@@ -29,20 +29,13 @@ class ExperimentViews(object):
         
         plotter = Plotter()
         
-        headers = [ "Well", "Sample", "Barcode", "Variant Caller", "Variant Type", "Guides" ]
+        headers = [ "Plate", "Well", "Sample", "Barcode", "Score", "Protein abundance to WT", "Protein abundance to KO",\
+                    "Growth slope to WT", "Growth slope to KO", "Variant Type", "Symbol", "Confidence", "Allele fraction", "Alleles" ]
         rows = []
         
         for well in layout.wells:
             
             guide = None
-            
-            if well.well_content:
-                if len(well.well_content.guides) > 0:
-                    guide = []
-                    for g in well.well_content.guides:
-                        guide.append(g.name)
-                    
-                    guide = ":".join(guide)
             
             anyDone = False
             
@@ -50,12 +43,20 @@ class ExperimentViews(object):
                 for vc in slc.variant_results:
                     
                     row = []
+                    row.append(layout.geid)
                     row.append("{:s}{:02}".format(well.row, well.column))
                     row.append(slc.sequencing_sample_name)
                     row.append(slc.sequencing_barcode)
-                    row.append(vc.variant_caller)
-                    row.append(vc.variant_type)
-                    row.append(guide)
+                    row.append("-")
+                    row.append("-")
+                    row.append("-")
+                    row.append("-")
+                    row.append("-")
+                    row.append(vc.consequence)
+                    row.append(vc.gene)
+                    row.append("-")
+                    row.append("{0:.3f}".format(vc.allele_fraction))
+                    row.append(vc.alleles)
                     
                     rows.append(row)
                     
