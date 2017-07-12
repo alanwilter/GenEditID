@@ -1,8 +1,10 @@
 ---
 title: "GEsubmissionForms_annotations"
 author: "Ruben Alvarez"
-date: "12 April 2017"
-output: html_document
+date: "12 April 2017, latest update 12 July 2017"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -45,11 +47,12 @@ The *Guide* refers to the sgRNA used in the editing.
 **exon: ** Exon targeted by the guide (optional).  
 **nuclease: ** Nuclease used for the editing, e.g. *Sp*Cas9.  
 
-### OffTargetinformation  
-Metadata information about off targets, as provided by Deskgen.  
-**guide_name: ** This must match Guide@name.  
+### Guide mismatches
+**guide_name: ** This ID must match Guide@name. Metadata information about off targets, as provided by Deskgen.  
 **is_off_target_coding_region: ** Is the off target in a coding region? Boolean value (TRUE/FALSE).  
-**regions** and **mismatches: ** Number of locations for which the guide has *n* mismatches, as provided by Deskgen.  
+**regions (number_of_mismatches): ** How many mismatches.  
+**mismatches (number_of_offtargets): ** How many offtargets that contain x number of mismatches.  
+
 ```{r kable, echo = F}
 df <- data.frame('guide_name' = rep('STAT3.1', 6),
            'is_off_target_coding_region' = rep(c('TRUE', 'FALSE'), 3),
@@ -61,18 +64,23 @@ kable(df)
 ```
 
 ### AmpliconSelection  
-The *Amplicon* is the DNA sequence amplified in PCR by a primer pair. All sequences and sequence locations input here must be in the forward DNA strand.  
+The *Amplicon* is the DNA sequence amplified in PCR by a primer pair. All sequences and sequence locations input here must be in the *forward DNA strand* (including guide, forward and reverse primers).  
+**guide_name: ** This ID must match Guide@name.  
+**experiment_type: ** *knock-in* or *knock-out*.  
+**guide_location: ** Coordinate of the cut side of the guide.  
 **guide_strand: ** The DNA strand that contains the guide sequence, either *forward* or *reverse*.  
 **score: ** Off-target score as provided by Deskgen. Leave targets empty.  
-**amplicon_name: ** Name of the amplicon in the format *Guide@name*dot*type of target*, e.g. STAT3.in (for target), STAT3.off1 (for the first off target).  
 **is_on_target: ** Is this amplicon on a target or an off-target? Boolean (TRUE/FALSE) value.  
 **dna_feature: ** Gene, non-coding, etc. This column will be populated automatically with the NGS alignment results.  
 **chromosome: ** Chromosome where the amplicon is located, as a numeric value, e.g. *17*.  
-**primer_geid: ** ID of the primer in the Genome Editing database, e.g. RA10_193.  
-**primer_sequence: ** 5' to 3' sequence of the primer in the forward DNA strand.  
-**primer_strand: ** DNA strand where the primer sequence is located, i.e. forward or reverse.  
-**primer_start: ** Start location of the primer in the forward strand.  
-**primer_end: ** End location of the primer in the forward strand.  
+**forward_primer_geid: ** ID of the primer in the Genome Editing database, e.g. RA10_193.  
+**forward_primer_sequence: ** 5' to 3' sequence of the primer in the forward DNA strand.  
+**forward_primer_start: ** Start location of the primer in the forward strand.  
+**forward_primer_end: ** End location of the primer in the forward strand.  
+**reverse_primer_geid: ** ID of the primer in the Genome Editing database, e.g. RA10_193.  
+**reverse_primer_sequence: ** 5' to 3' sequence of the primer in the *forward* DNA strand (i.e. reverse-complemented).  
+**reverse_primer_start: ** Start location of the primer in the forward strand.  
+**reverse_primer_end: ** End location of the primer in the forward strand.  
 **description: ** Description of the cell treatments, DNA extraction and PCR protocol used to get the amplicons.  
 
 ### ExperimentLayout  
@@ -94,8 +102,9 @@ The *Layout* describes the way samples are arranged in the plate wells, so ultim
     + *wild-type*. A wild-type control, typically the clone that has been used for gene-editing.  
 
 ### Plate  
-The *Plate* collects information on the unique ID's and barcodes assigned to each plate over an experiment. A plate *Layout* (distribution of wells and associated information) for a plate is unique, and that Layout is associated to results from ICW, IncuCyte and NGS.
-**plate_barcode: ** Unique barcode assigned to each experimental plate.  
+The *Plate* collects information on the unique ID's and barcodes assigned to each plate over an experiment. A plate *Layout* (distribution of wells and associated information) for a plate is unique, and that Layout is associated to results from ICW, IncuCyte and NGS.  
+**experiment_layout_geid: ** This ID must match ExperimentLayout@geid.  
+**plate_barcode: ** Unique barcode assigned to each experimental plate. For low-throughput use of the pipeline this can be the *geid* below, but for high-throughput it is worth it to put a proper barcoding system in place.  
 **geid: ** ID of the experimental plate in the format *ExperimentLayout@geid*_*type of experiment*, e.g. GEP00001_01_incu, GEP00001_02_incu, GEP00001_01_ICW, GEP00001_02_ICW, GEP00001_01_PCR, GEP00001_02_PCR, GEP00001_01_dilution, GEP00001_02_dilution, GEP00001_01_NGS, GEP00001_02_NGS.  
 **description: ** Any description that can be informative for the plate, e.g. for "GEP00001_01_dilution" a description can be " "PCR dilution 1:150 for indexing, temporarily stored".  
 
@@ -103,12 +112,9 @@ The *Plate* collects information on the unique ID's and barcodes assigned to eac
 The *SequencingLibrary* stores information about the NGS library submission.  
 **experiment_layout_geid: ** This ID must match ExperimentLayout@geid.  
 **well_position: ** This must match the corresponding ExperimentLayout@well_position.  
-**dna_source: ** Where was the DNA used for PCR obtained from? This can take the value of *fixed cells*, *non-fixed cells* and *gDNA*.  
+**dna_source: ** The starting material used for library preparation, either of *fixed cells*, *gDNA*, *non-fixed cells*.  
 **slxid: ** The Solexa ID the NGS library was assigned to, e.g. SLX-13775.  
 **library_type: ** Always *Fluidigm*.  
 **barcode_size: ** ?.  ##### Not needed  
 **sequencing_barcode: ** The Fluidigm barcode identifier, e.g. FLD0193.  
-**sequencing_sample_name: ** The sample name assigned at the time of submission, in the format *experiment_layout_geid*_*well_position*.  
-
-###Resuls  
-Work in progress, this will store the processed results for IncuCyte, ICW and NGS, e.g. clones that where delivered and characterisation of these (e.g. retarded growth, absence of protein, homozygous KO with frameshift indels).  
+**sequencing_sample_name: ** The sample name assigned at the time of submission, in the format *experiment_layout_geid*_*well_position* This must be 'one sample name per well', as per requirement of the Sequencing bioinformatics pipeline.  
