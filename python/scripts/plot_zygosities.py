@@ -46,7 +46,6 @@ for i in results:
     layout = well.experiment_layout
     mutation_zygosity = 'wt'
     guide_name = 'none'
-
     if i.mutation_summaries:
         mutation_zygosity = i.mutation_summaries[0].zygosity
     if well.well_content.guides:
@@ -76,7 +75,9 @@ for guide_name, grouped_data in dfgroup:
     )
 
 # order x axis values
-categories = list(set(zygosities)).sort()
+categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
+
+
 print(categories)
 layout = go.Layout(
     title='Zygosities',
