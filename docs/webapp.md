@@ -24,37 +24,58 @@
 - https://plot.ly/python/reference/
 
 
-## getting started
-
-See file in `python/webapp/README.txt`
+## Getting started
 
 - Change directory into your newly created project.
 ```bash
-    cd webapp
+    cd python/webapp
 ```
 - Create a Python virtual environment.
 ```bash
-    python3 -m venv env
+    python3 -m venv wenv
+```
+- Activate the virtual environment for the webapp
+```bash
+    source wenv/bin/activate
 ```
 - Upgrade packaging tools.
 ```bash
-    env/bin/pip install --upgrade pip setuptools
+    pip install --upgrade pip setuptools
 ```
-- Install the project in editable mode with its testing requirements.
+- Install dependencies from the top `python/` directory
 ```bash
-    env/bin/pip install -e ".[testing]"
+    cd ..
+    pip install -r requirements.txt
 ```
-- Configure the database.
+- Setting up a local postgres database
 ```bash
-    env/bin/initialize_webapp_db development.ini
-```
-- Run your project's tests.
-```bash
-    env/bin/pytest
+    createdb geneediting
+    createuser gene
+    psql geneediting
+    geneediting=# GRANT CREATE ON SCHEMA public TO "gene";
+    geneediting=# GRANT USAGE ON SCHEMA public TO "gene";
+    geneediting=# ALTER USER gene WITH PASSWORD 'gene';
+    # edit `crispr.yml` to set DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"
+    python python/scripts/create_db.py
+    ./shell/load_project_GEP00001.sh
+    ./shell/load_project_GEP00002.sh
+    ./shell/load_project_GEP00003.sh
 ```
 - Run your project.
 ```bash
-    env/bin/pserve development.ini --reload
+    pserve development.ini --reload
 ```
 
-Go to http://localhost:8080
+Go to http://localhost:8080/project
+
+## Running the webapp after first setup
+
+Edit `python/webapp/development.ini` to check you are pointing to the right database
+
+```bash
+cd python/webapp
+source wenv/bin/activate
+pserve development.ini --reload
+```
+
+Go to http://localhost:8080/project

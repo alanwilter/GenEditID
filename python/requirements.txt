@@ -23,3 +23,8 @@ waitress
 
 # plotting
 plotly
+colorlover
+
+# our own modules, installing them from local src
+dnascissors/
+webapp/

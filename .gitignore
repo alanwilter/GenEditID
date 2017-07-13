@@ -18,6 +18,7 @@ temp/
 
 # Python
 venv
+wenv
 __pycache__
 *.pyc
 *$py.class
