@@ -64,9 +64,9 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
       - Fluidigm barcode
       - Score (output NaN if no NGS data available)
       - Protein abundance (800/700) relative to wild type control (this needs to be calculated. Output NaN if no protein data available)
-      Protein abundance (800/700) relative to knock-out control (this needs to be calculated)
-      - Growth slope relative to wild type control (this needs to be calculated. Output NaN if no growth data available)
-      - Growth slope relative to knock-out control (this needs to be calculated)
+      - Protein abundance (800/700) relative to knock-out control (this needs to be calculated)
+      - (Growth slope relative to wild type control (this needs to be calculated. Output NaN if no growth data available))
+      - (Growth slope relative to knock-out control (this needs to be calculated))
       (these below, columns from the variant output. Output NaN if no NGS data available )
       - Variant type/consequence
       - Symbol (Gene ID)
@@ -78,7 +78,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] generate final user report
 
 ## problems to solve
-- [ ] in plot_typeofvariants.py and plot_distances.py, weird result: for guide STAT3.1 I get a -91 indel_length with haplotypecaller, but according to the excel file that should be STAT3.3 instead (sample GE-P1B5-C).
+- [x] in plot_typeofvariants.py and plot_distances.py, weird result: for guide STAT3.1 I get a -91 indel_length with haplotypecaller, but according to the excel file that should be STAT3.3 instead (sample GE-P1B5-C).
 - [ ] is presence of offtargets considered in calculation of zygosities?
 - [ ] very large indels detected (90 bp!)
 - [ ] issue with *shiny app*: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
