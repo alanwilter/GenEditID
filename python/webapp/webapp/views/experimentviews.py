@@ -29,16 +29,11 @@ class ExperimentViews(object):
         
         plotter = Plotter()
         
-        headers = [ "Plate", "Well", "Sample", "Barcode", "Score", "Protein abundance to WT", "Protein abundance to KO",\
-                    "Growth slope to WT", "Growth slope to KO", "Variant Type", "Symbol", "Confidence", "Allele fraction", "Alleles" ]
+        headers = [ "Plate", "Well", "Sample", "Barcode", "Protein", "Type", "Allele",
+                    "Allele Fraction", "Frame", "Variant Type" ]
         rows = []
         
         for well in layout.wells:
-            
-            guide = None
-            
-            anyDone = False
-            
             for slc in well.sequencing_library_contents:
                 for vc in slc.variant_results:
                     
@@ -47,28 +42,15 @@ class ExperimentViews(object):
                     row.append("{:s}{:02}".format(well.row, well.column))
                     row.append(slc.sequencing_sample_name)
                     row.append(slc.sequencing_barcode)
-                    row.append("-")
-                    row.append("-")
-                    row.append("-")
-                    row.append("-")
-                    row.append("-")
+                    row.append(vc.protein_effect)
                     row.append(vc.consequence)
-                    row.append(vc.gene)
-                    row.append("-")
-                    row.append("{0:.3f}".format(vc.allele_fraction))
                     row.append(vc.alleles)
+                    row.append("{0:.3f}".format(vc.allele_fraction))
+                    row.append(vc.frame)
+                    row.append(vc.variant_type)
                     
                     rows.append(row)
-                    
-                    anyDone = True
-            
-            """
-            if not anyDone:
-                    row = [None for i in range(len(headers))]
-                    row[0] = "{:s}{:02}".format(well.row, well.column)
-                    row[5] = guide
-                    rows.append(row)
-            """
+        
             
         return dict(layout=layout,
                     title="Gene Editing Experiment %s" % layout.geid,

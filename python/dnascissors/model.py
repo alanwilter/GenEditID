@@ -284,6 +284,17 @@ class VariantResult(Base):
     forward_context = Column(String(250))
     alleles = Column(String(250))
     reverse_context = Column(String(250))
+    
+    @property
+    def frame(self):
+        if self.indel_length == None:
+            return None
+        
+        frame = self.indel_length % 3
+        if frame < 0:
+            frame += 3
+        
+        return frame
 
 
 class MutationSummary(Base):
