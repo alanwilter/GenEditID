@@ -45,7 +45,8 @@ class ProjectViews(object):
         
         return dict(project=project,
                     title="Gene Editing Project %s" % project.geid,
-                    proteinabundanceplot=plotter.abundance_plot(self.dbsession, project.geid))
+                    cellgrowthplot=plotter.growth_plot(self.dbsession, project.geid),
+                    proteinabundanceplot=None)
     
     @view_config(route_name="project_add", renderer="../templates/project/addproject.pt")
     def add_project(self):
