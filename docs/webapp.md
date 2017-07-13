@@ -63,6 +63,7 @@
 ```
 - Run your project.
 ```bash
+    cd webapp
     pserve development.ini --reload
 ```
 
