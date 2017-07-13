@@ -32,7 +32,10 @@
       - we don't need 'barcode_size' in SequencingLibraryContent
       - in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
       - in Project: change 'institute' to 'affiliation'
-      - prepare a knock-in donor table to include in database (not urgent)
+
+# model.py
+- [ ] add 'pool' to ExperimentLayout
+- [ ] prepare a knock-in donor table to include in database (not urgent)
 
 # problems to solve
 - [ ] in plot_typeofvariants.py and plot_distances.py, weird result: for guide STAT3.1 I get a -91 indel_length with haplotypecaller, but according to the excel file that should be STAT3.3 instead (sample GE-P1B5-C).
