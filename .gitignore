@@ -37,7 +37,6 @@ __pycache__
 .settings
 .pydevproject
 
-
 # Miscellaneous others from the Pyramid cookie cutter.
 build/
 dist/
@@ -54,3 +53,5 @@ Data.fs*
 coverage
 test
 
+# Default plotly output file
+temp-plot.html
