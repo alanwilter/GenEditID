@@ -22,18 +22,18 @@ class Plotter:
     def __init__(self):
         self.include_js = False
     
-    def create_classifier(self, cell_line, clone, guide, well_content):
+    def create_classifier(self, well_content):
         
         parts = []
         
-        if cell_line:
-            parts.append(cell_line.name)
+        if well_content.clone:
+            if well_content.clone.cell_line:
+                parts.append(well_content.clone.cell_line.name)
+                
+            parts.append(well_content.clone.name)
         
-        if clone:
-            parts.append(clone.name)
-        
-        if guide:
-            parts.append(guide.name)
+        if well_content.guides:
+            parts.append(",".join(g.name for g in well_content.guides))
         
         if well_content:
             content = well_content.content_type
@@ -43,91 +43,80 @@ class Plotter:
         return " ".join(parts)
         
 
-    def growth_plot(self, dbsession, projectid, plateid, file=None):
+    def growth_plot(self, dbsession, projectid, file=None):
         
-        query = dbsession.query(CellGrowth).\
-                join(CellGrowth.well).\
+        # See https://stackoverflow.com/questions/21114830/query-to-check-if-size-of-collection-is-0-or-empty-in-sqlalchemy
+
+        # Get all wells for the project where there is growth information.
+
+        query = dbsession.query(Well).\
                 join(Well.well_content).\
                 join(Well.experiment_layout).\
                 join(ExperimentLayout.project).\
-                outerjoin(WellContent.clone).\
-                join(Clone.cell_line).\
                 filter(Project.geid == projectid).\
-                filter(ExperimentLayout.geid == plateid)
+                filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'empty-vector', 'normalisation'])).\
+                filter(Well.growths.any())
 
-        all_growth = query.all()
-        
-        if len(all_growth) == 0:
+        wells = query.all()
+
+        if not wells:
             return None
         
-        # Assemble list of lists to create a data frame.
+        classifiers = set()
         
-        data = []
+        # Set up colours
         
-        for growth in all_growth:
-            well = growth.well
-            clone = well.well_content.clone
-            cell_line = clone.cell_line
-            layout = well.experiment_layout
+        for well in wells:
+            classifiers.add(self.create_classifier(well.well_content))
             
-            guides = ', '.join([g.name for g in well.well_content.guides])
-            
-            position = "%s%d" % (well.row, well.column)
-            
-            for guide in well.well_content.guides:
-                target = guide.target
-            
-                row = [ self.create_classifier(cell_line, clone, guide, well.well_content),
-                        layout.geid, target.name, guide.name, position, growth.hours, growth.confluence_percentage ]
-            
-                data.append(row)
+        classifiers = list(classifiers)
+        classifiers.sort()
         
-        # Pandas data frame
-        
-        data = DataFrame(data, columns=['content', 'plate', 'target', 'guide', 'well', 'elapsed', 'confluence'])
-        
-        sorted_wells = data.well.unique().tolist()
-        natural_sort(sorted_wells)
-        
-        #unique_content = data.content.unique()
-        
-        #colours = colorlover.scales[str(len(sorted_wells))]['div']
         #colours = colorlover.scales['3']['div']['RdYlBu']
         #print(colours)
-        #colours = colorlover.interp(colours, len(unique_content))
+        #colours = colorlover.interp(colours, len(classifiers))
         #print(colours)
         
-        #colour_map = dict()
-        #for i in range(0, len(unique_content)):
-        #    colour_map[unique_content[i]] = colours[i]
+        colour_map = dict()
+        colour_index = -1
+        
+        for c in classifiers:
+            #colour_map[c] = colours[++colour_index]
+            colour_map[c] = "blue"
         
         # Need to assemble several plot objects for each line.
         
+        for well in wells:
+            well.growths.sort(key = lambda g: g.hours)
+        
+        # Two loops to order the legend correctly.
+        
         plots = []
         
-        for well in sorted_wells:
-        
-            welldata = data[data.well == well]
+        for loop_class in classifiers:
             
-            # See https://stackoverflow.com/a/16729808
-            content = welldata.iloc[0]['content']
+            first = True
             
-            #colour = colour_map[content]
-            colour = 'blue'
-        
-            plots.append(
-                go.Scatter(
-                    mode='lines',
-                    line=dict(color=colour),
-                    x=welldata.elapsed,
-                    y=welldata.confluence,
-                    name="%s (%s)" % (well, content),
-                    hoverinfo='none'
-                )
-            )
-        
+            for well in wells:
+                classifier = self.create_classifier(well.well_content)
+                
+                if classifier == loop_class:
+                    plots.append(
+                        go.Scatter(
+                            mode='lines',
+                            line=dict(color=colour_map[classifier]),
+                            x=[g.hours for g in well.growths],
+                            y=[g.confluence_percentage for g in well.growths],
+                            name=classifier,
+                            legendgroup=classifier,
+                            showlegend=first,
+                            hoverinfo='none'
+                        )
+                    )
+                    first = False
+
         layout = go.Layout(
-            title="Cell Growth of Plate {}".format(plateid),
+            title="Cell Growth",
             xaxis=dict(title="Time (h)"),
             yaxis=dict(title="Confluence (%)", range=[0, 100])
         )
@@ -137,7 +126,7 @@ class Plotter:
         output_type = "file"
         if not file:
             output_type = "div"
-            file = "growth_plate_%s.html" % plateid
+            file = "growth_plate_%s.html" % projectid
         
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
@@ -258,15 +247,14 @@ def main():
     
     try:
         plotter = Plotter()
-        plotter.output_type = "File"
         plotter.include_js = True
         
-        plotter.growth_plot(session, 'GEP00001', 'GEP00001_01')
+        plotter.growth_plot(session, 'GEP00001', "growth.html")
         
-        plotter.abundance_plot(session, 'GEP00001', 'GEP00001_02')
+        #plotter.abundance_plot(session, 'GEP00001', 'GEP00001_02')
     
-    except Exception as e:
-        logging.exception(e)
+    #except Exception as e:
+    #    logging.exception(e)
     finally:
         session.close()
 
