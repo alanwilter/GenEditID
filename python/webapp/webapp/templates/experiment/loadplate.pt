@@ -36,24 +36,24 @@
 
             <div tal:condition="not icwplate">
                 
-                <h3>Incucyte</h3>
+                <h3>IncuCyte</h3>
                 
                 <p tal:condition="incuplate">
-                    This plate already has Incucyte cell growth data.
+                    This plate already has IncuCyte cell growth data.
                     Uploading another file will overwrite this data.
                 </p>
                 
                 <form action="${request.route_url('plate_incu', plateid=plate.id)}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
                     <p>
-                        <label for="incucyte">Incucyte file:</label>
+                        <label for="incucyte">IncuCyte file:</label>
                         <input id="incucyte" name="incufile" type="file" value=""></input>
                     </p>
                     <p>
-                        <input type="submit" name="submitincu" value="Load Incucyte file"></input>
+                        <input type="submit" name="submitincu" value="Load IncuCyte file"></input>
                     </p>
                     
                     <p>
-                        Loading Incucyte data can take a few seconds for each file. Please be patient with this page.
+                        Loading IncuCyte data can take a few seconds for each file. Please be patient with this page.
                     </p>
                 </form>
             </div>

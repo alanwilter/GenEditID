@@ -31,24 +31,6 @@
                 </tr>
             </table>
 
-            <h2>Plots</h2>
-            
-            <div tal:condition="cellgrowthplot">
-                <h3>Cell Growth</h3>
-    
-                <div id="cellgrowth" class="cellgrowth">
-                    ${structure: cellgrowthplot}
-                </div>
-            </div>
-
-            <div tal:condition="proteinabundanceplot">
-                <h3>Protein Abundance</h3>
-    
-                <div id="proteinabundance" class="proteinabundance">
-                    ${structure: proteinabundanceplot}
-                </div>
-            </div>
-
             <hr/>
             
             <p>            

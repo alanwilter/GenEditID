@@ -27,8 +27,6 @@ class ExperimentViews(object):
         
         layout = self.dbsession.query(ExperimentLayout).filter(ExperimentLayout.id == layoutid).one()
         
-        plotter = Plotter()
-        
         headers = [ "Plate", "Well", "Sample", "Barcode", "Protein", "Type", "Allele",
                     "Allele Fraction", "Frame", "Variant Type" ]
         rows = []
@@ -55,9 +53,7 @@ class ExperimentViews(object):
         return dict(layout=layout,
                     title="Gene Editing Experiment %s" % layout.geid,
                     column_headers=headers,
-                    rows=rows,
-                    cellgrowthplot=plotter.growth_plot(self.dbsession, layout.project.geid, layout.geid),
-                    proteinabundanceplot=plotter.abundance_plot(self.dbsession, layout.project.geid, layout.geid))
+                    rows=rows)
     
     @view_config(route_name="plate_load", renderer="../templates/experiment/loadplate.pt")
     def load_plate(self):

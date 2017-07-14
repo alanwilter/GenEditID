@@ -37,6 +37,9 @@
             <hr/>
             
             <p>            
+                <a href="${request.route_url('project_view', projectid=project.id)}">Back to project main page</a>
+            </p>
+            <p>            
                 <a href="${request.route_url('projects')}">Back to projects list</a>
             </p>
         </div>

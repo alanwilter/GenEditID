@@ -33,10 +33,10 @@
                 <a href="${request.route_url('project_edit', projectid=project.id)}">Edit this project</a>
             </p>
 
-            <h2>Experiments</h2>
+            <h2>Layouts and Plates</h2>
             
             <p>
-                Select an experiment layout to view.
+                Select an experiment layout to view, or a plate to upload IncuCyte or InCell Western data.
             </p>
             
             <ul>
@@ -44,6 +44,14 @@
                     <a href="${request.route_url('experiment_view', layoutid=layout.id)}">
                         ${layout.geid}
                     </a>
+                    
+                    <ul>
+                        <li tal:repeat="plate layout.plates">
+                            <a href="${request.route_url('plate_load', plateid=plate.id)}">
+                                ${plate.geid}
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
             
