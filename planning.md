@@ -13,9 +13,11 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - ANNE (2) [ ] prepare a knock-in donor table to include in database (not urgent)
 - ANNE (2) [ ] check that codes associated to classes are not in script but put back in class functions
 - ANNE (2) [ ] add (editable) comments on projects
+- ANNE (2) [ ] Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
+- ANNE (2) [ ] add score column in mutation_summary
 
 ## loader
-- ANNE (2) [ ] add score in mutation_summary
+- ANNE (2) [ ] calculate mutation_summary score and load
 
 ## sequencing analysis pipeline (later)
 - CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
