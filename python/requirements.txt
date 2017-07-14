@@ -6,25 +6,11 @@ sqlalchemy==1.1.6
 psycopg2==2.7
 
 # parsing excel sheets
-openpyxl
 pandas
-xlrd
-
-# Web application
-pyramid
-pyramid_chameleon
-pyramid_jinja2
-pyramid_debugtoolbar
-pyramid_tm
-deform
-transaction
-zope.sqlalchemy
-waitress
 
 # plotting
 plotly
 colorlover
 
-# our own modules, installing them from local src
-dnascissors/
-webapp/
+# dnascissors module, installing it from local src
+-e .

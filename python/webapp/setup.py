@@ -3,8 +3,6 @@ import os
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.txt')) as f:
-    README = f.read()
 
 requires = [
     'pyramid',
@@ -13,10 +11,19 @@ requires = [
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'deform',
-    'SQLAlchemy',
     'transaction',
     'zope.sqlalchemy',
     'waitress',
+    # configuration
+    "pyyaml",
+    # database
+    "psycopg2==2.7",
+    'sqlalchemy==1.1.6',
+    # for plotting
+    'plotly',
+    'colorlover',
+    # data
+    'pandas',
 ]
 
 tests_require = [
@@ -26,20 +33,19 @@ tests_require = [
 ]
 
 setup(
-    name='ge-crispr',
-    version='0.0',
-    description='Gene Editing CRISPR',
-    long_description=README,
+    name='dnascissors-webapp',
+    version='1.0',
+    author='dnascissors team',
+    license='MIT License',
+    description='Genome Editing WebApp',
+    long_description=open(os.path.join(here, 'README.md')).read(),
     classifiers=[
         'Programming Language :: Python',
         'Framework :: Pyramid',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
-    author='',
-    author_email='',
-    url='',
-    keywords='web pyramid pylons sqlalchemy',
+        keywords='web pyramid pylons sqlalchemy',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,

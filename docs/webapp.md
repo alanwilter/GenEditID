@@ -42,10 +42,9 @@
 ```bash
     pip install --upgrade pip setuptools
 ```
-- Install dependencies from the top `python/` directory
+- Install dependencies
 ```bash
-    cd ..
-    pip install -r requirements.txt
+    pip install -r requirements-webapp.txt
 ```
 - Setting up a local postgres database
 ```bash
@@ -63,7 +62,6 @@
 ```
 - Run your project.
 ```bash
-    cd webapp
     pserve development.ini --reload
 ```
 
@@ -80,3 +78,5 @@ pserve development.ini --reload
 ```
 
 Go to http://localhost:8080/project
+
+## Adding the zygozity plot into the webapp
