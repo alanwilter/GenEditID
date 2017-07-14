@@ -322,6 +322,16 @@ class ProteinAbundance(Base):
         backref=backref('abundances', uselist=True, cascade='delete,all'))
     intensity_channel_700 = Column(Float)
     intensity_channel_800 = Column(Float)
+    
+    @property
+    def ratio_800_700(self):
+        if self.intensity_channel_800 is None or self.intensity_channel_700 is None:
+            return None
+        
+        if self.intensity_channel_700 == 0.0:
+            return 0.0
+        
+        return self.intensity_channel_800 / self.intensity_channel_700
 
 
 class CellGrowth(Base):

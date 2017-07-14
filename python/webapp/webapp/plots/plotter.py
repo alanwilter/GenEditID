@@ -62,15 +62,9 @@ class Plotter:
         if not wells:
             return None
         
-        classifiers = set()
+        classifiers = self._classifiers_for_wells(wells)
         
         # Set up colours
-        
-        for well in wells:
-            classifiers.add(self.create_classifier(well.well_content))
-            
-        classifiers = list(classifiers)
-        classifiers.sort()
         
         #colours = colorlover.scales['3']['div']['RdYlBu']
         #print(colours)
@@ -83,11 +77,13 @@ class Plotter:
         for c in classifiers:
             #colour_map[c] = colours[++colour_index]
             colour_map[c] = "blue"
-        
-        # Need to assemble several plot objects for each line.
+
+        # Ensure the growths are by increasing time.
         
         for well in wells:
             well.growths.sort(key = lambda g: g.hours)
+        
+        # Need to assemble several plot objects, one for each line.
         
         # Two loops to order the legend correctly.
         
@@ -126,100 +122,88 @@ class Plotter:
         output_type = "file"
         if not file:
             output_type = "div"
-            file = "growth_plate_%s.html" % projectid
+            file = "cell_growth_{}.html".format(projectid)
         
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
 
-    def abundance_plot(self, dbsession, projectid, plateid=None, file=None):
+    def abundance_plot(self, dbsession, projectid, file=None):
         
-        query = dbsession.query(ProteinAbundance).\
-                join(ProteinAbundance.well).\
+        # Get all wells for the project where there is protein abundance information.
+
+        query = dbsession.query(Well).\
                 join(Well.well_content).\
                 join(Well.experiment_layout).\
                 join(ExperimentLayout.project).\
-                outerjoin(WellContent.clone).\
-                join(Clone.cell_line).\
                 filter(Project.geid == projectid).\
-                filter(WellContent.content_type != 'background')
+                filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'normalisation'])).\
+                filter(Well.growths.any())
 
-        if plateid:
-            query = query.filter(ExperimentLayout.geid == plateid)
-
-        all_abundance = query.all()
+        wells = query.all()
         
-        if len(all_abundance) == 0:
+        if len(wells) == 0:
             return None
         
-        # Assemble list of lists to create a data frame.
+        #classifiers = self._classifiers_for_wells(wells)
         
-        data = []
+        # Put all the abundances into a list per classifier.
         
-        for abundance in all_abundance:
-            well = abundance.well
-            clone = well.well_content.clone
-            cell_line = clone.cell_line
-            layout = well.experiment_layout
-            
-            position = "%s%d" % (well.row, well.column)
-            
-            for guide in well.well_content.guides:
-                target = guide.target
-            
-                row = [ self.create_classifier(cell_line, clone, guide, well.well_content),
-                        layout.geid, position, abundance.intensity_channel_800 / abundance.intensity_channel_700 ]
-            
-                data.append(row)
+        #classifiers = dict([(c, []) for c in classifiers])
+        by_classifier = dict()
         
-        # Pandas data frame
+        for well in wells:
+            c = self.create_classifier(well.well_content)
+            
+            l = None
+            if c in by_classifier:
+                l = by_classifier[c]
+            else:
+                l = []
+                by_classifier[c] = l
+            
+            for pa in well.abundances:
+                l.append(pa)
+                
+        classifiers = list(by_classifier.keys())
+        classifiers.sort()
         
-        data = DataFrame(data, columns=['content', 'plate', 'well', 'channelratio'])
-
-        unique_content = data.content.unique().tolist()
-        natural_sort(unique_content)
+        # Set up colours
         
         #colours = colorlover.scales['3']['div']['RdYlBu']
         #print(colours)
-        #print(unique_content)
-        #if len(unique_content) > 3:
-        #    colours = colorlover.interp(colours, len(unique_content) + 1)
+        #colours = colorlover.interp(colours, len(classifiers))
         #print(colours)
         
-        #colour_map = dict()
-        #for i in range(0, len(unique_content)):
-        #    colour_map[unique_content[i]] = colours[i]
+        colour_map = dict()
+        colour_index = -1
         
-        # Need to assemble several plot objects for each line.
+        for c in classifiers:
+            #colour_map[c] = colours[++colour_index]
+            colour_map[c] = "blue"
         
-        colour = 'blue'
-    
+        # Two loops to order the legend correctly.
+        
         plots = []
         
-        for content in unique_content:
-        
-            contentdata = data[data.content == content]
+        for classifier in classifiers:
+            
+            abundances = by_classifier[classifier]
             
             plots.append(
                 go.Scatter(
                     mode='markers',
-                    line=dict(color=colour),
-                    x=contentdata.content,
-                    y=contentdata.channelratio,
-                    name=content,
+                    line=dict(color=colour_map[classifier]),
+                    x=[classifier] * len(abundances),
+                    y=[pa.ratio_800_700 for pa in abundances],
+                    name=classifier,
+                    legendgroup=classifier,
                     hoverinfo='none'
                 )
             )
 
-        if plateid:
-            what = "Plate"
-            id = plateid
-        else:
-            what = "Project"
-            id = projectid
-
         layout = go.Layout(
-            title="Protein Abundance of {} {}".format(what, id),
+            title="Protein Abundance",
             xaxis=dict(title="Cell Line", ticks=False, fixedrange=True),
             yaxis=dict(title="Relative protein abundance")
         )
@@ -229,10 +213,24 @@ class Plotter:
         output_type = "file"
         if not file:
             output_type = "div"
-            file = "abundance_plate_%s.html" % plateid
+            file = "protein_abundance_{}.html".format(projectid)
         
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
+
+
+    def _classifiers_for_wells(self, wells):
+        
+        classifiers = set()
+        
+        for well in wells:
+            classifiers.add(self.create_classifier(well.well_content))
+            
+        classifiers = list(classifiers)
+        classifiers.sort()
+        
+        return classifiers
+
 
 def main():
 
@@ -251,7 +249,7 @@ def main():
         
         plotter.growth_plot(session, 'GEP00001', "growth.html")
         
-        #plotter.abundance_plot(session, 'GEP00001', 'GEP00001_02')
+        plotter.abundance_plot(session, 'GEP00001', "abundance.html")
     
     #except Exception as e:
     #    logging.exception(e)
