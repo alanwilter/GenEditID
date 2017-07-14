@@ -1,0 +1,8 @@
+docs/*	linguist-documentation
+data/*	linguist-vendored
+*.R	linguist-language=R
+*.py	linguist-language=Python
+*.js	linguist-language=JavaScript
+*.html	linguist-language=HTML
+*.sh	linguist-language=BASH
+*.sql	linguist-language=SQL
