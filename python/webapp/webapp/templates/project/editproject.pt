@@ -16,7 +16,7 @@
                     <tr>
                         <td>GEID:</td>
                         <td>
-                            <input id="geid_text_field" type="text" name="geid" maxlength="10" value="${project.geid}"></input>
+                            <input id="geid_text_field" type="text" name="geid" maxlength="10" value="${project.geid}" readonly="readonly"></input>
                         </td>
                     </tr>
                     <tr>

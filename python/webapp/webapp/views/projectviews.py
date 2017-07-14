@@ -48,36 +48,6 @@ class ProjectViews(object):
                     cellgrowthplot=plotter.growth_plot(self.dbsession, project.geid),
                     proteinabundanceplot=None)
     
-    @view_config(route_name="project_add", renderer="../templates/project/addproject.pt")
-    def add_project(self):
-        title = "Create New Gene Editing Project"
-        
-        add_form = self.projects_form("Create Project")
-        
-        if 'submit' in self.request.params:
-            
-            fields = self.request.POST.items()
-            
-            try:
-                appstruct = add_form.validate(fields)
-            except deform.ValidationFailure as e:
-                return dict(project=project, form=e.render(), title=title)
-            
-            print("New id = %s" % appstruct['geid'])
-            print("New name = %s" % appstruct['name'])
-            
-            project = Project()
-            project.geid = appstruct['geid']
-            project.name = appstruct['name']
-            project.start_date = datetime.datetime.date(datetime.datetime.now())
-            
-            self.dbsession.add(project)
-            
-            url = self.request.route_url('projects')
-            return HTTPFound(url)
-        
-        return dict(title=title)
-
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
         id = self.request.matchdict['projectid']
@@ -96,10 +66,8 @@ class ProjectViews(object):
             except deform.ValidationFailure as e:
                 return dict(project=project, form=e.render(), title=title)
             
-            print("New id = %s" % appstruct['geid'])
             print("New name = %s" % appstruct['name'])
             
-            project.geid = appstruct['geid']
             project.name = appstruct['name']
             
             url = self.request.route_url('project_view', projectid=project.id)

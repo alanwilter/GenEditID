@@ -7,7 +7,6 @@ def includeme(config):
     config.add_route('load_layout', '/loadlayout')
     
     config.add_route('projects', '/project')
-    config.add_route('project_add', '/project/add')
     config.add_route('project_view', '/project/{projectid}')
     config.add_route('project_edit', '/project/{projectid}/edit')
 
