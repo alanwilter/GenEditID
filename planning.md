@@ -24,7 +24,8 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - ANNE (2) [x] add values for has_frameshift
 - ANNE (2) [x] load guide mismatches
 - ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
-- [ ] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt'. It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down.
+- [ ] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down.
+- [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
 ## sequencing analysis pipeline (later)
 - CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
