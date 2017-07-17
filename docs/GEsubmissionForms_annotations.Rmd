@@ -34,7 +34,7 @@ The *Target* refers to the gene or region to be edited.
 **chromosome: ** Chromosome where the *Target* is located.  
 **start: ** Start location of the *Target* in the *assembly*.   
 **end: ** End location of the *Target* in the *assembly*.   
-**strand: ** Strand location of the *Target* in the *assembly*.   
+**strand: ** Strand location of the *Target* in the *assembly*. Accepted values are "forward" and "reverse".   
 **description: ** Brief description of the *Target*.  
 
 ### Guide  
@@ -81,7 +81,7 @@ The *Amplicon* is the DNA sequence amplified in PCR by a primer pair. All sequen
 **reverse_primer_sequence: ** 5' to 3' sequence of the primer in the *forward* DNA strand (i.e. reverse-complemented).  
 **reverse_primer_start: ** Start location of the primer in the forward strand.  
 **reverse_primer_end: ** End location of the primer in the forward strand.  
-**description: ** Description of the cell treatments, DNA extraction and PCR protocol used to get the amplicons.  
+**description: ** Description of the cell treatments, DNA extraction and PCR protocol used to get the amplicons (max. 1024 characters).  
 
 ### ExperimentLayout  
 The *Layout* describes the way samples are arranged in the plate wells, so ultimately any result can be traced back to a single clone Each plate in the layout gets a unique ID, so clones are defined by a combination of plate *geid* and *well_position*.  
@@ -99,7 +99,8 @@ The *Layout* describes the way samples are arranged in the plate wells, so ultim
     + *normalisation*. A normalisation control for ICW, typically located at wells A1 and H12.  
     + *background*. A background fluorescence control for ICW, typically a Western with neither primary nor secondary antibody.  
     + *knock-out*. A knock-out control for ICW and perhaps also for NGS and IncuCyte data, typically a previously characterised KO clone, or the wild-type clone processed in a Western with no primary antibody (so any secondary antibody fluorescence is background, and the result is equivalent to not having any protein).  
-    + *wild-type*. A wild-type control, typically the clone that has been used for gene-editing.  
+    + *wild-type*. A wild-type control, typically the clone that has been used for gene-editing.
+    + *empty-vector*. A control with vector that harbours neither guide nor Cas9.  
 
 ### Plate  
 The *Plate* collects information on the unique ID's and barcodes assigned to each plate over an experiment. A plate *Layout* (distribution of wells and associated information) for a plate is unique, and that Layout is associated to results from ICW, IncuCyte and NGS.  

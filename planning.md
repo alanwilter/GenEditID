@@ -18,6 +18,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
 ## loader
 - ANNE (2) [ ] calculate mutation_summary score and load
+- [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
 
 ## sequencing analysis pipeline (later)
 - CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
