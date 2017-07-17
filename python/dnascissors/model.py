@@ -19,19 +19,20 @@ guide_well_content_association = Table('guide_well_content_association', Base.me
 class Project(Base):
     """
     template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Project
-    columns: geid	name	scientist	institute	group	group_leader	start_date	description
+    columns: geid	name	scientist	affiliation	group	group_leader	start_date	description
     """
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
     geid = Column(String(8), unique=True, nullable=False, index=True)
     name = Column(String(64), unique=True, nullable=False, index=True)
     scientist = Column(String(64))
-    institute = Column(String(64))
     group = Column(String(64))
     group_leader = Column(String(64))
+    affiliation = Column(String(64))
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
     description = Column(String(1024))
+    comments = Column(String(1024))
 
 
 class Genome(Base):
@@ -84,6 +85,22 @@ class Guide(Base):
     activity = Column(Integer, nullable=False)
     exon = Column(Integer, nullable=False)
     nuclease = Column(String(250), nullable=False)
+
+
+class GuideMismatch(Base):
+    """
+    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: GuideMismatches
+    columns: guide_name	is_off_target_coding_region	number_of_mismatches	number_of_offtargets
+    """
+    __tablename__ = 'guide_mismatch'
+    id = Column(Integer, primary_key=True)
+    guide_id = Column(Integer, ForeignKey('guide.id', name='guide_mismatch_guide_fk', ondelete='CASCADE'))
+    guide = relationship(
+        Guide,
+        backref=backref('guide_mismatches', uselist=True, cascade='delete,all'))
+    is_off_target_coding_region = Column(Boolean, nullable=False)
+    number_of_mismatches = Column(Integer, nullable=False)
+    number_of_off_targets = Column(Integer, nullable=False)
 
 
 class Amplicon(Base):
@@ -145,6 +162,7 @@ class CellLine(Base):
     genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
     genome = relationship(Genome)
     name = Column(String(32), unique=True, nullable=False, index=True)
+    pool = Column(String(32))
     description = Column(String(1024))
 
 
@@ -218,19 +236,18 @@ class Well(Base):
     UniqueConstraint('experiment_layout_id', 'row', 'column', name='well_unique_in_layout')
 
     def is_empty(self):
-        return self.clone == None
+        return self.well_content.clone == None
 
 
 class SequencingLibrary(Base):
     """
     template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: SequencingLibrary
-    columns: experiment_layout_geid	well_position	dna_source	slxid	library_type	barcode_size	sequencing_barcode	sequencing_sample_name
+    columns: experiment_layout_geid	well_position	dna_source	slxid	library_type	sequencing_barcode	sequencing_sample_name
     """
     __tablename__ = 'sequencing_library'
     id = Column(Integer, primary_key=True)
     slxid = Column(String(12), unique=True, nullable=False)
     library_type = Column(String(32))
-    barcode_size = Column(Integer)
 
 
 class SequencingLibraryContent(Base):
@@ -284,16 +301,14 @@ class VariantResult(Base):
     forward_context = Column(String(250))
     alleles = Column(String(250))
     reverse_context = Column(String(250))
-    
+
     @property
     def frame(self):
-        if self.indel_length == None:
+        if self.indel_length is None:
             return None
-        
         frame = self.indel_length % 3
         if frame < 0:
             frame += 3
-        
         return frame
 
 
@@ -307,6 +322,9 @@ class MutationSummary(Base):
     zygosity = Column(Enum('homo', 'smut', 'dmut', 'iffy', 'warn', name='zygosity'))
     consequence = Column(String(250))
     has_off_target = Column(Boolean)
+    has_frameshift = Column(Boolean)
+    variant_caller_presence = Column(Enum('VH', 'V-', '-H', 'V?', name='variant_caller_presence'))
+    score = Column(Integer)
 
 
 class ProteinAbundance(Base):
@@ -322,15 +340,13 @@ class ProteinAbundance(Base):
         backref=backref('abundances', uselist=True, cascade='delete,all'))
     intensity_channel_700 = Column(Float)
     intensity_channel_800 = Column(Float)
-    
+
     @property
     def ratio_800_700(self):
         if self.intensity_channel_800 is None or self.intensity_channel_700 is None:
             return None
-        
         if self.intensity_channel_700 == 0.0:
             return 0.0
-        
         return self.intensity_channel_800 / self.intensity_channel_700
 
 

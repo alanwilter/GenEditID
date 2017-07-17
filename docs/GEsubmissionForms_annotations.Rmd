@@ -50,8 +50,8 @@ The *Guide* refers to the sgRNA used in the editing.
 ### Guide mismatches
 **guide_name: ** This ID must match Guide@name. Metadata information about off targets, as provided by Deskgen.  
 **is_off_target_coding_region: ** Is the off target in a coding region? Boolean value (TRUE/FALSE).  
-**regions (number_of_mismatches): ** How many mismatches.  
-**mismatches (number_of_offtargets): ** How many offtargets that contain x number of mismatches.  
+**number_of_mismatches: ** How many mismatches.  
+**number_of_offtargets: ** How many offtargets that contain x number of mismatches.  
 
 ```{r kable, echo = F}
 df <- data.frame('guide_name' = rep('STAT3.1', 6),
@@ -116,6 +116,5 @@ The *SequencingLibrary* stores information about the NGS library submission.
 **dna_source: ** The starting material used for library preparation, either of *fixed cells*, *gDNA*, *non-fixed cells*.  
 **slxid: ** The Solexa ID the NGS library was assigned to, e.g. SLX-13775.  
 **library_type: ** Always *Fluidigm*.  
-**barcode_size: ** ?.  ##### Not needed  
 **sequencing_barcode: ** The Fluidigm barcode identifier, e.g. FLD0193.  
 **sequencing_sample_name: ** The sample name assigned at the time of submission, in the format *experiment_layout_geid*_*well_position* This must be 'one sample name per well', as per requirement of the Sequencing bioinformatics pipeline.  

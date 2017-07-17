@@ -3,22 +3,27 @@
 ## layout data template
 file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
-- ANNE (2) [ ] we don't need 'barcode_size' in SequencingLibraryContent
+- ANNE (2) [x] we don't need 'barcode_size' in SequencingLibraryContent
   - remove it everywhere from model, template and loader
-- ANNE (2) [ ] in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
-- ANNE (2) [ ] in Project: change 'institute' to 'affiliation'
+- ANNE (2) [x] in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
+- ANNE (2) [x] in Project: change 'institute' to 'affiliation'
 
 ## data model (model.py)
-- ANNE (2) [ ] add 'cell_pool' to ExperimentLayout
-- ANNE (2) [ ] prepare a knock-in donor table to include in database (not urgent)
+- ANNE (2) [x] add 'cell_pool' to ExperimentLayout
+- ANNE (2) [x] add (editable) comments on projects
+- ANNE (2) [x] Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
+- ANNE (2) [x] Add column in mutation_summary for frameshift yes/no
+- ANNE (2) [x] add column in mutation_summary for score
+- ANNE (2) [x] Add mismatches table for guides: is_coding_region, regions, mismatches
+- ANNE (2) [ ] Add donor table: sequence, start, end on forward and excision sequence
 - ANNE (2) [ ] check that codes associated to classes are not in script but put back in class functions
-- ANNE (2) [ ] add (editable) comments on projects
-- ANNE (2) [ ] Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
-- ANNE (2) [ ] add score column in mutation_summary
 
 ## loader
-- ANNE (2) [ ] calculate mutation_summary score and load
-- [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
+- ANNE (3) [ ] calculate mutation_summary score and load
+- ANNE (3) [ ] add values for variant_caller_presence
+- ANNE (2) [x] add values for has_frameshift
+- ANNE (2) [x] load guide mismatches
+- ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
 
 ## sequencing analysis pipeline (later)
 - CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
@@ -96,5 +101,5 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [x] is presence of offtargets considered in calculation of zygosities?
 - [ ] very large indels detected (90 bp!)
 - [ ] issue with *shiny app*: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
-- CHANDU (1) [ ] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
+- CHANDU (1) [x] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
 - [ ] unable to fit a model on growth plots to extract curve (Discussion with Dominique on Thu 13 July)

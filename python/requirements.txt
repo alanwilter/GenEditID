@@ -6,6 +6,7 @@ sqlalchemy==1.1.6
 psycopg2==2.7
 
 # parsing excel sheets
+xlrd
 pandas
 
 # plotting
@@ -13,4 +14,4 @@ plotly
 colorlover
 
 # dnascissors module, installing it from local src
--e .
+-e python/.

@@ -7,6 +7,7 @@ from dnascissors.model import Project
 from dnascissors.model import Genome
 from dnascissors.model import Target
 from dnascissors.model import Guide
+from dnascissors.model import GuideMismatch
 from dnascissors.model import Amplicon
 from dnascissors.model import AmpliconSelection
 from dnascissors.model import Primer
@@ -31,10 +32,8 @@ class ExistingEntityException(Exception):
 
     def __init__(self, objtype, key, msg=None):
         if msg is None:
-            msg="Already have a {:s} identified by {:s}.".format(type(objtype).__name__, str(key))
-
+            msg = "Already have a {:s} identified by {:s}.".format(type(objtype).__name__, str(key))
         super(ExistingEntityException, self).__init__(msg)
-
         self.object_type = type
         self.key = key
         self.message = msg
@@ -148,6 +147,7 @@ class LayoutLoader(Loader):
         self.load_projects(clean_if_exists)
         self.load_targets()
         self.load_guides()
+        self.load_guide_mismatches()
         self.load_amplicon_selection()
         self.load_experiment_layout()
         self.load_plates()
@@ -171,7 +171,7 @@ class LayoutLoader(Loader):
             project.geid = row.geid
             project.name = row.name
             project.scientist = row.scientist
-            project.institute = row.institute
+            project.affiliation = row.affiliation
             project.group = row.group
             project.group_leader = row.group_leader
             project.start_date = self.get_date(row.start_date)
@@ -235,6 +235,19 @@ class LayoutLoader(Loader):
             guide.nuclease = row.nuclease
             self.session.add(guide)
             self.log.info('Created guide {:s}'.format(guide.name))
+
+    def load_guide_mismatches(self):
+        sheet = self.xls.parse('GuideMismatches')
+        for i, row in enumerate(sheet.itertuples(), 1):
+            if not row.guide_name:
+                raise Exception('Guide name is required on row {:d}'.format(i))
+            guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
+            guide_mismatch = GuideMismatch(guide=guide)
+            guide_mismatch.is_off_target_coding_region = bool(row.is_off_target_coding_region)
+            guide_mismatch.number_of_mismatches = int(row.number_of_mismatches)
+            guide_mismatch.number_of_off_targets = int(row.number_of_off_targets)
+            self.session.add(guide_mismatch)
+            self.log.info('Created guide mismatch entry ({}, {}, {}) for {:s}'.format(guide_mismatch.is_off_target_coding_region, guide_mismatch.number_of_mismatches, guide_mismatch.number_of_off_targets, guide.name))
 
     def load_amplicon_selection(self):
         sheet = self.xls.parse('AmpliconSelection')
@@ -345,6 +358,7 @@ class LayoutLoader(Loader):
                 cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).filter(CellLine.genome == self.genome).first()
                 if not cell_line:
                     cell_line = CellLine(name=row.cell_line_name, genome=self.genome)
+                    cell_line.pool = self.get_value(row.cell_pool)
                     self.session.add(cell_line)
                     self.log.info('Created cell line {:s}'.format(cell_line.name))
             # Clone
@@ -398,7 +412,6 @@ class LayoutLoader(Loader):
                 sequencing_library = SequencingLibrary()
                 sequencing_library.slxid = row.slxid
                 sequencing_library.library_type = row.library_type
-                sequencing_library.barcode_size = int(row.barcode_size)
                 self.session.add(sequencing_library)
                 self.log.info('Created sequening library {:s}'.format(sequencing_library.slxid))
             experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
@@ -552,12 +565,12 @@ class VariantLoader(Loader):
                    join(Project).\
                    filter(Project.geid == project_geid).\
                    all()
-        
+
         for v in variants:
             self.session.delete(v)
-        
+
         self.session.flush()
-        
+
         self.log.info('Deleted {:d} variant results'.format(len(variants)))
 
     def load_sheet(self, sheet_name, variant_type):
@@ -651,23 +664,18 @@ class MutationLoader(Loader):
         self.project_geid = project_geid
 
     def clean(self):
-        
         # Might be better:
         # https://stackoverflow.com/questions/39773560/sqlalchemy-how-do-you-delete-multiple-rows-without-querying
-        
         mutations = self.session.query(MutationSummary).\
                     join(SequencingLibraryContent).\
                     join(Well).\
                     join(ExperimentLayout).\
                     join(Project).\
-                    filter(Project.geid == project_geid).\
+                    filter(Project.geid == self.project_geid).\
                     all()
-        
         for m in mutations:
             self.session.delete(m)
-        
         self.session.flush()
-        
         self.log.info('Deleted {:d} mutation summaries'.format(len(mutations)))
 
     def __get_mutations__(self, well, variant_results, variant_caller='VarDict', allele_fraction_threshold=0.1):
@@ -749,5 +757,7 @@ class MutationLoader(Loader):
                 summary.zygosity = mutation_zygosity
                 summary.consequence = mutation_consequence
                 summary.has_off_target = mutations_has_off_target
+                if mutation_consequence:
+                    summary.has_frameshift = True if 'frameshift' in mutation_consequence else False
                 self.session.add(summary)
                 self.log.info('    Mutation added: {}\t{}\t{}'.format(summary.zygosity, summary.has_off_target, summary.consequence))
