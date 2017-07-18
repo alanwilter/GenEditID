@@ -16,6 +16,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - ANNE (2) [x] add column in mutation_summary for score
 - ANNE (2) [x] Add mismatches table for guides: is_coding_region, regions, mismatches
 - ANNE (2) [ ] Add donor table: sequence, start, end on forward and excision sequence
+- ANNE     [ ] Add 'project_type' ('knockin', 'knockout') to Project.
 - ANNE (2) [ ] check that codes associated to classes are not in script but put back in class functions
 
 ## loader
