@@ -62,10 +62,12 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
     - ANNE (1) [ ] % Zygosities (‘homozygous’, ‘heterozygous’…)
     - [ ] % Alleles (e.g. C/CATG, CTAA/C)
     - [ ] % Distances from cut site
+    - [ ] % Indel lengths
     - [ ] % Type of mutation (‘wt’, ‘insertion’, ‘deletion’, ‘SNV’)
     - [ ] % Type of variant (‘wt’, ‘frameshift’, ‘inframe’...)
     - [ ] INDEL ranges (visual location of alleles)
   - [ ] Combined plots (NGS + protein + growth slopes)
+  - [ ] Heatmap
 - **sample details**
   - [ ] plot: 96-well plates for score-based clone selection
   - RICH [ ] Data table per project
@@ -101,6 +103,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 ## problems to solve
 - [x] in plot_typeofvariants.py and plot_distances.py, weird result: for guide STAT3.1 I get a -91 indel_length with haplotypecaller, but according to the excel file that should be STAT3.3 instead (sample GE-P1B5-C).
 - [x] is presence of offtargets considered in calculation of zygosities?
+- [ ] revise queries, filtering by project might not be working correctly (we can use sample names as tracking system)
 - [ ] very large indels detected (90 bp!)
 - [ ] issue with *shiny app*: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
 - CHANDU (1) [x] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
