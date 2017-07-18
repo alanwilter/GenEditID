@@ -105,7 +105,7 @@ for variant_caller, grouped_data in dfgroup:
 
    bar_data.append(
       go.Bar(
-         x=['SNVs', 'Insertions', 'Delitions'],
+         x=['SNVs', 'Insertions', 'Deletions'],
          y=[snv_per, ind_per, del_per],
          name=variant_caller
       )
