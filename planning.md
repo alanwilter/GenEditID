@@ -3,30 +3,36 @@
 ## layout data template
 file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
+#### Done
 - ANNE (2) [x] we don't need 'barcode_size' in SequencingLibraryContent
   - remove it everywhere from model, template and loader
 - ANNE (2) [x] in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
 - ANNE (2) [x] in Project: change 'institute' to 'affiliation'
 
 ## data model (model.py)
+- ANNE (.) [ ] check that codes associated to classes are not in script but put back in class functions
+- ANNE (?) [ ] Add donor table: sequence, start, end on forward and excision sequence
+
+#### Done
 - ANNE (2) [x] add 'cell_pool' to ExperimentLayout
 - ANNE (2) [x] add (editable) comments on projects
 - ANNE (2) [x] Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
 - ANNE (2) [x] Add column in mutation_summary for frameshift yes/no
 - ANNE (2) [x] add column in mutation_summary for score
 - ANNE (2) [x] Add mismatches table for guides: is_coding_region, regions, mismatches
-- ANNE (2) [ ] Add donor table: sequence, start, end on forward and excision sequence
-- ANNE     [ ] Add 'project_type' ('knockin', 'knockout') to Project.
-- ANNE (2) [ ] check that codes associated to classes are not in script but put back in class functions
+- ANNE (3) [x] Add 'project_type' ('knock-in', 'knock-out') to Project.
+- ANNE (3) [x] update database diagram
 
 ## loader
-- ANNE (3) [ ] calculate mutation_summary score and load
-- ANNE (3) [ ] add values for variant_caller_presence
+- ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
+- [ ] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down. The extension does not matter for the loader, it only needs to be the same format. We use the csv library to load the file and specify the delimiter to be tab. If we were renaming these files to .txt, we will need to update the loading scripts used to populate the database in `shell/` directory.
+- [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
+
+#### Done
+- ANNE (3) [x] calculate mutation_summary score and load
+- ANNE (3) [x] add values for variant_caller_presence
 - ANNE (2) [x] add values for has_frameshift
 - ANNE (2) [x] load guide mismatches
-- ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
-- [ ] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down.
-- [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
 ## sequencing analysis pipeline (later)
 - CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
