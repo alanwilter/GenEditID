@@ -101,7 +101,7 @@ color_scale=[[0.0, 'rgb(239, 239, 239)'], # e.g. this color is applied to the fi
 dataplot = []
 nloop = 0
 for i, grouped_data in dfgroup:
-    nloop += 1
+    nloop += 1 # by default, one scale is created per each trace. I use this counter below to show the first trace's scale and hide the rest
     # create hover text to add to the scatter data structure
     hovertext = []
     for index, rows in grouped_data.iterrows():
