@@ -24,6 +24,7 @@ requires = [
     'colorlover',
     # data
     'pandas',
+    'xlrd'
 ]
 
 tests_require = [

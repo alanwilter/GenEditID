@@ -35,6 +35,38 @@ class Project(Base):
     description = Column(String(1024))
     comments = Column(String(1024))
 
+    @property
+    def is_abundance_data_available(self):
+        if self.experiment_layouts:
+            for experiment_layout in self.experiment_layouts:
+                if experiment_layout.wells:
+                    for well in experiment_layout.wells:
+                        if len(well.abundances) > 0:
+                            return True
+        return False
+
+    @property
+    def is_growth_data_available(self):
+        if self.experiment_layouts:
+            for experiment_layout in self.experiment_layouts:
+                if experiment_layout.wells:
+                    for well in experiment_layout.wells:
+                        if len(well.growths) > 0:
+                            return True
+        return False
+
+    @property
+    def is_variant_data_available(self):
+        if self.experiment_layouts:
+            for experiment_layout in self.experiment_layouts:
+                if experiment_layout.wells:
+                    for well in experiment_layout.wells:
+                        if well.sequencing_library_contents:
+                            for sequencing_library_content in well.sequencing_library_contents:
+                                if len(sequencing_library_content.variant_results) > 0:
+                                    return True
+        return False
+
 
 class Genome(Base):
     __tablename__ = 'genome'

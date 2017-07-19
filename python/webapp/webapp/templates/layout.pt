@@ -23,7 +23,7 @@
     <div metal:define-slot="content"></div>
 
     <!-- Bootstrap core JavaScript
-    ================================================== -->
+    ============================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"
             integrity="sha384-aBL3Lzi6c9LNDGvpHkZrrm3ZVsIwohDD7CDozL0pk8FwCrfmV7H9w8j3L7ikEv6h"

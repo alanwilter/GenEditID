@@ -11,7 +11,6 @@ from webapp.plots.plotter import Plotter
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
-
 # File uploads: http://docs.pylonsproject.org/projects/pyramid-cookbook/en/latest/forms/file_uploads.html
 
 class ProjectContent(colander.MappingSchema):
@@ -19,12 +18,13 @@ class ProjectContent(colander.MappingSchema):
     geid = colander.SchemaNode(colander.String(), title="GEID")
     name = colander.SchemaNode(colander.String(), title="Name")
 
+
 class ProjectViews(object):
-    
+
     def __init__(self, request):
         self.request = request
         self.dbsession = request.dbsession
-    
+
     def projects_form(self, buttonTitle):
         schema = ProjectContent().bind(request=self.request)
         submitButton = deform.form.Button(name='submit', title=buttonTitle)
@@ -34,43 +34,43 @@ class ProjectViews(object):
     def view_projects(self):
         list = self.dbsession.query(Project).order_by(Project.geid).all()
         return dict(projects=list, title="Gene Editing Projects")
-    
+
     @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
     def view_project(self):
         id = self.request.matchdict['projectid']
-        
+
         project = self.dbsession.query(Project).filter(Project.id == id).one()
-        
+
         plotter = Plotter()
-        
+
         return dict(project=project,
                     title="Gene Editing Project %s" % project.geid,
                     cellgrowthplot=plotter.growth_plot(self.dbsession, project.geid),
                     proteinabundanceplot=plotter.abundance_plot(self.dbsession, project.geid))
-    
+
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
-        
+
         title = "Gene Editing Project %s" % project.geid
-        
+
         edit_form = self.projects_form("Update")
-        
+
         if 'submit' in self.request.params:
-            
+
             fields = self.request.POST.items()
-            
+
             try:
                 appstruct = edit_form.validate(fields)
             except deform.ValidationFailure as e:
                 return dict(project=project, form=e.render(), title=title)
-            
+
             print("New name = %s" % appstruct['name'])
-            
+
             project.name = appstruct['name']
-            
+
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
-        
+
         return dict(projectid=project.id, project=project, title=title)
