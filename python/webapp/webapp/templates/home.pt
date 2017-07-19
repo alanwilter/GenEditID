@@ -26,13 +26,10 @@
                 Load a new project and its experiment layout from an Excel file
                 using the <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>appropriate template</a>.
             </p>
-            <p tal:condition="not clash">
-                <span class='warning'>Warning!</span> If the project already exists it will be replaced.
-            </p>
             <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                <div class='warning' tal:condition="clash">
+                <div tal:condition="clash">
                     <p>
-                        Warning! The project that you are loading, ${clash.key}, already exists.
+                        <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
                     </p>
                     <p>
                         Set this check box to remove the existing project and
@@ -51,7 +48,7 @@
                     <input type="submit" name="submit" value="Upload"></input>
                 </p>
                 <p>
-                    Loading data can take a few seconds. Please be patient.
+                    Loading data can take a few seconds. Thanks for your patience.
                 </p>
             </form>
             <hr/>

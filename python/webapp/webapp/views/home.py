@@ -77,7 +77,7 @@ class HomeViews(object):
                         url = self.request.route_url('home')
                         return HTTPFound(url)
                     except ExistingEntityException as e:
-                        return_map['error'] = e.message
+                        #return_map['error'] = e.message
                         return_map['clash'] = e
                         return_map['layoutfile'] = self.request.POST['layoutfile']
                 except Exception as e:
