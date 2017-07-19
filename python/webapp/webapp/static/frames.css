@@ -1,3 +1,11 @@
+.warning
+{
+  color:        orange;
+}
+.error
+{
+  color:        red;
+}
 div.cellgrowth
 {
     width:      100%;

@@ -27,12 +27,12 @@
                 using the <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>appropriate template</a>.
             </p>
             <p tal:condition="not clash">
-                Warning! If the project already exists it will be replaced.
+                <span class='warning'>Warning!</span> If the project already exists it will be replaced.
             </p>
             <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                <div tal:condition="clash">
+                <div class='warning' tal:condition="clash">
                     <p>
-                        The project that you are loading, ${clash.key}, already exists.
+                        Warning! The project that you are loading, ${clash.key}, already exists.
                     </p>
                     <p>
                         Set this check box to remove the existing project and
@@ -40,7 +40,7 @@
                         <input name="blat" type="checkbox" value="true"></input>
                     </p>
                 </div>
-                <div tal:condition="error">
+                <div class='error' tal:condition="error">
                     <p>
                         Error: ${error}
                     </p>
