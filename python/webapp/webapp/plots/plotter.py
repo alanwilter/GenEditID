@@ -5,6 +5,7 @@ import sqlalchemy
 import logging
 
 from dnascissors.config import cfg
+from dnascissors.model import Base
 from dnascissors.model import Project
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Well
