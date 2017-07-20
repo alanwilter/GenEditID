@@ -18,12 +18,11 @@ import plotly.offline as pyoff
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from dnascissors.model import SequencingLibraryContent
-from dnascissors.model import Well
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
+from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
-
+from dnascissors.model import Well
 
 # from plotly import tools. Possible use to make subplots
 

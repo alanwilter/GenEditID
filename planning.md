@@ -12,6 +12,8 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 ## data model (model.py)
 - ANNE (.) [ ] check that codes associated to classes are not in script but put back in class functions
 - ANNE (?) [ ] Add donor table: sequence, start, end on forward and excision sequence
+- [ ] add documentation to model.py (e.g. we have a relationship one to many in well to abundances. This is because you can take repeated measurements from the same well)
+- [ ] revise relationships model.py (e.g. we have a relationship one to many in sequencing_library_content to mutation_summaries. In this case we can't obtain a second mutation_summaries for the same library, so it's more meaningful if relationship is 1:1).
 
 #### Done
 - ANNE (2) [x] add 'cell_pool' to ExperimentLayout
@@ -116,3 +118,4 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - CHANDU (1) [x] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
 - [ ] unable to fit a model on growth plots to extract curve (Discussion with Dominique on Thu 13 July)
 - [ ] make plots and data tables considering that we can have more than one dna_source. As it is currently, e.g. for project GEP00001, well.sequencing_library_contents[0].dna_source is 'fixed cells' and well.sequencing_library_contents[1].dna_source is 'gDNA'. We are selecting only fixed cells for simplification, but we need to show both (the reason to have gDNA and cells was to be able to compare the sequencing results from both). Also, in project one there is a sample (GE-P6B4-G) that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart), no fixed cells, so when you do well.sequencing_library_contents[0].dna_source, it results in 'gDNA'!
+- [ ] RUBEN. Revise protein data values in plot_96_wells, how the range looks like (we should see edges )

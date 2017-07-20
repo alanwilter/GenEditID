@@ -10,6 +10,7 @@ from dnascissors.model import Base
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
 from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import VariantResult
 from dnascissors.model import Well
 from dnascissors.model import WellContent
 
@@ -191,9 +192,11 @@ class Plotter:
                 .join(ExperimentLayout.project)\
                 .filter(Project.geid == projectid)\
                 .filter(SequencingLibraryContent.dna_source != 'gDNA')
+
         wells = query.all()
         if len(wells) == 0:
             return None
+       
         guides = []
         zygosities = []
         for well in wells:
@@ -229,6 +232,102 @@ class Plotter:
                        include_plotlyjs=self.include_js, output_type=output_type)
 
 
+    def typeofvariant_plot(self, dbsession, projectid, file_INDELs=None, file_SNVs=None):
+        
+        query = dbsession.query(VariantResult)\
+                         .join(VariantResult.sequencing_library_content)\
+                         .join(SequencingLibraryContent.well)\
+                         .join(Well.well_content)\
+                         .join(Well.experiment_layout)\
+                         .join(ExperimentLayout.project)\
+                         .filter(Project.geid == projectid)\
+                         .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                         .filter(VariantResult.allele_fraction > 0.1)
+        wells = query.all()               
+        if len(wells) == 0:
+            return None
+        
+        guide = []
+        typemutation = []
+        typevariant = []
+        typecaller = []
+        for i in wells:
+            well = i.sequencing_library_content.well
+            guide_name = 'none'
+            
+            if well.well_content.guides:
+                guide_name = well.well_content.guides[0].name
+            print(guide_name, i.consequence, i.variant_type, i.variant_caller)
+            
+            guide.append(guide_name)
+            typemutation.append(i.consequence)
+            typevariant.append(i.variant_type)
+            typecaller.append(i.variant_caller)
+        
+        print(len(wells))
+
+
+        #-------- calculate percentages per guide in a pandas dataframe
+        # convert 'results' to pandas dataframe and group by 'variants'
+        df = pandas.DataFrame({'variants': typevariant, 'caller': typecaller, 'guides': guide, 'mutation': typemutation})
+        dfgroup_typevariant = df.groupby(['variants'])
+        
+        # create independent datasets (one for indels, one for snvs) for plotting
+        dfgroup_typevariant_INDEL = dfgroup_typevariant.get_group('INDEL')  #[i for i in dfgroup_typevariant][0][1]
+        dfgroup_typevariant_SNV = dfgroup_typevariant.get_group('SNV')      #[i for i in dfgroup_typevariant][1][1]
+        
+        # calculate percentages of mutation types and create bar plot 'data' dictionary
+        # This will produce a plot with grouped legends. Annoyingly there no feature at date 20170710 to add 
+        #  titles to the legend groups.
+        #  It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
+        #  I assume that the top legend group is the first variant caller.
+        for caller, gdata in dfgroup_typevariant_INDEL.groupby(['caller']):
+            plots_INDELs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation')
+
+        for caller, gdata in dfgroup_typevariant_SNV.groupby(['caller']):
+            plots_SNVs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation')
+
+         
+        # layouts
+        layout_INDELs = go.Layout(
+            title = 'Type of mutation (INDELS)',
+            yaxis = {'title': '% of submitted samples per guide'}    
+        )
+        
+        layout_SNVs = go.Layout(
+            title = 'Type of mutation (SNVs)',
+            yaxis = {'title': '% of submitted samples per guide'}    
+        )
+        
+        # plot
+        figure_INDELs = go.Figure(data=plots_INDELs, layout=layout_INDELs)
+        #figure_SNVs = go.Figure(data=plots_SNVs, layout=layout_SNVs)
+        output_type = "file"
+        
+        if not file_INDELs:
+            output_type = "div"
+            file_INDELs = "plotNGS_INDELs_{}.html".format(projectid)
+            
+        return py.plot(figure_INDELs, filename=file_INDELs, auto_open=False, show_link=False,
+                       include_plotlyjs=self.include_js, output_type=output_type)
+                      
+        if not file_SNVs:
+            output_type = "div"
+            file_INDELs = "plotNGS_SNVs_{}.html".format(projectid)
+            
+        #return py.plot(figure_SNVs, filename=file_SNVs, auto_open=False, show_link=False,
+         #              include_plotlyjs=self.include_js, output_type=output_type)
+       # return py.plot(dict(data = data_INDELs, layout = layout_INDELs), filename = 'plotNGS_indels.html')             
+            # not sure why, but when the script is sourced, both plots are the SNV plot
+        
+        
+        # the ideal situation would be to plot both datasets side by side
+         # pyoff.plot(dict(data = data_INDELs + data_SNVs, layout = layout_INDELs)) #say we use a different layout for each dataset
+         # however the guides appear duplicated. As far as I have seen, you can't have 
+         # the same legent for two different plots in plotly (ironically you can have it in if you use ggplotly(R:ggplot2)... )
+                
+
+
 def main():
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -242,7 +341,10 @@ def main():
         plotter.include_js = True
         plotter.growth_plot(session, 'GEP00001', "growth.html")
         plotter.abundance_plot(session, 'GEP00001', "abundance.html")
-        plotter.zygosity_plot(session, 'GEP00001')
+        plotter.zygosity_plot(session, 'GEP00001', "plotNGS_zygosity.html")
+        plotter.typeofvariant_plot(session, 'GEP00001', "plotNGS_INDELs.html")
+  #      plotter.typeofvariant_plot(session, 'GEP00001', "plotNGS_SNVs.html")        
+        
     except Exception as e:
         logging.exception(e)
     finally:
