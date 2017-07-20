@@ -6,82 +6,106 @@
 <div metal:use-macro="load: ../layout.pt">
     <div metal:fill-slot="content">
 
-            <h1>Genome Editing Core - Project: ${project.geid}</h1>
+      <h1>${title}</h1>
+      <h2>${subtitle}</h2>
+      <hr />
+      <p>
+          <a href="${request.route_url('home')}">Back to projects list</a> |
+          <a href="${request.route_url('project_edit', projectid=project.id)}">Add/update comments</a> |
+          Load growth data |
+          Load abundace data
+      </p>
+      <hr />
 
-            <h2>Overview</h2>
-            <p>
-                <a href="${request.route_url('project_edit', projectid=project.id)}">Edit this project</a>
-            </p>
+      <!-- Overview section ************************************************ -->
+      <h3>Overview</h3>
 
-            <h3> project details</h3>
-            <table>
-                <tr>
-                    <td>Internal Identifier:</td>
-                    <td>${project.geid}</td>
-                </tr>
-                <tr>
-                    <td>Name:</td>
-                    <td>${project.name}</td>
-                </tr>
-                <tr>
-                    <td>Start date:</td>
-                    <td>${project.start_date}</td>
-                </tr>
-                <tr>
-                    <td>End date:</td>
-                    <td>${project.end_date}</td>
-                </tr>
-            </table>
+      <h4>project details</h4>
+      <table id="projecttable">
+          <thead>
+              <th tal:repeat="header project_headers">${header}</th>
+          </thead>
+          <tr tal:repeat="row project_rows">
+              <td tal:repeat="cell row">${cell}</td>
+          </tr>
+      </table>
 
-            <h3>targets</h3>
-            <h3>guides</h3>
-            <h3>guide mismatches</h3>
-            <!-- h3>plate layouts</h3 -->
-            <hr/>
+      <h4>targets</h4>
+      <table id="targettable">
+          <thead>
+              <th tal:repeat="header target_headers">${header}</th>
+          </thead>
+          <tr tal:repeat="row target_rows">
+              <td tal:repeat="cell row">${cell}</td>
+          </tr>
+      </table>
 
-            <h2>Results</h2>
-            <div tal:condition="cellgrowthplot">
-                <h3>Cell Growth</h3>
-                <div id="cellgrowth" class="cellgrowth">
-                    ${structure: cellgrowthplot}
-                </div>
-            </div>
+      <h4>guides</h4>
+      <table id="guidetable">
+          <thead>
+              <th tal:repeat="header guide_headers">${header}</th>
+          </thead>
+          <tr tal:repeat="row guide_rows">
+              <td tal:repeat="cell row">${cell}</td>
+          </tr>
+      </table>
 
-            <div tal:condition="proteinabundanceplot">
-                <h3>Protein Abundance</h3>
-                <div id="proteinabundance" class="proteinabundance">
-                    ${structure: proteinabundanceplot}
-                </div>
-            </div>
+      <h4>guide mismatches</h4>
+      <table id="guidemismatchtable">
+          <thead>
+              <th tal:repeat="header guide_mismatch_headers">${header}</th>
+          </thead>
+          <tr tal:repeat="row guide_mismatch_rows">
+              <td tal:repeat="cell row">${cell}</td>
+          </tr>
+      </table>
 
-            <div tal:condition="zygosityplot">
-              <h3>Zygosity</h3>
-                <div id="zygosityplot" class="zygosityplot">
-                  ${structure: zygosityplot}
-                </div>
-            </div>
+      <!-- h4>plate layouts</h4 -->
+      <hr/>
 
-            <hr />
-            <h2>Sample analysis</h2>
-            <h3>score on plates</h3>
+      <!-- Results section ************************************************* -->
+      <h3>Results</h3>
+      <div tal:condition="cellgrowthplot">
+          <h4>Cell Growth</h4>
+          <div id="cellgrowth" class="cellgrowth">
+              ${structure: cellgrowthplot}
+          </div>
+      </div>
 
-            <h3>data table</h3>
-            <table id="contenttable">
-                <thead>
-                    <th tal:repeat="header column_headers">${header}</th>
-                </thead>
-                <tr tal:repeat="row rows">
-                    <td tal:repeat="cell row">${cell}</td>
-                </tr>
-            </table>
+      <div tal:condition="proteinabundanceplot">
+          <h4>Protein Abundance</h4>
+          <div id="proteinabundance" class="proteinabundance">
+              ${structure: proteinabundanceplot}
+          </div>
+      </div>
 
-            <hr />
+      <div tal:condition="zygosityplot">
+        <h4>Zygosity</h4>
+          <div id="zygosityplot" class="zygosityplot">
+            ${structure: zygosityplot}
+          </div>
+      </div>
+      <hr />
 
-            <p>
-                <a href="${request.route_url('home')}">Back to projects list</a>
-            </p>
+      <!-- Sample analysis section ***************************************** -->
+      <h3>Sample analysis</h3>
+      <h4>score on plates</h4>
 
-            <hr />
+      <h4>data table</h4>
+      <table id="sampledatatable">
+          <thead>
+              <th tal:repeat="header sample_data_table_headers">${header}</th>
+          </thead>
+          <tr tal:repeat="row sample_data_table_rows">
+              <td tal:repeat="cell row">${cell}</td>
+          </tr>
+      </table>
+
+      <hr />
+      <p>
+          <a href="${request.route_url('home')}">Back to projects list</a>
+      </p>
+      <hr />
 
     </div>
 </div>
@@ -89,7 +113,23 @@
 $(document).ready(
     function()
     {
-        $('#contenttable').DataTable(
+        $('#projecttable').DataTable(
+        {
+          searching: false,
+          paging:    false,
+          ordering:  false,
+          info:      false,
+        });
+        $('#targettable').DataTable(
+        {
+        });
+        $('#guidetable').DataTable(
+        {
+        });
+        $('#guidemismatchtable').DataTable(
+        {
+        });
+        $('#sampledatatable').DataTable(
         {
         });
     }
