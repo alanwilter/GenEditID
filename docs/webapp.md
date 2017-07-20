@@ -65,7 +65,7 @@
     pserve development.ini --reload
 ```
 
-Go to http://localhost:8080/project
+Go to http://localhost:8080
 
 ## Running the webapp after first setup
 
@@ -77,6 +77,6 @@ source wenv/bin/activate
 pserve development.ini --reload
 ```
 
-Go to http://localhost:8080/project
+Go to http://localhost:8080
 
 ## Adding the zygozity plot into the webapp

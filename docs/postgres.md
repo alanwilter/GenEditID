@@ -24,16 +24,22 @@ The shared instance is running on bioinf-srv003 until we get a dedicated VM.
 
 ## On Ubuntu
 (As root)
-sudo apt install libpq-dev postgresql-client #the libpq-dev is required to install the R package RPostgreSQL, which otherwise throws
-                                             #an error:
-                                               #RS-PostgreSQL.h:23:26: fatal error: libpq-fe.h: No such file or directory
-                                               #compilation terminated.
-                                               #/usr/lib/R/etc/Makeconf:134: recipe for target 'RS-PQescape.o' failed
+```
+sudo apt install libpq-dev postgresql-client 
+     #the libpq-dev is required to install the R package RPostgreSQL, which otherwise throws
+     #an error:
+       #RS-PostgreSQL.h:23:26: fatal error: libpq-fe.h: No such file or directory
+       #compilation terminated.
+       #/usr/lib/R/etc/Makeconf:134: recipe for target 'RS-PQescape.o' failed
+sudo apt install postgresql postgresql-contrib
+
+```
 
 
 ## Configuring Access to the Database
 
 (As postgres)
+`sudo -i -u postgres`
 
 Edit `/var/lib/pgsql/9.3/data/pg_hba.conf` to add access to the (to be created) database `geneediting`. Add the following:
 
