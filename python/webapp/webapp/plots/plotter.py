@@ -18,7 +18,7 @@ class Plotter:
 
     def __init__(self):
         self.include_js = False
-        
+
     def calculate_percentage_plots(self, dfgroup, grouping_variable):
         plots = []
         for guide_name, grouped_data in dfgroup:
@@ -31,7 +31,7 @@ class Plotter:
                      name=guide_name
                      )
             )
-            return(plots)
+        return(plots)
 
     def create_classifier(self, well_content):
         parts = []
@@ -181,21 +181,19 @@ class Plotter:
             file = "protein_abundance_{}.html".format(projectid)
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-                       
+
     def zygosity_plot(self, dbsession, projectid, file=None):
-        #we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G) 
-         #that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
+        # we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G)
+        # that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
         query = dbsession.query(Well)\
                 .join(Well.sequencing_library_contents)\
                 .join(Well.experiment_layout)\
                 .join(ExperimentLayout.project)\
                 .filter(Project.geid == projectid)\
                 .filter(SequencingLibraryContent.dna_source != 'gDNA')
-
         wells = query.all()
         if len(wells) == 0:
             return None
-        
         guides = []
         zygosities = []
         for well in wells:
@@ -206,52 +204,29 @@ class Plotter:
                 mutation_zygosity = well.sequencing_library_contents[0].mutation_summaries[0].zygosity
             if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
-            #print(well.sequencing_library_contents[0].sequencing_sample_name, guide_name, mutation_zygosity)
+            # print(well.sequencing_library_contents[0].sequencing_sample_name, guide_name, mutation_zygosity)
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
-
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
         dfgroup = df.groupby(['guides'])
-
         plots = self.calculate_percentage_plots(dfgroup, 'zygosities')
-        
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
-        
-        
-        print(categories)
+        #print(categories)
         layout = go.Layout(
             title='Zygosities',
             xaxis={'categoryorder': 'array', 'categoryarray': categories},
             yaxis={'title': '% of submitted samples per guide'}
         )
-        
-        # plot
-        figure = py.plot(dict(data=plots, layout=layout))
-        
+        # plot                       
+        figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
         if not file:
             output_type = "div"
             file = "plot_zygosity_{}.html".format(projectid)
         return py.plot(figure, filename=file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-
-                
-        
-        
-
-#
-
-
-
-
-
-
-
-
-
-
 
 
 def main():

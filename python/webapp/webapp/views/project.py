@@ -60,6 +60,7 @@ class ProjectViews(object):
                     title="Gene Editing Project %s" % project.geid,
                     cellgrowthplot=plotter.growth_plot(self.dbsession, project.geid),
                     proteinabundanceplot=plotter.abundance_plot(self.dbsession, project.geid),
+                    zygosityplot=plotter.zygosity_plot(self.dbsession, project.geid),
                     column_headers=headers,
                     rows=rows)
 
