@@ -115,3 +115,4 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] issue with *shiny app*: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
 - CHANDU (1) [x] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
 - [ ] unable to fit a model on growth plots to extract curve (Discussion with Dominique on Thu 13 July)
+- [ ] make plots and data tables considering that we can have more than one dna_source. As it is currently, e.g. for project GEP00001, well.sequencing_library_contents[0].dna_source is 'fixed cells' and well.sequencing_library_contents[1].dna_source is 'gDNA'. We are selecting only fixed cells for simplification, but we need to show both (the reason to have gDNA and cells was to be able to compare the sequencing results from both).
