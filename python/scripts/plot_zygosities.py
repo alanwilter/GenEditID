@@ -13,14 +13,15 @@ Bar plot
 import sqlalchemy
 import pandas
 import plotly.graph_objs as go
-import plotly.offline as pyoff
+import plotly.offline as py
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from dnascissors.model import SequencingLibraryContent
-from dnascissors.model import Well
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
+from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import Well
+
 
 # sqlalchemy database connection
 engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
@@ -29,44 +30,42 @@ DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
 session = DBSession()
 
 # sqlalchemy query
-results = session.query(SequencingLibraryContent)\
-                 .outerjoin(SequencingLibraryContent.mutation_summaries)\
-                 .join(SequencingLibraryContent.well)\
-                 .join(Well.well_content)\
-                 .join(Well.experiment_layout)\
-                 .join(ExperimentLayout.project)\
-                 .filter(Project.geid == 'GEP00001')\
-                 .filter(SequencingLibraryContent.dna_source != 'gDNA')\
-                 .all()
+#we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G) 
+ #that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
+results = session.query(Well)\
+        .join(Well.sequencing_library_contents)\
+        .join(Well.experiment_layout)\
+        .join(ExperimentLayout.project)\
+        .filter(Project.geid == 'GEP00001')\
+        .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+        .all()
+
 
 guides = []
 zygosities = []
-for i in results:
-    well = i.well
+for well in results:
+    #well = i.well
     layout = well.experiment_layout
     mutation_zygosity = 'wt'
     guide_name = 'none'
-    if i.mutation_summaries:
-        mutation_zygosity = i.mutation_summaries[0].zygosity
+    if well.sequencing_library_contents[0].mutation_summaries:
+        mutation_zygosity = well.sequencing_library_contents[0].mutation_summaries[0].zygosity
     if well.well_content.guides:
         guide_name = well.well_content.guides[0].name
-    print(i.sequencing_sample_name, guide_name, mutation_zygosity)
+    #print(well.sequencing_library_contents[0].sequencing_sample_name, guide_name, mutation_zygosity)
     zygosities.append(mutation_zygosity)
     guides.append(guide_name)
-
-print(zygosities)
-print(guides)
 
 # convert 'results' to pandas dataframe and group by 'guides'
 df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
 dfgroup = df.groupby(['guides'])
 
 # calculate percentages of zygosities and create bar plot 'data' dictionary
-data = []
+plots = []
 for guide_name, grouped_data in dfgroup:
     grouped_data_byzygosity = grouped_data.groupby(['zygosities']).size()
     grouped_data_byzygosity_percent = grouped_data_byzygosity*100 / grouped_data_byzygosity.sum()
-    data.append(
+    plots.append(
         go.Bar(
              x=grouped_data_byzygosity_percent.index.tolist(),
              y=grouped_data_byzygosity_percent.tolist(),
@@ -86,4 +85,4 @@ layout = go.Layout(
 )
 
 # plot
-pyoff.plot(dict(data=data, layout=layout))
+py.plot(dict(data=plots, layout=layout))
