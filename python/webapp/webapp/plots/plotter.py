@@ -180,12 +180,9 @@ class Plotter:
                               .join(ExperimentLayout.project)\
                               .filter(Project.geid == self.project_geid)\
                               .filter(SequencingLibraryContent.dna_source != 'gDNA')
+
         wells = query.all()
-        # NB broken
-        return None
         if len(wells) == 0:
-            return None
-        if not wells[0].experiment_layout.project.is_variant_data_available:
             return None
         guides = []
         zygosities = []
@@ -199,12 +196,12 @@ class Plotter:
                 guide_name = well.well_content.guides[0].name
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
+
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
         dfgroup = df.groupby(['guides'])
 
-        plots = []
-        plots = self.get_percent_plots_by_variant(dfgroup, 'zygosities')
+        plots = self.calculate_percentage_plots(dfgroup, 'zygosities')
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
         layout = go.Layout(
@@ -270,6 +267,56 @@ class Plotter:
         # however the guides appear duplicated. As far as I have seen, you can't have
         # the same legent for two different plots in plotly (ironically you can have it in if you use ggplotly(R:ggplot2)... )
 
+    def indellengths_plot(self, indellengths_file=None):
+        query = self.dbsession.query(VariantResult)\
+                              .join(VariantResult.sequencing_library_content)\
+                              .join(SequencingLibraryContent.well)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                              .filter(VariantResult.allele_fraction > 0.1)
+        # TODO variable needs to be renamed variant_results
+        wells = query.all()
+        if len(wells) == 0:
+            return None
+        guides = []
+        allindellengths = []
+        typecallers = []
+        for i in wells:
+            well = i.sequencing_library_content.well
+            layout = well.experiment_layout
+            guide_name = 'none'
+
+            if well.well_content.guides:
+                guide_name = well.well_content.guides[0].name
+            # print(i.sequencing_library_content.sequencing_sample_name, guide_name, i.indel_length, i.variant_caller)
+            guides.append(guide_name)
+            allindellengths.append(i.indel_length)
+            typecallers.append(i.variant_caller)
+        # calculate percentages per guide in a pandas dataframe
+        # convert 'results' to pandas dataframe and group by 'guides'
+        df = pandas.DataFrame({'caller': typecallers, 'guides': guides, 'indellengths': allindellengths})
+        # calculate percentages of indel lengths and create bar plot 'data' dictionary
+        plots = []
+        nloop = -2
+        for caller, gdata in df.groupby(['caller']):
+            nloop += 1
+            plot_indellenghts = self.calculate_percentage_plots(gdata.groupby(['guides']), 'indellengths', number_loop=nloop, variant_caller=caller)
+            plots.extend(plot_indellenghts)
+        layout = go.Layout(
+            title='Indel lengths',
+            yaxis={'title': '% of submitted samples per guide'}
+        )
+        # plot
+        figure = go.Figure(data=plots, layout=layout)
+        output_type = "file"
+        if not indellengths_file:
+            output_type = "div"
+            indellengths_file = "plotNGS_indellengths_{}.html".format(self.project_geid)
+        return py.plot(figure, filename=indellengths_file, auto_open=False, show_link=False,
+                       include_plotlyjs=self.include_js, output_type=output_type)
+
     def get_percent_plots_by_variant(self, group_by_variant, variant_type, grouping_variable):
         plots = []
         marker_symbols = ['circle', 'triangle-up', 'cross', 'hash']
@@ -298,6 +345,34 @@ class Plotter:
         )
         return go.Figure(data=plots, layout=layout)
 
+    def calculate_percentage_plots(self, dfgroup, grouping_variable, number_loop = -1, variant_caller = None):
+        plots = []
+        marker_symbol = ['circle', 'triangle-up', 'cross', 'hash']
+        nloop = number_loop + 1
+        msym = 'circle' if variant_caller == None else marker_symbol[nloop]
+        for guide_name, grouped_data in dfgroup:
+            grouped_data_byvar = grouped_data.groupby([grouping_variable]).size()
+            grouped_data_byvar_percent = grouped_data_byvar*100 / grouped_data_byvar.sum()
+            htext = []
+            for length_gdbp in range(len(grouped_data_byvar_percent)):
+                if variant_caller != None:
+                    hovertext = [variant_caller] #add other elements to this list to display when hovering
+                else:
+                    hovertext = []
+                    hovertext = ' '.join(hovertext)
+                    htext.append(hovertext)
+            plots.append(
+                go.Scatter(
+                     x=grouped_data_byvar_percent.index.tolist(),
+                     y=grouped_data_byvar_percent.tolist(),
+                     name=guide_name,
+                     mode='markers',
+                     marker={'symbol': msym},
+                     text=htext
+                )
+            )
+        return(plots)
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG,
@@ -315,6 +390,7 @@ def main():
         plotter.zygosity_plot("zygosity.html")
         plotter.variants_plot("INDEL", "variants_indels.html")
         plotter.variants_plot("SNV", "variants_snvs.html")
+        plotter.indellengths_plot("indellengths.html")
 
     except Exception as e:
         logging.exception(e)

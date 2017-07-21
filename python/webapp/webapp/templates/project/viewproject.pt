@@ -92,9 +92,15 @@
       </div>
 
       <div tal:condition="variantssnvsplot">
-        <h4>Variants</h4>
-          <div id="variantssnvsplot" class="variantssnvsplot">
-            ${structure: variantssnvsplot}
+        <div id="variantssnvsplot" class="variantssnvsplot">
+          ${structure: variantssnvsplot}
+        </div>
+      </div>
+
+      <div tal:condition="indellengthsplot">
+        <h4>Indel lengths</h4>
+          <div id="indellengthsplot" class="indellengthsplot">
+            ${structure: indellengthsplot}
           </div>
       </div>
       <hr />

@@ -177,6 +177,7 @@ class ProjectViews(object):
                     zygosityplot=plotter.zygosity_plot(),
                     variantsindelsplot=plotter.variants_plot('INDEL'),
                     variantssnvsplot=plotter.variants_plot('SNV'),
+                    indellengthsplot=plotter.indellengths_plot(),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,
