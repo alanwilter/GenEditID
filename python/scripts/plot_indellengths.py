@@ -18,10 +18,10 @@ import plotly.offline as pyoff
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from dnascissors.model import SequencingLibraryContent
-from dnascissors.model import Well
 from dnascissors.model import ExperimentLayout
+from dnascissors.model import Well
 from dnascissors.model import Project
+from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
 
 #-------- sqlalchemy query
@@ -33,7 +33,6 @@ session = DBSession()
 results = session.query(VariantResult)\
                  .join(VariantResult.sequencing_library_content)\
                  .join(SequencingLibraryContent.well)\
-                 .join(Well.well_content)\
                  .join(Well.experiment_layout)\
                  .join(ExperimentLayout.project)\
                  .filter(Project.geid == 'GEP00001')\
@@ -48,7 +47,6 @@ typecaller = []
 for i in results:
     well = i.sequencing_library_content.well
     layout = well.experiment_layout
-    indellength = 0
     guide_name = 'none'
     
     if well.well_content.guides: 
@@ -66,17 +64,36 @@ print(len(results))
 df = pandas.DataFrame({'caller': typecaller, 'guides': guide, 'indellengths': allindellengths})
 
 # calculate percentages of indel lengths and create bar plot 'data' dictionary
+marker_symbol = ['circle', 'triangle-up', 'cross', 'hash']
 data = []
+nloop = -1
 for caller, gdata in df.groupby(['caller']):
+    nloop += 1
     for guidename, gdata2 in gdata.groupby(['guides']):
-        gdata2_byvar = gdata.groupby(['indellengths']).size()
+        gdata2_byvar = gdata2.groupby(['indellengths']).size()
         gdata2_byvar_percent = gdata2_byvar*100 / gdata2_byvar.sum()
+        htext = []
+        print(gdata2_byvar_percent)
+        print(len(gdata2))
+        print(gdata2_byvar_percent.tolist())
+        for length_gdbp in range(len(gdata2_byvar_percent)):
+            hovertext = [caller] #, guidename, '%=' + str(round(gdata2_byvar_percent.tolist()[length_gdbp]))] In case we want to add other things to the hover data
+            hovertext = ' '.join(hovertext)
+            htext.append(hovertext)
+        #for index, rows in gdata2_byvar_percent():
+          #  print(index,rows)
+            #htext = [caller, guidename, '%=' + str(round(gdata2_byvar_percent, 2))]
+           # htext = ', '.join(htext) # the hover text needs to be a single string, it can't be a list
+           # hovertext.append(htext)
+           # print(hovertext)
         data.append(
-            go.Bar(
-            x = gdata2_byvar_percent.index.tolist(),
-            y = gdata2_byvar_percent.tolist(),
-            legendgroup = caller,
-            name = guidename
+            go.Scatter(
+                 x = gdata2_byvar_percent.index.tolist(),
+                 y = gdata2_byvar_percent.tolist(),
+                 name = guidename,
+                 mode = 'markers',
+                 marker = {'symbol': marker_symbol[nloop]},
+                 text = htext
             )
         )
 

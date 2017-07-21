@@ -63,17 +63,20 @@ class Plotter:
         #print(colours)
         #colours = colorlover.interp(colours, len(classifiers))
         #print(colours)
-        colour_map = dict()
-        colour_index = -1
-        for c in classifiers:
-            #colour_map[c] = colours[++colour_index]
-            colour_map[c] = "blue"
-        # Ensure the growths are by increasing time.
+
+        # base colour map with 8 colours (OK for colour blind people)
+        colour_map = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
+                'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+                'rgb(213,94,0)', 'rgb(204, 121,167)']
+        # colour map for the number of classifiers we have
+        #colour_map = colour_map[:len(classifiers)]
+
         for well in wells:
             well.growths.sort(key=lambda g: g.hours)
         # Need to assemble several plot objects, one for each line.
         # Two loops to order the legend correctly.
         plots = []
+        colour_map_index = 0
         for loop_class in classifiers:
             first = True
             for well in wells:
@@ -82,7 +85,7 @@ class Plotter:
                     plots.append(
                         go.Scatter(
                             mode='lines',
-                            line=dict(color=colour_map[classifier]),
+                            line=dict(color=colour_map[colour_map_index]),
                             x=[g.hours for g in well.growths],
                             y=[g.confluence_percentage for g in well.growths],
                             name=classifier,
@@ -92,6 +95,8 @@ class Plotter:
                         )
                     )
                     first = False
+            colour_map_index += 1
+
         layout = go.Layout(
             title="Cell Growth",
             xaxis=dict(title="Time (h)"),
