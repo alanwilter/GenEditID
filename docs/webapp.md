@@ -79,4 +79,74 @@ pserve development.ini --reload
 
 Go to http://localhost:8080
 
-## Adding the zygozity plot into the webapp
+## Setting up the server for production
+
+https://docs.pylonsproject.org/projects/pyramid/en/latest/tutorials/modwsgi/index.html
+
+Once you have Apache installed, install mod_wsgi.
+https://github.com/GrahamDumpleton/mod_wsgi
+
+```bash
+ssh bioinf-ge001.cri.camres.org
+sudo yum install httpd httpd-devel
+sudo yum install python34-devel
+
+sudo su - ge
+source venv/bin/activate
+pip install mod_wsgi
+mod_wsgi-express start-server
+```
+
+Verify that the installation worked by pointing your browser at:
+http://bioinf-ge001.cri.camres.org:8000/
+
+Create `genome-editing/python/webapp/pyramid.wsgi` with this content
+```python
+from pyramid.paster import get_app, setup_logging
+ini_path = '/home/ge/genome-editing/python/webapp/production.ini'
+setup_logging(ini_path)
+application = get_app(ini_path, 'main')
+```
+
+Configure Apache, with file `vim /etc/httpd/conf.d/genomeediting.conf`
+NB. remove specific configuration for the time being otherwise links generated
+by Pyramid become absolute and come up as http://localhost:8080/ which is a problem.
+Restart Apache
+```bash
+ssh bioinf-ge001.cri.camres.org
+sudo /sbin/service httpd restart
+```
+
+Starting the web app:
+```
+sudo su - ge
+source venv/bin/activate
+mod_wsgi-express start-server genome-editing/python/webapp/pyramid.wsgi --port 8080
+```
+http://bioinf-ge001.cri.camres.org:8080/
+
+Restarting the web app:
+
+```bash
+ssh bioinf-ge001.cri.camres.org
+sudo su - ge
+source venv/bin/activate
+
+# kill the current processes
+ps -eaf | grep wsgi
+
+# update app
+cd genome-editing
+git pull
+
+# update dependencies
+cd python/webapp
+pip install -r requirements-webapp.txt
+
+# start
+./startwebapp &
+```
+
+Go to http://bioinf-ge001.cri.camres.org:8080/
+
+NB. running on port 8080, apache config needs to be fixed.

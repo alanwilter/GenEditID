@@ -734,10 +734,10 @@ class MutationLoader(Loader):
         return mutation_zygosity, mutation_consequence
 
     def _characterise_variant_caller_presence(self, vardict_zygosity, haplo_zygosity):
-        if not vardict_zygosity:
-            return '-H'
-        if not haplo_zygosity:
+        if vardict_zygosity and not haplo_zygosity:
             return 'V-'
+        if haplo_zygosity and not vardict_zygosity:
+            return '-H'
         if vardict_zygosity == haplo_zygosity:
             return 'VH'
         return 'V?'
