@@ -67,9 +67,9 @@ for guide_name, grouped_data in dfgroup:
     grouped_data_byzygosity_percent = grouped_data_byzygosity*100 / grouped_data_byzygosity.sum()
     plots.append(
         go.Bar(
-             x=grouped_data_byzygosity_percent.index.tolist(),
-             y=grouped_data_byzygosity_percent.tolist(),
-             name=guide_name
+             x = grouped_data_byzygosity_percent.index.tolist(),
+             y = grouped_data_byzygosity_percent.tolist(),
+             name = guide_name,
              )
     )
 

@@ -81,8 +81,12 @@ dfgroup_typevariant_SNV = dfgroup_typevariant.get_group('SNV')      #[i for i in
 #  titles to the legend groups.
 #  It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
 #  I assume that the top legend group is the first variant caller.
+marker_symbol = ['circle', 'triangle-up', 'cross', 'hash']
+
 data_INDELs = []
+nloop = -1
 for caller, gdata in dfgroup_typevariant_INDEL.groupby(['caller']):
+    nloop +=1
     for guidename, gdata2 in gdata.groupby(['guides']):
 #        print(caller)
 #        print(guidename)
@@ -90,16 +94,23 @@ for caller, gdata in dfgroup_typevariant_INDEL.groupby(['caller']):
         gdata2_byvar = gdata2.groupby(['mutation']).size()
         gdata2_byvar_percent = gdata2_byvar*100 / gdata2_byvar.sum()
         data_INDELs.append(
-            go.Bar(
+            go.Scatter(
                  x = gdata2_byvar_percent.index.tolist(),
                  y = gdata2_byvar_percent.tolist(),
-                 legendgroup = caller,
-                 name = guidename
+                 name = guidename,
+                 mode = 'markers',
+                 marker = {'symbol':  marker_symbol[nloop]},
+                 text = caller
                  )
         ) 
 
 data_SNVs = []
+nloop = -1
+#marker_color = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
+#                'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+#                'rgb(213,94,0)', 'rgb(204, 121,167)']
 for caller, gdata in dfgroup_typevariant_SNV.groupby(['caller']):
+    nloop +=1
     for guidename, gdata2 in gdata.groupby(['guides']):
 #        print(caller)
 #        print(guidename)
@@ -107,13 +118,15 @@ for caller, gdata in dfgroup_typevariant_SNV.groupby(['caller']):
         gdata2_byvar = gdata2.groupby(['mutation']).size()
         gdata2_byvar_percent = gdata2_byvar*100 / gdata2_byvar.sum()
         data_SNVs.append(
-            go.Bar(
+            go.Scatter(
                  x = gdata2_byvar_percent.index.tolist(),
                  y = gdata2_byvar_percent.tolist(),
-                 legendgroup = caller,
-                 name = guidename
+                 name = guidename,
+                 mode = 'markers',
+                 marker = {'symbol':  marker_symbol[nloop]},
+                 text = caller
                  )
-        ) 
+        )
 
  
 # layouts

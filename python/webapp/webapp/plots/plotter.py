@@ -20,17 +20,23 @@ class Plotter:
     def __init__(self):
         self.include_js = False
 
-    def calculate_percentage_plots(self, dfgroup, grouping_variable):
-        plots = []
+    def calculate_percentage_plots(self, dfgroup, grouping_variable, number_loop = -1, variant_caller = None):
+        plots =[]
+        marker_symbol = ['circle', 'triangle-up', 'cross', 'hash']
+        nloop = number_loop + 1
+        msym = 'circle' if variant_caller == None else marker_symbol[nloop]
         for guide_name, grouped_data in dfgroup:
             grouped_data_byvar = grouped_data.groupby([grouping_variable]).size()
             grouped_data_byvar_percent = grouped_data_byvar*100 / grouped_data_byvar.sum()
             plots.append(
-                go.Bar(
-                     x=grouped_data_byvar_percent.index.tolist(),
-                     y=grouped_data_byvar_percent.tolist(),
-                     name=guide_name
-                     )
+                go.Scatter(
+                     x = grouped_data_byvar_percent.index.tolist(),
+                     y = grouped_data_byvar_percent.tolist(),
+                     name = guide_name,
+                     mode = 'markers',
+                     marker = {'symbol': msym},
+                     text = variant_caller
+                )
             )
         return(plots)
 
@@ -210,9 +216,12 @@ class Plotter:
             # print(well.sequencing_library_contents[0].sequencing_sample_name, guide_name, mutation_zygosity)
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
+            
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
         dfgroup = df.groupby(['guides'])
+        
+        plots = []
         plots = self.calculate_percentage_plots(dfgroup, 'zygosities')
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
@@ -281,11 +290,18 @@ class Plotter:
         #  titles to the legend groups.
         #  It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
         #  I assume that the top legend group is the first variant caller.
+        plot_indels = []
+        nloop = -2
         for caller, gdata in dfgroup_typevariant_INDEL.groupby(['caller']):
-            plots_INDELs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation')
-
+            nloop += 1
+            plotindels = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation', number_loop = nloop, variant_caller = caller)
+            plot_indels.extend(plotindels)
+            
+        plots = []
+        nloop = -2
         for caller, gdata in dfgroup_typevariant_SNV.groupby(['caller']):
-            plots_SNVs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation')
+            nloop += 1
+            plots_SNVs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation', number_loop = nloop, variant_caller = caller)
 
          
         # layouts
@@ -300,7 +316,7 @@ class Plotter:
         )
         
         # plot
-        figure_INDELs = go.Figure(data=plots_INDELs, layout=layout_INDELs)
+        figure_INDELs = go.Figure(data=plot_indels, layout=layout_INDELs)
         #figure_SNVs = go.Figure(data=plots_SNVs, layout=layout_SNVs)
         output_type = "file"
         
