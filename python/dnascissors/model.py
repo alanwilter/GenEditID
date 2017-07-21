@@ -337,12 +337,10 @@ class VariantResult(Base):
 
     @property
     def frame(self):
-        if self.indel_length is None:
-            return None
-        frame = self.indel_length % 3
-        if frame < 0:
-            frame += 3
-        return frame
+        if self.indel_length:
+            if abs(self.indel_length) > 3:
+                return abs(self.indel_length) % 3
+            return abs(self.indel_length)
 
 
 class MutationSummary(Base):
