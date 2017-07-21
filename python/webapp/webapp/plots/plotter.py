@@ -17,28 +17,10 @@ from dnascissors.model import WellContent
 
 class Plotter:
 
-    def __init__(self):
+    def __init__(self, dbsession, project_geid):
         self.include_js = False
-
-    def calculate_percentage_plots(self, dfgroup, grouping_variable, number_loop = -1, variant_caller = None):
-        plots =[]
-        marker_symbol = ['circle', 'triangle-up', 'cross', 'hash']
-        nloop = number_loop + 1
-        msym = 'circle' if variant_caller == None else marker_symbol[nloop]
-        for guide_name, grouped_data in dfgroup:
-            grouped_data_byvar = grouped_data.groupby([grouping_variable]).size()
-            grouped_data_byvar_percent = grouped_data_byvar*100 / grouped_data_byvar.sum()
-            plots.append(
-                go.Scatter(
-                     x = grouped_data_byvar_percent.index.tolist(),
-                     y = grouped_data_byvar_percent.tolist(),
-                     name = guide_name,
-                     mode = 'markers',
-                     marker = {'symbol': msym},
-                     text = variant_caller
-                )
-            )
-        return(plots)
+        self.dbsession = dbsession
+        self.project_geid = project_geid
 
     def create_classifier(self, well_content):
         parts = []
@@ -62,16 +44,16 @@ class Plotter:
         classifiers.sort()
         return classifiers
 
-    def growth_plot(self, dbsession, projectid, file=None):
+    def growth_plot(self, growth_file=None):
         # See https://stackoverflow.com/questions/21114830/query-to-check-if-size-of-collection-is-0-or-empty-in-sqlalchemy
         # Get all wells for the project where there is growth information.
-        query = dbsession.query(Well)\
-                         .join(Well.well_content)\
-                         .join(Well.experiment_layout)\
-                         .join(ExperimentLayout.project)\
-                         .filter(Project.geid == projectid)\
-                         .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'empty-vector', 'normalisation']))\
-                         .filter(Well.growths.any())
+        query = self.dbsession.query(Well)\
+                              .join(Well.well_content)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'empty-vector', 'normalisation']))\
+                              .filter(Well.growths.any())
         wells = query.all()
         if not wells:
             return None
@@ -117,21 +99,21 @@ class Plotter:
         )
         figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
-        if not file:
+        if not growth_file:
             output_type = "div"
-            file = "cell_growth_{}.html".format(projectid)
-        return py.plot(figure, filename=file, auto_open=False, show_link=False,
+            growth_file = "cell_growth_{}.html".format(self.project_geid)
+        return py.plot(figure, filename=growth_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
-    def abundance_plot(self, dbsession, projectid, file=None):
+    def abundance_plot(self, abundance_file=None):
         # Get all wells for the project where there is protein abundance information.
-        query = dbsession.query(Well)\
-                         .join(Well.well_content)\
-                         .join(Well.experiment_layout)\
-                         .join(ExperimentLayout.project)\
-                         .filter(Project.geid == projectid)\
-                         .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'normalisation']))\
-                         .filter(Well.growths.any())
+        query = self.dbsession.query(Well)\
+                              .join(Well.well_content)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'normalisation']))\
+                              .filter(Well.growths.any())
         wells = query.all()
         if len(wells) == 0:
             return None
@@ -183,26 +165,28 @@ class Plotter:
         )
         figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
-        if not file:
+        if not abundance_file:
             output_type = "div"
-            file = "protein_abundance_{}.html".format(projectid)
-        return py.plot(figure, filename=file, auto_open=False, show_link=False,
+            abundance_file = "protein_abundance_{}.html".format(self.project_geid)
+        return py.plot(figure, filename=abundance_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
-    def zygosity_plot(self, dbsession, projectid, file=None):
+    def zygosity_plot(self, zygosity_file=None):
         # we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G)
         # that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
-        query = dbsession.query(Well)\
-                .join(Well.sequencing_library_contents)\
-                .join(Well.experiment_layout)\
-                .join(ExperimentLayout.project)\
-                .filter(Project.geid == projectid)\
-                .filter(SequencingLibraryContent.dna_source != 'gDNA')
-
+        query = self.dbsession.query(Well)\
+                              .join(Well.sequencing_library_contents)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(SequencingLibraryContent.dna_source != 'gDNA')
         wells = query.all()
+        # NB broken
+        return None
         if len(wells) == 0:
             return None
-       
+        if not wells[0].experiment_layout.project.is_variant_data_available:
+            return None
         guides = []
         zygosities = []
         for well in wells:
@@ -213,135 +197,106 @@ class Plotter:
                 mutation_zygosity = well.sequencing_library_contents[0].mutation_summaries[0].zygosity
             if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
-            # print(well.sequencing_library_contents[0].sequencing_sample_name, guide_name, mutation_zygosity)
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
-            
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
         dfgroup = df.groupby(['guides'])
-        
+
         plots = []
-        plots = self.calculate_percentage_plots(dfgroup, 'zygosities')
+        plots = self.get_percent_plots_by_variant(dfgroup, 'zygosities')
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
-        #print(categories)
         layout = go.Layout(
             title='Zygosities',
             xaxis={'categoryorder': 'array', 'categoryarray': categories},
             yaxis={'title': '% of submitted samples per guide'}
         )
-        # plot                       
+        # plot
         figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
-        if not file:
+        if not zygosity_file:
             output_type = "div"
-            file = "plot_zygosity_{}.html".format(projectid)
-        return py.plot(figure, filename=file, auto_open=False, show_link=False,
+            zygosity_file = "plot_zygosity_{}.html".format(self.project_geid)
+        return py.plot(figure, filename=zygosity_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
-
-    def typeofvariant_plot(self, dbsession, projectid, file_INDELs=None, file_SNVs=None):
-        
-        query = dbsession.query(VariantResult)\
-                         .join(VariantResult.sequencing_library_content)\
-                         .join(SequencingLibraryContent.well)\
-                         .join(Well.well_content)\
-                         .join(Well.experiment_layout)\
-                         .join(ExperimentLayout.project)\
-                         .filter(Project.geid == projectid)\
-                         .filter(SequencingLibraryContent.dna_source != 'gDNA')\
-                         .filter(VariantResult.allele_fraction > 0.1)
-        wells = query.all()               
-        if len(wells) == 0:
+    def variants_plot(self, variant_type='INDEL', variants_file=None):
+        query = self.dbsession.query(VariantResult)\
+                              .join(VariantResult.sequencing_library_content)\
+                              .join(SequencingLibraryContent.well)\
+                              .join(Well.well_content)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                              .filter(VariantResult.allele_fraction > 0.1)
+        variant_results = query.all()
+        if len(variant_results) == 0:
             return None
-        
-        guide = []
-        typemutation = []
-        typevariant = []
-        typecaller = []
-        for i in wells:
-            well = i.sequencing_library_content.well
+        guides = []
+        mutation_types = []
+        variant_types = []
+        variant_caller_types = []
+        for variant_result in variant_results:
+            well = variant_result.sequencing_library_content.well
+            if not well.experiment_layout.project.is_variant_data_available:
+                return None
             guide_name = 'none'
-            
             if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
-            print(guide_name, i.consequence, i.variant_type, i.variant_caller)
-            
-            guide.append(guide_name)
-            typemutation.append(i.consequence)
-            typevariant.append(i.variant_type)
-            typecaller.append(i.variant_caller)
-        
-        print(len(wells))
+            guides.append(guide_name)
+            mutation_types.append(variant_result.consequence)
+            variant_types.append(variant_result.variant_type)
+            variant_caller_types.append(variant_result.variant_caller)
+        # convert 'variant_results' to pandas dataframe and group by 'variants'
+        df = pandas.DataFrame({'variant': variant_types, 'caller': variant_caller_types, 'guide': guides, 'mutation': mutation_types})
+        df_group_by_variant = df.groupby(['variant'])
 
+        # This will produce a plot with grouped legends. Annoyingly there is no feature at date 20170710 to add titles to the legend groups.
+        # It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
+        # I assume that the top legend group is the first variant caller.
+        figure = self.get_percent_plots_by_variant(df_group_by_variant, variant_type, 'mutation')
 
-        #-------- calculate percentages per guide in a pandas dataframe
-        # convert 'results' to pandas dataframe and group by 'variants'
-        df = pandas.DataFrame({'variants': typevariant, 'caller': typecaller, 'guides': guide, 'mutation': typemutation})
-        dfgroup_typevariant = df.groupby(['variants'])
-        
-        # create independent datasets (one for indels, one for snvs) for plotting
-        dfgroup_typevariant_INDEL = dfgroup_typevariant.get_group('INDEL')  #[i for i in dfgroup_typevariant][0][1]
-        dfgroup_typevariant_SNV = dfgroup_typevariant.get_group('SNV')      #[i for i in dfgroup_typevariant][1][1]
-        
-        # calculate percentages of mutation types and create bar plot 'data' dictionary
-        # This will produce a plot with grouped legends. Annoyingly there no feature at date 20170710 to add 
-        #  titles to the legend groups.
-        #  It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
-        #  I assume that the top legend group is the first variant caller.
-        plot_indels = []
-        nloop = -2
-        for caller, gdata in dfgroup_typevariant_INDEL.groupby(['caller']):
-            nloop += 1
-            plotindels = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation', number_loop = nloop, variant_caller = caller)
-            plot_indels.extend(plotindels)
-            
-        plots = []
-        nloop = -2
-        for caller, gdata in dfgroup_typevariant_SNV.groupby(['caller']):
-            nloop += 1
-            plots_SNVs = self.calculate_percentage_plots(gdata.groupby(['guides']), 'mutation', number_loop = nloop, variant_caller = caller)
-
-         
-        # layouts
-        layout_INDELs = go.Layout(
-            title = 'Type of mutation (INDELS)',
-            yaxis = {'title': '% of submitted samples per guide'}    
-        )
-        
-        layout_SNVs = go.Layout(
-            title = 'Type of mutation (SNVs)',
-            yaxis = {'title': '% of submitted samples per guide'}    
-        )
-        
-        # plot
-        figure_INDELs = go.Figure(data=plot_indels, layout=layout_INDELs)
-        #figure_SNVs = go.Figure(data=plots_SNVs, layout=layout_SNVs)
         output_type = "file"
-        
-        if not file_INDELs:
+        if not variants_file:
             output_type = "div"
-            file_INDELs = "plotNGS_INDELs_{}.html".format(projectid)
-            
-        return py.plot(figure_INDELs, filename=file_INDELs, auto_open=False, show_link=False,
+            variants_file = "variants_{}_{}.html".format(variant_type, self.project_geid)
+        return py.plot(figure, filename=variants_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-                      
-        if not file_SNVs:
-            output_type = "div"
-            file_INDELs = "plotNGS_SNVs_{}.html".format(projectid)
-            
-        #return py.plot(figure_SNVs, filename=file_SNVs, auto_open=False, show_link=False,
-         #              include_plotlyjs=self.include_js, output_type=output_type)
-       # return py.plot(dict(data = data_INDELs, layout = layout_INDELs), filename = 'plotNGS_indels.html')             
-            # not sure why, but when the script is sourced, both plots are the SNV plot
-        
-        
+
         # the ideal situation would be to plot both datasets side by side
-         # pyoff.plot(dict(data = data_INDELs + data_SNVs, layout = layout_INDELs)) #say we use a different layout for each dataset
-         # however the guides appear duplicated. As far as I have seen, you can't have 
-         # the same legent for two different plots in plotly (ironically you can have it in if you use ggplotly(R:ggplot2)... )
-                
+        # pyoff.plot(dict(data = data_indels + data_snvs, layout = layout_indels)) #say we use a different layout for each dataset
+        # however the guides appear duplicated. As far as I have seen, you can't have
+        # the same legent for two different plots in plotly (ironically you can have it in if you use ggplotly(R:ggplot2)... )
+
+    def get_percent_plots_by_variant(self, group_by_variant, variant_type, grouping_variable):
+        plots = []
+        marker_symbols = ['circle', 'triangle-up', 'cross', 'hash']
+        marker_index = 0
+        group_by_variant_type = group_by_variant.get_group(variant_type)
+        # calculate percentages per guide in a pandas dataframe
+        for variant_caller, group_by_variant_caller in group_by_variant_type.groupby(['caller']):
+            for guide_name, group_by_guide in group_by_variant_caller.groupby(['guide']):
+                # calculate percentages of grouping_variable and create scatter plot
+                group_by_grouping_variable = group_by_guide.groupby([grouping_variable]).size()
+                group_by_grouping_variable_percent = group_by_grouping_variable * 100 / group_by_grouping_variable.sum()
+                plots.append(
+                    go.Scatter(
+                         x=group_by_grouping_variable_percent.index.tolist(),
+                         y=group_by_grouping_variable_percent.tolist(),
+                         name=guide_name,
+                         mode='markers',
+                         marker={'symbol': marker_symbols[marker_index]},
+                         text=variant_caller
+                    )
+                )
+            marker_index += 1
+        layout = go.Layout(
+                      title='Type of mutation ({}s)'.format(variant_type),
+                      yaxis={'title': '% of submitted samples per guide'}
+        )
+        return go.Figure(data=plots, layout=layout)
 
 
 def main():
@@ -353,14 +308,14 @@ def main():
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
     session = DBSession()
     try:
-        plotter = Plotter()
+        plotter = Plotter(session, 'GEP00001')
         plotter.include_js = True
-        plotter.growth_plot(session, 'GEP00001', "growth.html")
-        plotter.abundance_plot(session, 'GEP00001', "abundance.html")
-        plotter.zygosity_plot(session, 'GEP00001', "plotNGS_zygosity.html")
-        plotter.typeofvariant_plot(session, 'GEP00001', "plotNGS_INDELs.html")
-  #      plotter.typeofvariant_plot(session, 'GEP00001', "plotNGS_SNVs.html")        
-        
+        plotter.growth_plot("growth.html")
+        plotter.abundance_plot("abundance.html")
+        plotter.zygosity_plot("zygosity.html")
+        plotter.variants_plot("INDEL", "variants_indels.html")
+        plotter.variants_plot("SNV", "variants_snvs.html")
+
     except Exception as e:
         logging.exception(e)
     finally:

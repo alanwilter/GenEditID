@@ -16,7 +16,7 @@ class ExperimentViews(object):
         self.request = request
         self.dbsession = request.dbsession
 
-    @view_config(route_name="plate_load", renderer="../templates/experiment/loadplate.pt")
+    #@view_config(route_name="plate_load", renderer="../templates/experiment/loadplate.pt")
     def load_plate(self):
         plateid = self.request.matchdict['plateid']
         plate = self.dbsession.query(Plate).filter(Plate.id == plateid).one()
@@ -25,7 +25,7 @@ class ExperimentViews(object):
                     icwplate=self._has_icw(plate.id),
                     incuplate=self._has_incu(plate.id))
 
-    @view_config(route_name="plate_icw", renderer="../templates/experiment/loadplate.pt")
+    #@view_config(route_name="plate_icw", renderer="../templates/experiment/loadplate.pt")
     def load_icw(self):
         plateid = self.request.matchdict['plateid']
         plate = self.dbsession.query(Plate).filter(Plate.id == plateid).one()
@@ -53,7 +53,7 @@ class ExperimentViews(object):
         return_map['incuplate'] = self._has_incu(plate.id)
         return return_map
 
-    @view_config(route_name="plate_incu", renderer="../templates/experiment/loadplate.pt")
+    #@view_config(route_name="plate_incu", renderer="../templates/experiment/loadplate.pt")
     def load_incucyte(self):
         plateid = self.request.matchdict['plateid']
         plate = self.dbsession.query(Plate).filter(Plate.id == plateid).one()

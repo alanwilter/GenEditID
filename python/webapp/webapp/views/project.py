@@ -31,7 +31,7 @@ class ProjectViews(object):
     def view_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
-        plotter = Plotter()
+        plotter = Plotter(self.dbsession, project.geid)
         # Project table
         project_headers = [
             "geid",
@@ -172,9 +172,11 @@ class ProjectViews(object):
         return dict(project=project,
                     title="Genome Editing Core",
                     subtitle="Project: {}".format(project.geid),
-                    cellgrowthplot=plotter.growth_plot(self.dbsession, project.geid),
-                    proteinabundanceplot=plotter.abundance_plot(self.dbsession, project.geid),
-                    zygosityplot=plotter.zygosity_plot(self.dbsession, project.geid),
+                    cellgrowthplot=plotter.growth_plot(),
+                    proteinabundanceplot=plotter.abundance_plot(),
+                    zygosityplot=plotter.zygosity_plot(),
+                    variantsindelsplot=plotter.variants_plot('INDEL'),
+                    variantssnvsplot=plotter.variants_plot('SNV'),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,
@@ -203,7 +205,7 @@ class ProjectViews(object):
             project.comments = appstruct['comments']
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
-        return dict(projectid=project.id,
-                    project=project,
-                    title=title,
-                    subtitle=subtitle,)
+        return dict(title=title,
+                    subtitle=subtitle,
+                    projectid=project.id,
+                    project=project,)

@@ -10,10 +10,8 @@
       <h2>${subtitle}</h2>
       <hr />
       <p>
-          <a href="${request.route_url('home')}">Back to projects list</a> |
-          <a href="${request.route_url('project_edit', projectid=project.id)}">Add/update comments</a> |
-          Load growth data |
-          Load abundace data
+          <a href="${request.route_url('home')}">Back to projects list</a>
+          | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
       </p>
       <hr />
 
@@ -83,6 +81,20 @@
         <h4>Zygosity</h4>
           <div id="zygosityplot" class="zygosityplot">
             ${structure: zygosityplot}
+          </div>
+      </div>
+
+      <div tal:condition="variantsindelsplot">
+        <h4>Variants</h4>
+          <div id="variantsindelsplot" class="variantsindelsplot">
+            ${structure: variantsindelsplot}
+          </div>
+      </div>
+
+      <div tal:condition="variantssnvsplot">
+        <h4>Variants</h4>
+          <div id="variantssnvsplot" class="variantssnvsplot">
+            ${structure: variantssnvsplot}
           </div>
       </div>
       <hr />
