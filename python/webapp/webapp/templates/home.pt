@@ -32,8 +32,8 @@
                         <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
                     </p>
                     <p>
-                        Set this check box to remove the existing project and
-                        create it again.
+                        Set this check box to remove the existing project, select file and
+                        upload again.
                         <input name="blat" type="checkbox" value="true"></input>
                     </p>
                 </div>
