@@ -63,7 +63,7 @@
 
       <!-- Results section ************************************************* -->
       <h3>Results</h3>
-      
+
       <div tal:condition="cellgrowthplot">
           <h4>Cell Growth</h4>
           <div id="cellgrowth" class="cellgrowth">
@@ -78,13 +78,33 @@
           </div>
       </div>
 
-      <div tal:condition="ngsplot">
-          <h4>Next-Gen Sequencing</h4>
-          <div id="ngsplot" class="ngs">
-            ${structure: ngsplot}
+      <div tal:condition="zygosityplot">
+        <h4>Zygosity</h4>
+          <div id="zygosityplot" class="zygosityplot">
+            ${structure: zygosityplot}
           </div>
       </div>
 
+      <div tal:condition="variantsindelsplot">
+        <h4>Variants</h4>
+          <div id="variantsindelsplot" class="variantsindelsplot">
+            ${structure: variantsindelsplot}
+          </div>
+      </div>
+
+      <div tal:condition="variantssnvsplot">
+        <div id="variantssnvsplot" class="variantssnvsplot">
+          ${structure: variantssnvsplot}
+        </div>
+      </div>
+
+      <div tal:condition="indellengthsplot">
+        <h4>Indel lengths</h4>
+          <div id="indellengthsplot" class="indellengthsplot">
+            ${structure: indellengthsplot}
+          </div>
+      </div>
+      
       <hr />
 
       <!-- Sample analysis section ***************************************** -->
