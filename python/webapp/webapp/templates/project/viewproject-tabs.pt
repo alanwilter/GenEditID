@@ -1,0 +1,193 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<!-- div id="tabs">
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#samples">Samples</a></li>
+  </ul>
+  <div id="overview">
+    <h3>Overview</h3>
+    <h4>project details</h4>
+  </div>
+  <div id="results">
+    <h3>Results</h3>
+    <h4>Cell Growth</h4>
+  </div>
+  <div id="samples">
+    <h3>Sample analysis</h3>
+    <h4>score on plates</h4>
+
+    <h4>data table</h4>
+  </div>
+</div -->
+
+
+<div metal:use-macro="load: ../layout.pt">
+  <div metal:fill-slot="content">
+
+    <h1>${title}</h1>
+    <h2>${subtitle}</h2>
+    <hr />
+    <p>
+        <a href="${request.route_url('home')}">Back to projects list</a>
+        | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
+    </p>
+    <hr />
+
+    <div id="tabs">
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#samples">Samples</a></li>
+      </ul>
+
+      <!-- Overview section ************************************************ -->
+      <div id="overview">
+        <h3>Overview</h3>
+        <h4>project details</h4>
+        <table id="projecttable">
+            <thead>
+                <th tal:repeat="header project_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row project_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+
+        <h4>targets</h4>
+        <table id="targettable">
+            <thead>
+                <th tal:repeat="header target_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row target_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+
+        <h4>guides</h4>
+        <table id="guidetable">
+            <thead>
+                <th tal:repeat="header guide_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row guide_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+
+        <h4>guide mismatches</h4>
+        <table id="guidemismatchtable">
+            <thead>
+                <th tal:repeat="header guide_mismatch_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row guide_mismatch_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table -->
+
+        <!-- h4>plate layouts</h4 -->
+        <div style="clear:both; float:none"></div>
+      </div>
+
+      <!-- Results section ************************************************* -->
+      <div id="results">
+        <h3>Results</h3>
+        <h4>Cell Growth</h4>
+        <div tal:condition="cellgrowthplot">
+            <div id="cellgrowth" class="cellgrowth">
+                ${structure: cellgrowthplot}
+            </div>
+        </div>
+
+        <div tal:condition="proteinabundanceplot">
+            <h4>Protein Abundance</h4>
+            <div id="proteinabundance" class="proteinabundance">
+                ${structure: proteinabundanceplot}
+            </div>
+        </div>
+
+        <div tal:condition="zygosityplot">
+          <h4>Zygosity</h4>
+            <div id="zygosityplot" class="zygosityplot">
+              ${structure: zygosityplot}
+            </div>
+        </div>
+
+        <div tal:condition="variantsindelsplot">
+          <h4>Variants</h4>
+            <div id="variantsindelsplot" class="variantsindelsplot">
+              ${structure: variantsindelsplot}
+            </div>
+        </div>
+
+        <div tal:condition="variantssnvsplot">
+          <div id="variantssnvsplot" class="variantssnvsplot">
+            ${structure: variantssnvsplot}
+          </div>
+        </div>
+
+        <div tal:condition="indellengthsplot">
+          <h4>Indel lengths</h4>
+            <div id="indellengthsplot" class="indellengthsplot">
+              ${structure: indellengthsplot}
+            </div>
+        </div>
+        <div style="clear:both; float:none"></div>
+      </div>
+
+      <!-- Sample analysis section ***************************************** -->
+      <div id="samples">
+        <h3>Sample analysis</h3>
+        <h4>score on plates</h4>
+
+        <h4>data table</h4>
+        <table id="sampledatatable">
+            <thead>
+                <th tal:repeat="header sample_data_table_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row sample_data_table_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+        <div style="clear:both; float:none"></div>
+      </div>
+
+    </div>
+
+    <hr />
+    <p>
+        <a href="${request.route_url('home')}">Back to projects list</a>
+    </p>
+    <hr />
+
+  </div>
+</div>
+<script>
+$(document).ready(
+    function()
+    {
+        $('#projecttable').DataTable(
+        {
+          searching: false,
+          paging:    false,
+          ordering:  false,
+          info:      false,
+        });
+        $('#targettable').DataTable(
+        {
+        });
+        $('#guidetable').DataTable(
+        {
+        });
+        $('#guidemismatchtable').DataTable(
+        {
+        });
+        $('#sampledatatable').DataTable(
+        {
+        });
+    }
+);
+</script>
