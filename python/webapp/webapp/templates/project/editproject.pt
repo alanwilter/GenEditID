@@ -7,44 +7,46 @@
 <div metal:use-macro="load: ../layout.pt">
   <div metal:fill-slot="content">
     <div class="content">
-      <h1>Genome Editing Core</h1>
-      <h2>Edit Project: ${project.geid}</h2>
-      <hr />
-      <p>
-          <a href="${request.route_url('home')}">Back to projects list</a> |
-          <a href="${request.route_url('project_view', projectid=project.id)}">Back to view project ${project.geid}</a>
-      </p>
-      <hr />
-
-      <!-- Comments section ************************************************ -->
-      <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+      <div class="container-fluid">
+        <h1>Genome Editing Core</h1>
+        <h2>Edit Project: ${project.geid}</h2>
+        <hr />
         <p>
-          Add/update comments:
-          <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
-          <input type="submit" name="submit" value="Update"></input>
+            <a href="${request.route_url('home')}">Back to projects list</a> |
+            <a href="${request.route_url('project_view', projectid=project.id)}">Back to view project ${project.geid}</a>
         </p>
-      </form>
-      <hr/>
+        <hr />
 
-      <!-- Upload section ************************************************** -->
-      <p>
-        Select the plate layout
-        <select name="plate">
-          <option value="plate1">Plate 1</option>
-          <option value="plate2">Plate 2</option>
-          <option value="plate3">Plate 3</option>
-          <option value="plate4">Plate 4</option>
-        </select>
-        the type of file
-        <select name="filetype">
-          <option value="growth">Growth</option>
-          <option value="abundance">Abundance</option>
-        </select>
-        <label for="upload">and the file to upload</label>
-        <input id="upload" name="layoutfile" type="file" value=""></input>
-        <input type="submit" name="submit" value="Upload"></input>
-      </p>
-      <hr/>
+        <!-- Comments section ************************************************ -->
+        <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+          <p>
+            Add/update comments:
+            <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
+            <input type="submit" name="submit" value="Update"></input>
+          </p>
+        </form>
+        <hr/>
+
+        <!-- Upload section ************************************************** -->
+        <p>
+          Select the plate layout
+          <select name="plate">
+            <option value="plate1">Plate 1</option>
+            <option value="plate2">Plate 2</option>
+            <option value="plate3">Plate 3</option>
+            <option value="plate4">Plate 4</option>
+          </select>
+          the type of file
+          <select name="filetype">
+            <option value="growth">Growth</option>
+            <option value="abundance">Abundance</option>
+          </select>
+          and the file to upload
+          <input id="upload" name="layoutfile" type="file" value=""></input>
+          <input type="submit" name="submit" value="Upload"></input>
+        </p>
+        <hr/>
+      </div>
     </div>
   </div>
 </div>

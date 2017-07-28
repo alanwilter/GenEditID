@@ -27,7 +27,7 @@ class ProjectViews(object):
         submitButton = deform.form.Button(name='submit', title=buttonTitle)
         return deform.Form(schema, buttons=(submitButton,))
 
-    @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
+    @view_config(route_name="project_view", renderer="../templates/project/viewproject-tabs.pt")
     def view_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()

@@ -73,7 +73,7 @@ class Plotter:
 
         for well in wells:
             well.growths.sort(key=lambda g: g.hours)
-        
+
         # Need to assemble several plot objects, one for each line.
         # Two loops to order the legend correctly.
         plots = []
@@ -101,15 +101,25 @@ class Plotter:
         layout = go.Layout(
             title="Cell Growth",
             xaxis=dict(title="Time (h)"),
-            yaxis=dict(title="Confluence (%)", range=[0, 100])
+            yaxis=dict(title="Confluence (%)", range=[0, 100]),
+            autosize=False,
+            width=800,
+            height=500,
+            margin=go.Margin(
+                l=50,
+                r=50,
+                b=100,
+                t=100,
+                pad=4
+            ),
         )
-        
+
         figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
         if not growth_file:
             output_type = "div"
             growth_file = "cell_growth_{}.html".format(self.project_geid)
-        
+
         return py.plot(figure, filename=growth_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
@@ -122,27 +132,27 @@ class Plotter:
                               .filter(Project.geid == self.project_geid)\
                               .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'normalisation']))\
                               .filter(Well.growths.any())
-        
+
         wells = query.all()
         if len(wells) == 0:
             return None
-        
+
         #classifiers = self._classifiers_for_wells(wells)
         # Put all the abundances into a list per classifier.
         #classifiers = dict([(c, []) for c in classifiers])
         by_classifier = dict()
         for well in wells:
             c = self.create_classifier(well.well_content)
-            
+
             l = by_classifier.get(c)
-            
+
             if not l:
                 l = []
                 by_classifier[c] = l
-                
+
             for pa in well.abundances:
                 l.append(pa)
-        
+
         classifiers = list(by_classifier.keys())
         classifiers.sort()
         # Set up colours
@@ -155,7 +165,7 @@ class Plotter:
         for c in classifiers:
             #colour_map[c] = colours[++colour_index]
             colour_map[c] = "blue"
-        
+
         # Two loops to order the legend correctly.
         plots = []
         for classifier in classifiers:
@@ -171,19 +181,29 @@ class Plotter:
                     hoverinfo='none'
                 )
             )
-        
+
         layout = go.Layout(
             title="Protein Abundance",
             xaxis=dict(title="Cell Line", ticks=False, fixedrange=True),
-            yaxis=dict(title="Relative protein abundance")
+            yaxis=dict(title="Relative protein abundance"),
+            autosize=False,
+            width=800,
+            height=500,
+            margin=go.Margin(
+                l=50,
+                r=50,
+                b=100,
+                t=100,
+                pad=4
+            ),
         )
-        
+
         figure = go.Figure(data=plots, layout=layout)
         output_type = "file"
         if not abundance_file:
             output_type = "div"
             abundance_file = "protein_abundance_{}.html".format(self.project_geid)
-        
+
         return py.plot(figure, filename=abundance_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
 
@@ -223,7 +243,17 @@ class Plotter:
         layout = go.Layout(
             title='Zygosities',
             xaxis={'categoryorder': 'array', 'categoryarray': categories},
-            yaxis={'title': '% of submitted samples per guide'}
+            yaxis={'title': '% of submitted samples per guide'},
+            autosize=False,
+            width=800,
+            height=500,
+            margin=go.Margin(
+                l=50,
+                r=50,
+                b=100,
+                t=100,
+                pad=4
+            ),
         )
         # plot
         figure = go.Figure(data=plots, layout=layout)
@@ -322,7 +352,17 @@ class Plotter:
             plots.extend(plot_indellenghts)
         layout = go.Layout(
             title='Indel lengths',
-            yaxis={'title': '% of submitted samples per guide'}
+            yaxis={'title': '% of submitted samples per guide'},
+            autosize=False,
+            width=800,
+            height=500,
+            margin=go.Margin(
+                l=50,
+                r=50,
+                b=100,
+                t=100,
+                pad=4
+            ),
         )
         # plot
         figure = go.Figure(data=plots, layout=layout)
@@ -357,7 +397,17 @@ class Plotter:
             marker_index += 1
         layout = go.Layout(
                       title='Type of mutation ({}s)'.format(variant_type),
-                      yaxis={'title': '% of submitted samples per guide'}
+                      yaxis={'title': '% of submitted samples per guide'},
+                      autosize=False,
+                      width=800,
+                      height=500,
+                      margin=go.Margin(
+                          l=50,
+                          r=50,
+                          b=100,
+                          t=100,
+                          pad=4
+                      ),
         )
         return go.Figure(data=plots, layout=layout)
 

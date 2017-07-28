@@ -4,73 +4,70 @@
       xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
 <div metal:use-macro="load: layout.pt">
-    <div id="content" metal:fill-slot="content">
-        <div class="content">
+  <div id="content" metal:fill-slot="content">
+    <div class="content">
+      <div class="container-fluid">
+        <h1>${title}</h1>
 
-            <h1>${title}</h1>
+        <h2>Projects</h2>
+        <div id="ProjectData"></div>
+        <table id="project-data" class="table table-hover table-condensed">
+            <thead>
+                <th tal:repeat="header column_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+        <hr/>
 
-            <h2>Projects</h2>
-            <div id="ProjectData"></div>
-            <table id="project-data">
-                <thead>
-                    <th tal:repeat="header column_headers">${header}</th>
-                </thead>
-                <tr tal:repeat="row rows">
-                    <td tal:repeat="cell row">${cell}</td>
-                </tr>
-            </table>
-            <hr/>
-
-            <h2>Create new project</h2>
+        <h2>Create new project</h2>
+        <p>
+            Load a new project and its experiment layout from an Excel file
+            using the <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>appropriate template</a>.
+        </p>
+        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+            <div tal:condition="clash">
+                <p>
+                    <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
+                </p>
+                <p>
+                    Set this check box to remove the existing project, select file and
+                    upload again.
+                    <input name="blat" type="checkbox" value="true"></input>
+                </p>
+            </div>
+            <div class='error' tal:condition="error">
+                <p>
+                    Error: ${error}
+                </p>
+            </div>
             <p>
-                Load a new project and its experiment layout from an Excel file
-                using the <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>appropriate template</a>.
+              <label for="upload">Select file:</label>
+              <input id="upload" name="layoutfile" type="file" value=""></input>
+              <input type="submit" name="submit" value="Upload"></input>
             </p>
-            <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                <div tal:condition="clash">
-                    <p>
-                        <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
-                    </p>
-                    <p>
-                        Set this check box to remove the existing project, select file and
-                        upload again.
-                        <input name="blat" type="checkbox" value="true"></input>
-                    </p>
-                </div>
-                <div class='error' tal:condition="error">
-                    <p>
-                        Error: ${error}
-                    </p>
-                </div>
-                <p>
-                    <label for="upload">Select file:</label>
-                    <input id="upload" name="layoutfile" type="file" value=""></input>
-                    <input type="submit" name="submit" value="Upload"></input>
-                </p>
-                <p>
-                    Loading data can take a few seconds. Thanks for your patience.
-                </p>
-            </form>
-            <hr/>
-
-        </div>
+            <p>
+                Loading data can take a few seconds. Thanks for your patience.
+            </p>
+        </form>
+        <hr/>
+      </div>
     </div>
+  </div>
 </div>
 <script type="text/javascript" charset="utf-8">
-  $(document).ready(
-      function()
-      {
-          $('#project-data').DataTable(
-          {
-            "columnDefs": [
-            {
-               "targets": 1,
-               "data": "view_link",
-               "render": function ( data, type, full, meta ) {
-                 return '<a href="'+data+'">view</a>';
-               }
-             } ]
-          });
-      }
-  );
+  $(document).ready (
+    function() {
+        $('#project-data').DataTable ( {
+          "columnDefs": [ {
+             "targets": 1,
+             "data": "view_link",
+             "render": function ( data, type, full, meta ) {
+               return '<a href="'+data+'">view</a>';
+             }
+           } ],
+           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+        } );
+    } );
 </script>
