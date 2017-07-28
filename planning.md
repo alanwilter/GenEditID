@@ -60,15 +60,15 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
 ## pyramid webapp
 - **project description**
-  - [ ] Core Genome Editing comments section: box to add comments about the project, that should be updatable and stored on the database along the project
-  - [ ] project global overview: tab 'Project' from the layout excel file
+  - [x] Core Genome Editing comments section: box to add comments about the project, that should be updatable and stored on the database along the project
+  - [x] project global overview: tab 'Project' from the layout excel file
   - [ ] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
 - **global data exploration**, plots for:
-  - RICH [ ] Protein abundance
-  - RICH [ ] Growth curves
+  - RICH [x] Protein abundance
+  - RICH [x] Growth curves
   - [ ] Growth slopes
   - NGS exploratory plots
-    - ANNE (1) [ ] % Zygosities (‘homozygous’, ‘heterozygous’…)
+    - ANNE (1) [x] % Zygosities (‘homozygous’, ‘heterozygous’…)
     - [ ] % Alleles (e.g. C/CATG, CTAA/C)
     - [ ] % Distances from cut site
     - [ ] % Indel lengths
@@ -79,33 +79,33 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Heatmap
 - **sample details**
   - [ ] plot: 96-well plates for score-based clone selection
-  - RICH [ ] Data table per project
+  - RICH [x] Data table per project
   - [ ] Per-sample plot of INDEL ranges
   - LATER [ ] Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
 - **user report** for selected samples
   - need a way to select samples and get data table (and plots) only related to these
-  - [ ] project global overview (tab 'Project' from the layout excel file)
+  - [x] project global overview (tab 'Project' from the layout excel file)
   - [ ] plot INDEL ranges
   - [ ] Combined plot (clone vs controls)
   - Data table
     - [ ] per project and plate layout (i.e. GEP00001_01 and no GEP00001_01_incu)
     - [ ] output data as soon as we have input (e.g. if there is protein data, show it regardless of presence of growth and NGS data). Ideally we could click on the 96-well plate and have the clone highlighted in this table, but this is not priority
     - [ ] columns of the data table:
-      - Plate
-      - Well
-      - Sample name
-      - Fluidigm barcode
-      - Score (output NaN if no NGS data available)
-      - Protein abundance (800/700) relative to wild type control (this needs to be calculated. Output NaN if no protein data available)
-      - Protein abundance (800/700) relative to knock-out control (this needs to be calculated)
-      - (Growth slope relative to wild type control (this needs to be calculated. Output NaN if no growth data available))
-      - (Growth slope relative to knock-out control (this needs to be calculated))
+      - [x] Plate
+      - [x] Well
+      - [x] Sample name
+      - [x] Fluidigm barcode
+      - [ ] score (output NaN if no NGS data available)
+      - [ ] Protein abundance (800/700) relative to wild type control (this needs to be calculated. Output NaN if no protein data available)
+      - [ ] Protein abundance (800/700) relative to knock-out control (this needs to be calculated)
+      - [ ] (Growth slope relative to wild type control (this needs to be calculated. Output NaN if no growth data available))
+      - [ ] (Growth slope relative to knock-out control (this needs to be calculated))
       (these below, columns from the variant output. Output NaN if no NGS data available )
-      - Variant type/consequence
-      - Symbol (Gene ID)
-      - IGV link
-      - Allele fraction
-      - Alleles
+      - [ ] Variant type/consequence
+      - [ ] Symbol (Gene ID)
+      - [ ] IGV link
+      - [ ] Allele fraction
+      - [ ] Alleles
   - [ ] Comments (this section is independent to the one described in 'project')
 - [ ] generate final user report
 
