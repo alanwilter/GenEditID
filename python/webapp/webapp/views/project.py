@@ -7,6 +7,7 @@ from pyramid.view import view_config
 from dnascissors.model import Project
 
 from webapp.plots.plotter import Plotter
+from webapp.plots.ngsplotter import NGSPlotter
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -169,15 +170,14 @@ class ProjectViews(object):
                         row.append(vc.variant_type)
                         sample_data_table_rows.append(row)
 
+        ngsplotter = NGSPlotter(self.request.dbsession, project.geid)
+
         return dict(project=project,
                     title="Genome Editing Core",
                     subtitle="Project: {}".format(project.geid),
-                    cellgrowthplot=plotter.growth_plot(),
-                    proteinabundanceplot=plotter.abundance_plot(),
-                    zygosityplot=plotter.zygosity_plot(),
-                    variantsindelsplot=plotter.variants_plot('INDEL'),
-                    variantssnvsplot=plotter.variants_plot('SNV'),
-                    indellengthsplot=plotter.indellengths_plot(),
+                    cellgrowthplot=None, #plotter.growth_plot(),
+                    proteinabundanceplot=None, #plotter.abundance_plot(),
+                    ngsplot=ngsplotter.combined_ngs_plot(),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,

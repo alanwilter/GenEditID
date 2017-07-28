@@ -18,7 +18,7 @@
       <!-- Overview section ************************************************ -->
       <h3>Overview</h3>
 
-      <h4>project details</h4>
+      <h4>Project Details</h4>
       <table id="projecttable">
           <thead>
               <th tal:repeat="header project_headers">${header}</th>
@@ -28,7 +28,7 @@
           </tr>
       </table>
 
-      <h4>targets</h4>
+      <h4>Targets</h4>
       <table id="targettable">
           <thead>
               <th tal:repeat="header target_headers">${header}</th>
@@ -38,7 +38,7 @@
           </tr>
       </table>
 
-      <h4>guides</h4>
+      <h4>Guides</h4>
       <table id="guidetable">
           <thead>
               <th tal:repeat="header guide_headers">${header}</th>
@@ -48,7 +48,7 @@
           </tr>
       </table>
 
-      <h4>guide mismatches</h4>
+      <h4>Guide Mismatches</h4>
       <table id="guidemismatchtable">
           <thead>
               <th tal:repeat="header guide_mismatch_headers">${header}</th>
@@ -63,6 +63,7 @@
 
       <!-- Results section ************************************************* -->
       <h3>Results</h3>
+      
       <div tal:condition="cellgrowthplot">
           <h4>Cell Growth</h4>
           <div id="cellgrowth" class="cellgrowth">
@@ -77,39 +78,20 @@
           </div>
       </div>
 
-      <div tal:condition="zygosityplot">
-        <h4>Zygosity</h4>
-          <div id="zygosityplot" class="zygosityplot">
-            ${structure: zygosityplot}
+      <div tal:condition="ngsplot">
+          <h4>Next-Gen Sequencing</h4>
+          <div id="ngsplot" class="ngs">
+            ${structure: ngsplot}
           </div>
       </div>
 
-      <div tal:condition="variantsindelsplot">
-        <h4>Variants</h4>
-          <div id="variantsindelsplot" class="variantsindelsplot">
-            ${structure: variantsindelsplot}
-          </div>
-      </div>
-
-      <div tal:condition="variantssnvsplot">
-        <div id="variantssnvsplot" class="variantssnvsplot">
-          ${structure: variantssnvsplot}
-        </div>
-      </div>
-
-      <div tal:condition="indellengthsplot">
-        <h4>Indel lengths</h4>
-          <div id="indellengthsplot" class="indellengthsplot">
-            ${structure: indellengthsplot}
-          </div>
-      </div>
       <hr />
 
       <!-- Sample analysis section ***************************************** -->
       <h3>Sample analysis</h3>
-      <h4>score on plates</h4>
+      <h4>Score on Plates</h4>
 
-      <h4>data table</h4>
+      <h4>Data Table</h4>
       <table id="sampledatatable">
           <thead>
               <th tal:repeat="header sample_data_table_headers">${header}</th>
