@@ -15,6 +15,7 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
 from dnascissors.model import Well
 from dnascissors.model import WellContent
+from collections import OrderedDict
 
 
 class NGSPlotter:
@@ -38,11 +39,17 @@ class NGSPlotter:
         titles.append("Zygosity")
         titles.append("Indel lenghts")
         # See https://plot.ly/python/subplots/
-        self.ngsfigure = tools.make_subplots(rows=4, cols=2, subplot_titles=titles, print_grid=False)
+        self.ngsfigure = tools.make_subplots(rows = 4, cols = 2,
+                                     subplot_titles = titles,
+                                     specs = [[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}]],
+                                     print_grid=False
+                                     )
+
         self.variants_plot(self.variant_types[0], 1, 1, 1)
         self.variants_plot(self.variant_types[1], 1, 2, 2)
         self.zygosity_plot(2, 1, 3)
         self.indellengths_plot(2, 2, 4)
+        #self.allelesequences_plot(3, 1, 5)
         output_type = "file"
         if not ngs_file:
             output_type = "div"
@@ -125,7 +132,7 @@ class NGSPlotter:
         df = pandas.DataFrame({'caller': variant_caller_types, 'guides': guides, 'mutation': mutation_types})
         for variant_caller, group_by_variant_caller in df.groupby(['caller']):
             self._get_percent_plots_per_guide(group_by_variant_caller, 'mutation', variant_caller, row_index, column_index, anchor)
-        self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
+            self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
     def indellengths_plot(self, row_index, column_index, anchor):
         query = self.dbsession.query(VariantResult)\
@@ -163,11 +170,65 @@ class NGSPlotter:
                            'rgb(213,94,0)', 'rgb(204, 121,167)']
         guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
         try:
+            print(dict(zip(guidenames, colour_map_base[0:len(guidenames)])))
             return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
+
         except Exception:
             raise Exception('There are more guides than possible mapping colours for plotting')
+            
+    def allelesequences_plot(self, row_index, column_index, anchor):
+        query = self.dbsession.query(VariantResult)\
+                         .join(VariantResult.sequencing_library_content)\
+                         .join(SequencingLibraryContent.well)\
+                         .join(Well.well_content)\
+                         .join(Well.experiment_layout)\
+                         .join(ExperimentLayout.project)\
+                         .filter(Project.geid == self.project_geid)\
+                         .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                         .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)
+        allelesequences = query.all()
+        if len(allelesequences) == 0:
+            return None
 
-    def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor):
+        guide = []
+        alleles = []
+        typecaller = []
+        allele_index5 = [] #this will give the position of '/' in the allele, to then sort the dataframe
+        allele_index3 = []
+        for i in allelesequences:
+            well = i.sequencing_library_content.well
+            layout = well.experiment_layout
+            indellength = 0
+            guide_name = 'none'
+            if well.well_content.guides: 
+                guide_name = well.well_content.guides[0].name
+            #print(i.sequencing_library_content.sequencing_sample_name, guide_name, i.alleles, i.variant_caller)
+            guide.append(guide_name)    
+            alleles.append(i.alleles)
+            typecaller.append(i.variant_caller)
+            allele_split = i.alleles.split('/')
+            allele_index5.append(len(allele_split[0]))
+            allele_index3.append(len(allele_split[1]))
+        
+        #-------- calculate percentages per guide in a pandas dataframe
+        # convert 'results' to pandas dataframe and group by 'guides'
+        df = pandas.DataFrame({'caller': typecaller, 'guides': guide, 'alleles': alleles, 'index5': allele_index5, 'index3': allele_index3})
+        df = df.sort_values(by = ['index5', 'index3']) # calculate percentages of indel lengths and create bar plot 'data' dictionary
+        
+        data = []
+        for caller, gdata in df.groupby(['caller']):
+            self._get_percent_plots_per_guide(df, 'alleles', caller, row_index, column_index, anchor, reverse_axis = False)
+        
+        # order the y-axis
+         # get the ordered alleles in the y-axis
+        allele_list_sorted = list(OrderedDict.fromkeys(df.alleles))
+        self.ngsfigure.layout.update({
+            "xaxis{:d}".format(anchor): dict(categoryorder='array', categoryarray=allele_list_sorted),
+            "yaxis{:d}".format(anchor): dict(title='% of alleles in submitted samples per guide', range=[0, 100]),
+            "margin": {'l': 800}
+            })
+
+    def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor, reverse_axis = False):
         symbol = self.caller_symbols.get(variant_caller)
         if not symbol:
             symbol = "circle"
@@ -184,14 +245,14 @@ class NGSPlotter:
                     htext.append(hovertext)
             legendgroup = guide_name
             trace = go.Scatter(
-                    x=grouped_data_byvar_percent.index.tolist(),
-                    y=grouped_data_byvar_percent.tolist(),
+                    x = grouped_data_byvar_percent.tolist() if reverse_axis else grouped_data_byvar_percent.index.tolist(),
+                    y = grouped_data_byvar_percent.index.tolist() if reverse_axis else grouped_data_byvar_percent.tolist(),
                     name=guide_name,
                     mode='markers',
                     marker=dict(
                         symbol=symbol,
                         size=self.marker_size,
-                        color=self.guide_color_dict.get(guide_name)
+                        color=self.guide_color_dict.get(guide_name)                   
                         ),
                     text=htext,
                     legendgroup=legendgroup,
@@ -200,7 +261,6 @@ class NGSPlotter:
                     yaxis="y{:d}".format(anchor))
             self.ngsfigure.append_trace(trace, row_index, column_index)
             self.legend_groups.add(legendgroup)
-
 
 def main():
     logging.basicConfig(level=logging.DEBUG,
