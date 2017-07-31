@@ -49,7 +49,7 @@ class NGSPlotter:
         self.variants_plot(self.variant_types[1], 1, 2, 2)
         self.zygosity_plot(2, 1, 3)
         self.indellengths_plot(2, 2, 4)
-        #self.allelesequences_plot(3, 1, 5)
+        self.allelesequences_plot(3, 1, 5)
         output_type = "file"
         if not ngs_file:
             output_type = "div"
@@ -164,18 +164,6 @@ class NGSPlotter:
         self.ngsfigure.layout.update({"xaxis{:d}".format(anchor): dict(title='Indel length (bp)')})
         self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
-    def _match_colors_to_guidenames(self):
-        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
-                           'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
-                           'rgb(213,94,0)', 'rgb(204, 121,167)']
-        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
-        try:
-            print(dict(zip(guidenames, colour_map_base[0:len(guidenames)])))
-            return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
-
-        except Exception:
-            raise Exception('There are more guides than possible mapping colours for plotting')
-            
     def allelesequences_plot(self, row_index, column_index, anchor):
         query = self.dbsession.query(VariantResult)\
                          .join(VariantResult.sequencing_library_content)\
@@ -189,44 +177,46 @@ class NGSPlotter:
         allelesequences = query.all()
         if len(allelesequences) == 0:
             return None
-
         guide = []
         alleles = []
         typecaller = []
-        allele_index5 = [] #this will give the position of '/' in the allele, to then sort the dataframe
+        allele_index5 = []  # this will give the position of '/' in the allele, to then sort the dataframe
         allele_index3 = []
         for i in allelesequences:
             well = i.sequencing_library_content.well
-            layout = well.experiment_layout
-            indellength = 0
             guide_name = 'none'
-            if well.well_content.guides: 
+            if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
-            #print(i.sequencing_library_content.sequencing_sample_name, guide_name, i.alleles, i.variant_caller)
-            guide.append(guide_name)    
+            guide.append(guide_name)
             alleles.append(i.alleles)
             typecaller.append(i.variant_caller)
             allele_split = i.alleles.split('/')
             allele_index5.append(len(allele_split[0]))
             allele_index3.append(len(allele_split[1]))
-        
-        #-------- calculate percentages per guide in a pandas dataframe
+        # calculate percentages per guide in a pandas dataframe
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'caller': typecaller, 'guides': guide, 'alleles': alleles, 'index5': allele_index5, 'index3': allele_index3})
-        df = df.sort_values(by = ['index5', 'index3']) # calculate percentages of indel lengths and create bar plot 'data' dictionary
-        
-        data = []
+        df = df.sort_values(by=['index5', 'index3'])  # calculate percentages of indel lengths and create bar plot 'data' dictionary
         for caller, gdata in df.groupby(['caller']):
-            self._get_percent_plots_per_guide(df, 'alleles', caller, row_index, column_index, anchor, reverse_axis = False)
-        
+            self._get_percent_plots_per_guide(df, 'alleles', caller, row_index, column_index, anchor, reverse_axis=False)
         # order the y-axis
-         # get the ordered alleles in the y-axis
+        # get the ordered alleles in the y-axis
         allele_list_sorted = list(OrderedDict.fromkeys(df.alleles))
         self.ngsfigure.layout.update({
             "xaxis{:d}".format(anchor): dict(categoryorder='array', categoryarray=allele_list_sorted),
             "yaxis{:d}".format(anchor): dict(title='% of alleles in submitted samples per guide', range=[0, 100]),
             "margin": {'l': 800}
             })
+
+    def _match_colors_to_guidenames(self):
+        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
+                           'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+                           'rgb(213,94,0)', 'rgb(204, 121,167)']
+        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
+        try:
+            return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
+        except Exception:
+            raise Exception('There are more guides than possible mapping colours for plotting')
 
     def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor, reverse_axis = False):
         symbol = self.caller_symbols.get(variant_caller)
@@ -252,7 +242,7 @@ class NGSPlotter:
                     marker=dict(
                         symbol=symbol,
                         size=self.marker_size,
-                        color=self.guide_color_dict.get(guide_name)                   
+                        color=self.guide_color_dict.get(guide_name)
                         ),
                     text=htext,
                     legendgroup=legendgroup,

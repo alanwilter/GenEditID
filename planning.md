@@ -69,16 +69,16 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Growth slopes
   - NGS exploratory plots
     - ANNE (1) [x] % Zygosities (‘homozygous’, ‘heterozygous’…)
-    - [ ] % Alleles (e.g. C/CATG, CTAA/C)
-    - [ ] % Distances from cut site
-    - [ ] % Indel lengths
+    - [x] % Alleles (e.g. C/CATG, CTAA/C)
+    - [ ] % Distances from cut site (to import)
+    - [x] % Indel lengths
     - [ ] % Type of mutation (‘wt’, ‘insertion’, ‘deletion’, ‘SNV’)
-    - [ ] % Type of variant (‘wt’, ‘frameshift’, ‘inframe’...)
+    - [x] % Type of variant (‘wt’, ‘frameshift’, ‘inframe’...)
     - [ ] INDEL ranges (visual location of alleles)
   - [ ] Combined plots (NGS + protein + growth slopes)
   - [ ] Heatmap
 - **sample details**
-  - [ ] plot: 96-well plates for score-based clone selection
+  - [x] plot: 96-well plates for score-based clone selection
   - RICH [x] Data table per project
   - [ ] Per-sample plot of INDEL ranges
   - LATER [ ] Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
