@@ -93,6 +93,9 @@
         <div role="tabpanel" class="tab-pane" id="samples">
           <h3>Sample analysis</h3>
           <h4>Score on Plates</h4>
+          <div tal:condition="platescoringplot">
+            ${structure: platescoringplot}
+          </div>
 
           <h4>Data Table</h4>
           <table id="sampledatatable" class="table table-hover table-condensed">
