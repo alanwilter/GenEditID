@@ -82,23 +82,9 @@
               ${structure: proteinabundanceplot}
           </div>
 
-          <div tal:condition="zygosityplot">
-            <h4>Zygosity</h4>
-            ${structure: zygosityplot}
-          </div>
-
-          <div tal:condition="variantsindelsplot">
-            <h4>Variants</h4>
-            ${structure: variantsindelsplot}
-          </div>
-
-          <div tal:condition="variantssnvsplot">
-            ${structure: variantssnvsplot}
-          </div>
-
-          <div tal:condition="indellengthsplot">
-            <h4>Indel Lengths</h4>
-            ${structure: indellengthsplot}
+          <div tal:condition="ngsplot">
+            <h4>NGS Plots</h4>
+            ${structure: ngsplot}
           </div>
 
         </div>

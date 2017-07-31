@@ -7,6 +7,7 @@ from pyramid.view import view_config
 from dnascissors.model import Project
 
 from webapp.plots.plotter import Plotter
+from webapp.plots.ngsplotter import NGSPlotter
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -32,6 +33,7 @@ class ProjectViews(object):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
         plotter = Plotter(self.dbsession, project.geid)
+        ngsplotter = NGSPlotter(self.dbsession, project.geid)
         # Project table
         project_headers = [
             "geid",
@@ -174,10 +176,7 @@ class ProjectViews(object):
                     subtitle="Project: {}".format(project.geid),
                     cellgrowthplot=plotter.growth_plot(),
                     proteinabundanceplot=plotter.abundance_plot(),
-                    zygosityplot=plotter.zygosity_plot(),
-                    variantsindelsplot=plotter.variants_plot('INDEL'),
-                    variantssnvsplot=plotter.variants_plot('SNV'),
-                    indellengthsplot=plotter.indellengths_plot(),
+                    ngsplot=ngsplotter.combined_ngs_plot(),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,
