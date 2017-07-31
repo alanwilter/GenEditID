@@ -34,17 +34,6 @@ class NGSPlotter:
         self.marker_size = 8
         self.guide_color_dict = self._match_colors_to_guidenames()
     
-    def _match_colors_to_guidenames(self):
-        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
-            'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
-            'rgb(213,94,0)', 'rgb(204, 121,167)']        
-        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
-        
-        try:
-            return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
-        except Exception:
-            raise Exception('There are more guides than possible mapping colours for plotting')
-
     def combined_ngs_plot(self, ngs_file=None):
         self.legend_groups.clear()
         
@@ -68,10 +57,8 @@ class NGSPlotter:
         print(self.ngsfigure)   
         return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-        
 
     def zygosity_plot(self, row_index, column_index, anchor):
-        
         # we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G)
         # that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
         query = self.dbsession.query(Well)\
@@ -80,11 +67,9 @@ class NGSPlotter:
                               .join(ExperimentLayout.project)\
                               .filter(Project.geid == self.project_geid)\
                               .filter(SequencingLibraryContent.dna_source != 'gDNA')
-
         wells = query.all()
         if len(wells) == 0:
             return None
-        
         guides = []
         zygosities = []
         for well in wells:
@@ -96,12 +81,8 @@ class NGSPlotter:
                 guide_name = well.well_content.guides[0].name
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
-
-        # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
-        dfgroup = df.groupby(['guides'])
-
-        self._calculate_percentage_plots(dfgroup, 'zygosities', None, row_index, column_index, anchor)
+        self._get_percent_plots_per_guide(df, 'zygosities', None, row_index, column_index, anchor)
         
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
@@ -109,45 +90,7 @@ class NGSPlotter:
         self.ngsfigure.layout.update({"xaxis{:d}".format(anchor): dict(categoryorder='array', categoryarray=categories)})
         self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
-
-    def _calculate_percentage_plots(self, dfgroup, grouping_variable, variant_caller, row_index, column_index, anchor):
-        msym = self.symbol_for_caller(variant_caller)
-        
-        for guide_name, grouped_data in dfgroup:
-            grouped_data_byvar = grouped_data.groupby([grouping_variable]).size()
-            grouped_data_byvar_percent = grouped_data_byvar*100 / grouped_data_byvar.sum()
-            htext = []
-            for length_gdbp in range(len(grouped_data_byvar_percent)):
-                if variant_caller:
-                    hovertext = [variant_caller] #add other elements to this list to display when hovering
-                else:
-                    hovertext = []
-                    hovertext = ' '.join(hovertext)
-                    htext.append(hovertext)
-            
-            legendgroup = guide_name
-            
-            trace = go.Scatter(
-                    x=grouped_data_byvar_percent.index.tolist(),
-                    y=grouped_data_byvar_percent.tolist(),
-                    name=guide_name,
-                    mode='markers',
-                    marker=dict(
-                        symbol=msym,
-                        size=self.marker_size,
-                        color=self.guide_color_dict.get(guide_name)                   
-                        ),
-                    text=htext,
-                    legendgroup=legendgroup,
-                    showlegend=legendgroup not in self.legend_groups,
-                    xaxis="x{:d}".format(anchor),
-                    yaxis="y{:d}".format(anchor))
-                
-            self.ngsfigure.append_trace(trace, row_index, column_index)
-            self.legend_groups.add(legendgroup)
-
     def variants_plot(self, variant_type, row_index, column_index, anchor):
-        
         query = self.dbsession.query(VariantResult)\
                               .join(VariantResult.sequencing_library_content)\
                               .join(SequencingLibraryContent.well)\
@@ -160,10 +103,8 @@ class NGSPlotter:
                               .filter(VariantResult.variant_type == variant_type)
         
         variant_results = query.all()
-        
         if len(variant_results) == 0:
             return None
-
         guides = []
         mutation_types = []
         variant_caller_types = []
@@ -178,51 +119,12 @@ class NGSPlotter:
             
             mutation_types.append(variant_result.consequence)
             variant_caller_types.append(variant_result.variant_caller)
-        
-        # convert 'variant_results' to pandas dataframe and group by 'variants'
-        df_group_by_variant = pandas.DataFrame({'caller': variant_caller_types, 'guide': guides, 'mutation': mutation_types})
-
-        # This will produce a plot with grouped legends. Annoyingly there is no feature at date 20170710 to add titles to the legend groups.
-        # It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
-        # I assume that the top legend group is the first variant caller.
-        self._get_percent_plots_by_variant(df_group_by_variant, 'mutation', row_index, column_index, anchor)
+        df = pandas.DataFrame({'caller': variant_caller_types, 'guides': guides, 'mutation': mutation_types})
+        for variant_caller, group_by_variant_caller in df.groupby(['caller']):
+            self._get_percent_plots_per_guide(group_by_variant_caller, 'mutation', variant_caller, row_index, column_index, anchor)
         self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
-    def _get_percent_plots_by_variant(self, group_by_variant_type, grouping_variable, row_index, column_index, anchor):
-
-        # calculate percentages per guide in a pandas dataframe
-        for variant_caller, group_by_variant_caller in group_by_variant_type.groupby(['caller']):
-            for guide_name, group_by_guide in group_by_variant_caller.groupby(['guide']):
-                
-                # calculate percentages of grouping_variable and create scatter plot
-                group_by_grouping_variable = group_by_guide.groupby([grouping_variable]).size()
-                group_by_grouping_variable_percent = group_by_grouping_variable * 100 / group_by_grouping_variable.sum()
-                
-                legendgroup = guide_name
-            
-                trace = go.Scatter(
-                        x=group_by_grouping_variable_percent.index.tolist(),
-                        y=group_by_grouping_variable_percent.tolist(),
-                        name=guide_name,
-                        mode='markers',
-                        marker=dict(
-                            symbol=self.symbol_for_caller(variant_caller),
-                            size=self.marker_size,
-                            color=self.guide_color_dict.get(guide_name)
-                            ),
-                        text=variant_caller,
-                        legendgroup=legendgroup,
-                        showlegend=legendgroup not in self.legend_groups,
-                        xaxis="x{:d}".format(anchor),
-                        yaxis="y{:d}".format(anchor))
-
-                self.ngsfigure.append_trace(trace, row_index, column_index)
-            
-                self.legend_groups.add(legendgroup)
-
-
     def indellengths_plot(self, row_index, column_index, anchor):
-        
         query = self.dbsession.query(VariantResult)\
                               .join(VariantResult.sequencing_library_content)\
                               .join(SequencingLibraryContent.well)\
@@ -232,46 +134,69 @@ class NGSPlotter:
                               .filter(SequencingLibraryContent.dna_source != 'gDNA')\
                               .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)\
                               .filter(VariantResult.indel_length.isnot(None))
-                              
         variant_results = query.all()
-        
         if len(variant_results) == 0:
             return None
-
         guides = []
         allindellengths = []
         typecallers = []
-        
         for vr in variant_results:
             well = vr.sequencing_library_content.well
-            layout = well.experiment_layout
             guide_name = 'none'
-
             if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
-                
             guides.append(guide_name)
             allindellengths.append(vr.indel_length)
             typecallers.append(vr.variant_caller)
-
-        # calculate percentages per guide in a pandas dataframe
-        # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'caller': typecallers, 'guides': guides, 'indellengths': allindellengths})
-        
-        # calculate percentages of indel lengths and create bar plot 'data' dictionary
-        
         for caller, gdata in df.groupby(['caller']):
-            self._calculate_percentage_plots(gdata.groupby(['guides']), 'indellengths', caller, row_index, column_index, anchor)
-
+            self._get_percent_plots_per_guide(df, 'indellengths', caller, row_index, column_index, anchor)
         self.ngsfigure.layout.update({"xaxis{:d}".format(anchor): dict(title='Indel length (bp)')})
         self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
-        #print(self.ngsfigure)
 
-    def symbol_for_caller(self, variant_caller):
+    def _match_colors_to_guidenames(self):
+        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
+                           'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+                           'rgb(213,94,0)', 'rgb(204, 121,167)']        
+        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
+        try:
+            return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
+        except Exception:
+            raise Exception('There are more guides than possible mapping colours for plotting')
+
+    def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor):
         symbol = self.caller_symbols.get(variant_caller)
-        
-        return symbol if symbol else "circle"
-
+        if not symbol:
+            symbol = "circle"
+        for guide_name, group_by_guide in df.groupby(['guides']):
+            group_by_grouping_variable = group_by_guide.groupby([grouping_variable]).size()
+            grouped_data_byvar_percent = group_by_grouping_variable*100 / group_by_grouping_variable.sum()
+            htext = []
+            for length_gdbp in range(len(grouped_data_byvar_percent)):
+                if variant_caller:
+                    hovertext = [variant_caller] #add other elements to this list to display when hovering
+                else:
+                    hovertext = []
+                    hovertext = ' '.join(hovertext)
+                    htext.append(hovertext)
+            legendgroup = guide_name
+            trace = go.Scatter(
+                    x=grouped_data_byvar_percent.index.tolist(),
+                    y=grouped_data_byvar_percent.tolist(),
+                    name=guide_name,
+                    mode='markers',
+                    marker=dict(
+                        symbol=symbol,
+                        size=self.marker_size,
+                        color=self.guide_color_dict.get(guide_name)                   
+                        ),
+                    text=htext,
+                    legendgroup=legendgroup,
+                    showlegend=legendgroup not in self.legend_groups,
+                    xaxis="x{:d}".format(anchor),
+                    yaxis="y{:d}".format(anchor))
+            self.ngsfigure.append_trace(trace, row_index, column_index)
+            self.legend_groups.add(legendgroup)
 
 def main():
     logging.basicConfig(level=logging.DEBUG,
