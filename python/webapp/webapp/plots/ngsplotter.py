@@ -8,6 +8,7 @@ import logging
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
+from dnascissors.model import Guide
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
 from dnascissors.model import SequencingLibraryContent
@@ -31,8 +32,21 @@ class NGSPlotter:
         self.caller_symbols = {"HaplotypeCaller":"circle", "VarDict":"triangle-up"}
         self.variant_types = ["INDEL", "SNV"]
         self.marker_size = 8
+        self.guide_color_dict = self._match_colors_to_guidenames()
         
-
+    
+    def _match_colors_to_guidenames(self):
+        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
+            'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+            'rgb(213,94,0)', 'rgb(204, 121,167)']        
+        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
+        
+        try:
+            return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
+        except Exception:
+            raise Exception('There are more guides than possible mapping colours for plotting')
+     
+ 
     def _variant_callers_for_project(self):
         self.variant_callers =\
             self.dbsession.query(VariantResult.variant_caller)\
@@ -56,27 +70,25 @@ class NGSPlotter:
         titles.append("Indel Lengths")
         
         self.ngsfigure = tools.make_subplots(rows=len(titles), cols=1, subplot_titles=titles)
-
         self.plot_index = 1
 
         #self.zygosity_plot()
         #self.plot_index += 1
         
         self.variants_plot(self.variant_types[0])
-        
+        #print(self.variants_plot(self.variant_types[0]))
         self.plot_index += 1
         
         self.variants_plot(self.variant_types[1])
-        
         self.plot_index += 1
         
-        self.indellengths_plot()
+        #self.indellengths_plot()
         
         output_type = "file"
         if not ngs_file:
             output_type = "div"
             ngs_file = "ngs_{}.html".format(self.project_geid)
-            
+        print(self.ngsfigure)   
         return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
         
@@ -118,8 +130,8 @@ class NGSPlotter:
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
         
-        self.ngsfigure.layout['xaxis'] = dict(categoryorder='array', categoryarray=categories)
-        self.ngsfigure.layout['yaxis'] = dict(title='% of submitted samples per guide', range=[0, 100])
+        self.ngsfigure.layout.update({'xaxis': dict(categoryorder='array', categoryarray=categories)})
+        self.ngsfigure.layout.update({'yaxis': dict(title='% of submitted samples per guide', range=[0, 100])})
 
 
     def _calculate_percentage_plots(self, dfgroup, grouping_variable, variant_caller = None):
@@ -138,14 +150,18 @@ class NGSPlotter:
                     hovertext = ' '.join(hovertext)
                     htext.append(hovertext)
             
-            legendgroup="{:s}{:s}".format(guide_name, variant_caller)
+            legendgroup = guide_name
             
             trace = go.Scatter(
                     x=grouped_data_byvar_percent.index.tolist(),
                     y=grouped_data_byvar_percent.tolist(),
-                    name="{:s} - {:s}".format(guide_name, variant_caller),
+                    name=guide_name,
                     mode='markers',
-                    marker=dict(symbol=msym, size=self.marker_size),
+                    marker=dict(
+                        symbol=msym,
+                        size=self.marker_size,
+                        color=self.guide_color_dict.get(guide_name)                   
+                        ),
                     text=htext,
                     legendgroup=legendgroup,
                     showlegend=legendgroup not in self.legend_groups,
@@ -197,9 +213,8 @@ class NGSPlotter:
         # It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
         # I assume that the top legend group is the first variant caller.
         self._get_percent_plots_by_variant(df_group_by_variant, 'mutation')
-
-        self.ngsfigure.layout["yaxis{:d}".format(self.plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
-
+        self.ngsfigure.layout.update({"yaxis{:d}".format(self.plot_index): dict(title='% of submitted samples per guide', range=[0, 100])})
+        #print(self.ngsfigure)
 
     def _get_percent_plots_by_variant(self, group_by_variant_type, grouping_variable):
 
@@ -211,14 +226,18 @@ class NGSPlotter:
                 group_by_grouping_variable = group_by_guide.groupby([grouping_variable]).size()
                 group_by_grouping_variable_percent = group_by_grouping_variable * 100 / group_by_grouping_variable.sum()
                 
-                legendgroup="{:s}{:s}".format(guide_name, variant_caller)
+                legendgroup = guide_name
             
                 trace = go.Scatter(
                         x=group_by_grouping_variable_percent.index.tolist(),
                         y=group_by_grouping_variable_percent.tolist(),
-                        name="{:s} - {:s}".format(guide_name, variant_caller),
+                        name=guide_name,
                         mode='markers',
-                        marker=dict(symbol=self.symbol_for_caller(variant_caller), size=self.marker_size),
+                        marker=dict(
+                            symbol=self.symbol_for_caller(variant_caller),
+                            size=self.marker_size,
+                            color=self.guide_color_dict.get(guide_name)
+                            ),
                         text=variant_caller,
                         legendgroup=legendgroup,
                         showlegend=legendgroup not in self.legend_groups,
@@ -272,9 +291,9 @@ class NGSPlotter:
         for caller, gdata in df.groupby(['caller']):
             self._calculate_percentage_plots(gdata.groupby(['guides']), 'indellengths', caller)
 
-        self.ngsfigure.layout["xaxis{:d}".format(self.plot_index)] = dict(title='Indel length (bp)')
-        self.ngsfigure.layout["yaxis{:d}".format(self.plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
-        
+        self.ngsfigure.layout.update({"xaxis{:d}".format(self.plot_index): dict(title='Indel length (bp)')})
+        self.ngsfigure.layout.update({"yaxis{:d}".format(self.plot_index): dict(title='% of submitted samples per guide', range=[0, 100])})
+        #print(self.ngsfigure)
 
     def symbol_for_caller(self, variant_caller):
         symbol = self.caller_symbols.get(variant_caller)
