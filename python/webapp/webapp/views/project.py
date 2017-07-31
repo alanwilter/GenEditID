@@ -177,6 +177,7 @@ class ProjectViews(object):
                     cellgrowthplot=plotter.growth_plot(),
                     proteinabundanceplot=plotter.abundance_plot(),
                     ngsplot=ngsplotter.combined_ngs_plot(),
+                    platescoringplot=plotter.plate_scoring_plots(),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,
