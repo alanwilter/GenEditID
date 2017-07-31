@@ -6,6 +6,6 @@ def includeme(config):
     # home page: projects table and upload project layout file
     config.add_route('home', '/')
 
-    # individual project page: view, add comments and load data
+    # individual project page: view (overvire, results & samples), add comments and load data
     config.add_route('project_view', '/project/{projectid}')
     config.add_route('project_edit', '/project/{projectid}/edit')
