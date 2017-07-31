@@ -239,6 +239,19 @@ class Plate(Base):
     geid = Column(String(32), unique=True, nullable=False, index=True)
     description = Column(String)
 
+    @property
+    def is_data_available(self):
+        for well in self.experiment_layout.wells:
+            if len(well.abundances) > 0:
+                return True
+            if len(well.growths) > 0:
+                return True
+            if well.sequencing_library_contents:
+                for sequencing_library_content in well.sequencing_library_contents:
+                    if len(sequencing_library_content.variant_results) > 0:
+                        return True
+        return False
+
 
 class WellContent(Base):
     __tablename__ = 'well_content'

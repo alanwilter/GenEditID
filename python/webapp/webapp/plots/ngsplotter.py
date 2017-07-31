@@ -9,6 +9,7 @@ import logging
 from dnascissors.config import cfg
 from dnascissors.model import Base
 from dnascissors.model import Guide
+from dnascissors.model import Target
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
 from dnascissors.model import SequencingLibraryContent
@@ -39,12 +40,11 @@ class NGSPlotter:
         titles.append("Zygosity")
         titles.append("Indel lenghts")
         # See https://plot.ly/python/subplots/
-        self.ngsfigure = tools.make_subplots(rows = 4, cols = 2,
-                                     subplot_titles = titles,
-                                     specs = [[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}]],
+        self.ngsfigure = tools.make_subplots(rows=4, cols=2,
+                                     subplot_titles=titles,
+                                     specs=[[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}]],
                                      print_grid=False
                                      )
-
         self.variants_plot(self.variant_types[0], 1, 1, 1)
         self.variants_plot(self.variant_types[1], 1, 2, 2)
         self.zygosity_plot(2, 1, 3)
@@ -212,7 +212,7 @@ class NGSPlotter:
         colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
                            'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
                            'rgb(213,94,0)', 'rgb(204, 121,167)']
-        guidenames = [i.name for i in self.dbsession.query(Guide).filter(Project.geid == self.project_geid).all()]
+        guidenames = [i.name for i in self.dbsession.query(Guide).join(Target).join(Project).filter(Project.geid == self.project_geid).all()]
         try:
             return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
         except Exception:

@@ -165,6 +165,9 @@ class Plotter:
             guide_name = 'no-guide'
             well_content_type = 'empty-well'
             score = 0
+            well_abundance_ratio = 0
+            if well.abundances:
+                well_abundance_ratio = well.abundances[0].ratio_800_700
             if well.well_content:
                 well_content_type = 'sample-well'
                 zygosity = 'wt'
@@ -182,7 +185,7 @@ class Plotter:
                         well.row,
                         well.column,
                         guide_name,
-                        well.abundances[0].ratio_800_700,
+                        well_abundance_ratio,
                         zygosity,
                         score,
                         well_content_type

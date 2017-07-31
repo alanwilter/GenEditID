@@ -5,6 +5,8 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from dnascissors.model import Project
+from dnascissors.model import ExperimentLayout
+from dnascissors.model import Plate
 
 from webapp.plots.plotter import Plotter
 from webapp.plots.ngsplotter import NGSPlotter
@@ -191,12 +193,28 @@ class ProjectViews(object):
 
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
+        plate_headers = [
+            "layout_geid",
+            "geid",
+            "barcode",
+            "description",
+            "uploaded data"]
+        plate_rows = []
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
         title = "Genome Editing Core"
         subtitle = "Project: {}".format(project.geid)
+        plates = self.dbsession.query(Plate).join(ExperimentLayout).join(Project).filter(Project.geid == project.geid).all()
+        for plate in plates:
+            row = []
+            row.append(plate.experiment_layout.geid)
+            row.append(plate.geid)
+            row.append(plate.barcode)
+            row.append(plate.description)
+            row.append(plate.is_data_available)
+            plate_rows.append(row)
         edit_form = self.projects_form("Update")
-        if 'submit' in self.request.params:
+        if 'submit_comments' in self.request.params:
             fields = self.request.POST.items()
             try:
                 appstruct = edit_form.validate(fields)
@@ -206,7 +224,12 @@ class ProjectViews(object):
             project.comments = appstruct['comments']
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
+        if 'upload_data' in self.request.params:
+            pass
         return dict(title=title,
                     subtitle=subtitle,
                     projectid=project.id,
-                    project=project,)
+                    project=project,
+                    plate_headers=plate_headers,
+                    plate_rows=plate_rows,
+                    platelayouts=[p.geid for p in plates])

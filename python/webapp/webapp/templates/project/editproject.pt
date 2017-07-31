@@ -3,7 +3,7 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
-<body>
+
 <div metal:use-macro="load: ../layout.pt">
   <div metal:fill-slot="content">
     <div class="content">
@@ -18,37 +18,57 @@
         <hr />
 
         <!-- Comments section ************************************************ -->
+        <h3>Update comments</h3>
         <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
           <p>
             Add/update comments:
             <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
-            <input type="submit" name="submit" value="Update"></input>
+            <input type="submit" name="submit_comments" value="Update"></input>
           </p>
         </form>
         <hr/>
 
         <!-- Upload section ************************************************** -->
+        <h3>Experimental data</h3>
+        <h4>Plates</h4>
+        <table id="platetable" class="table table-hover table-condensed">
+            <thead>
+                <th tal:repeat="header plate_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row plate_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+
+        <h4>Upload</h4>
+        <form id="upload_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+          <p>
+            Select the plate layout
+            <select id="plate_selector">
+              <div tal:repeat="plate platelayouts">
+                <option value="plate0" tal:attributes="value plate">${plate}</option>
+              </div>
+            </select>
+            and the file to upload
+            <input id="upload" name="layoutfile" type="file" value=""></input>
+            <input type="submit" name="submit" value="Upload"></input>
+          </p>
+        </form>
+        <hr />
         <p>
-          Select the plate layout
-          <select name="plate">
-            <option value="plate1">Plate 1</option>
-            <option value="plate2">Plate 2</option>
-            <option value="plate3">Plate 3</option>
-            <option value="plate4">Plate 4</option>
-          </select>
-          the type of file
-          <select name="filetype">
-            <option value="growth">Growth</option>
-            <option value="abundance">Abundance</option>
-          </select>
-          and the file to upload
-          <input id="upload" name="layoutfile" type="file" value=""></input>
-          <input type="submit" name="submit" value="Upload"></input>
+            <a href="${request.route_url('home')}">Back to projects list</a> |
+            <a href="${request.route_url('project_view', projectid=project.id)}">Back to view project ${project.geid}</a>
         </p>
-        <hr/>
+        <hr />
+
       </div>
     </div>
   </div>
 </div>
-</body>
-</html>
+<script>
+  $(document).ready(
+    function() {
+        $('#platetable').DataTable({
+        } );
+    } );
+</script>
