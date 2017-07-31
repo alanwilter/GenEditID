@@ -47,6 +47,7 @@ class NGSPlotter:
     def combined_ngs_plot(self, ngs_file=None):
         
         self._variant_callers_for_project()
+        self.legend_groups.clear()
         
         #titles = ["Zygosity"]
         titles = []
@@ -54,27 +55,33 @@ class NGSPlotter:
             titles.append('Type of mutation ({}s)'.format(vt))
         titles.append("Indel Lengths")
         
-        ngsfigure = tools.make_subplots(rows=len(titles), cols=1,
-                                        subplot_titles=titles)
+        self.ngsfigure = tools.make_subplots(rows=len(titles), cols=1, subplot_titles=titles)
 
-        #self.zygosity_plot(ngsfigure, 1)
+        self.plot_index = 1
+
+        #self.zygosity_plot()
+        #self.plot_index += 1
         
-        self.variants_plot(ngsfigure, self.variant_types[0], 1)
+        self.variants_plot(self.variant_types[0])
         
-        self.variants_plot(ngsfigure, self.variant_types[1], 2)
+        self.plot_index += 1
         
-        self.indellengths_plot(ngsfigure, 3)
+        self.variants_plot(self.variant_types[1])
+        
+        self.plot_index += 1
+        
+        self.indellengths_plot()
         
         output_type = "file"
         if not ngs_file:
             output_type = "div"
             ngs_file = "ngs_{}.html".format(self.project_geid)
             
-        return py.plot(ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
+        return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
         
 
-    def zygosity_plot(self, ngsfigure, plot_index):
+    def zygosity_plot(self):
         
         # we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G)
         # that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart)
@@ -106,16 +113,16 @@ class NGSPlotter:
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
         dfgroup = df.groupby(['guides'])
 
-        self._calculate_percentage_plots(dfgroup, 'zygosities', ngsfigure, plot_index)
+        self._calculate_percentage_plots(dfgroup, 'zygosities')
         
         # order x axis values
         categories = ['wt', 'homo', 'smut', 'dmut', 'iffy']
         
-        ngsfigure.layout['xaxis'] = dict(categoryorder='array', categoryarray=categories)
-        ngsfigure.layout['yaxis'] = dict(title='% of submitted samples per guide', range=[0, 100])
+        self.ngsfigure.layout['xaxis'] = dict(categoryorder='array', categoryarray=categories)
+        self.ngsfigure.layout['yaxis'] = dict(title='% of submitted samples per guide', range=[0, 100])
 
 
-    def _calculate_percentage_plots(self, dfgroup, grouping_variable, ngsfigure, plot_index, variant_caller = None):
+    def _calculate_percentage_plots(self, dfgroup, grouping_variable, variant_caller = None):
 
         msym = self.symbol_for_caller(variant_caller)
         
@@ -142,15 +149,15 @@ class NGSPlotter:
                     text=htext,
                     legendgroup=legendgroup,
                     showlegend=legendgroup not in self.legend_groups,
-                    xaxis="x{:d}".format(plot_index),
-                    yaxis="y{:d}".format(plot_index))
+                    xaxis="x{:d}".format(self.plot_index),
+                    yaxis="y{:d}".format(self.plot_index))
                 
-            ngsfigure.append_trace(trace, plot_index, 1)
+            self.ngsfigure.append_trace(trace, self.plot_index, 1)
             
             self.legend_groups.add(legendgroup)
     
 
-    def variants_plot(self, ngsfigure, variant_type, plot_index):
+    def variants_plot(self, variant_type):
         
         query = self.dbsession.query(VariantResult)\
                               .join(VariantResult.sequencing_library_content)\
@@ -189,12 +196,12 @@ class NGSPlotter:
         # This will produce a plot with grouped legends. Annoyingly there is no feature at date 20170710 to add titles to the legend groups.
         # It's been suggested to use layout annotations as a workaround: https://github.com/plotly/plotly.js/issues/689
         # I assume that the top legend group is the first variant caller.
-        self._get_percent_plots_by_variant(df_group_by_variant, 'mutation', ngsfigure, plot_index)
+        self._get_percent_plots_by_variant(df_group_by_variant, 'mutation')
 
-        ngsfigure.layout["yaxis{:d}".format(plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
+        self.ngsfigure.layout["yaxis{:d}".format(self.plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
 
 
-    def _get_percent_plots_by_variant(self, group_by_variant_type, grouping_variable, ngsfigure, plot_index):
+    def _get_percent_plots_by_variant(self, group_by_variant_type, grouping_variable):
 
         # calculate percentages per guide in a pandas dataframe
         for variant_caller, group_by_variant_caller in group_by_variant_type.groupby(['caller']):
@@ -215,15 +222,15 @@ class NGSPlotter:
                         text=variant_caller,
                         legendgroup=legendgroup,
                         showlegend=legendgroup not in self.legend_groups,
-                        xaxis="x{:d}".format(plot_index),
-                        yaxis="y{:d}".format(plot_index))
+                        xaxis="x{:d}".format(self.plot_index),
+                        yaxis="y{:d}".format(self.plot_index))
 
-                ngsfigure.append_trace(trace, plot_index, 1)
+                self.ngsfigure.append_trace(trace, self.plot_index, 1)
             
                 self.legend_groups.add(legendgroup)
 
 
-    def indellengths_plot(self, ngsfigure, plot_index):
+    def indellengths_plot(self):
         
         query = self.dbsession.query(VariantResult)\
                               .join(VariantResult.sequencing_library_content)\
@@ -263,10 +270,10 @@ class NGSPlotter:
         # calculate percentages of indel lengths and create bar plot 'data' dictionary
         
         for caller, gdata in df.groupby(['caller']):
-            self._calculate_percentage_plots(gdata.groupby(['guides']), 'indellengths', ngsfigure, plot_index, caller)
+            self._calculate_percentage_plots(gdata.groupby(['guides']), 'indellengths', caller)
 
-        ngsfigure.layout["xaxis{:d}".format(plot_index)] = dict(title='Indel length (bp)')
-        ngsfigure.layout["yaxis{:d}".format(plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
+        self.ngsfigure.layout["xaxis{:d}".format(self.plot_index)] = dict(title='Indel length (bp)')
+        self.ngsfigure.layout["yaxis{:d}".format(self.plot_index)] = dict(title='% of submitted samples per guide', range=[0, 100])
         
 
     def symbol_for_caller(self, variant_caller):
