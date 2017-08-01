@@ -88,7 +88,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] plot INDEL ranges
   - [ ] Combined plot (clone vs controls)
   - Data table
-    - [ ] per project and plate layout (i.e. GEP00001_01 and no GEP00001_01_incu)
+    - [x] per project and plate layout (i.e. GEP00001_01 and no GEP00001_01_incu)
     - [ ] output data as soon as we have input (e.g. if there is protein data, show it regardless of presence of growth and NGS data). Ideally we could click on the 96-well plate and have the clone highlighted in this table, but this is not priority
     - [ ] columns of the data table:
       - [x] Plate
@@ -121,7 +121,10 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] RUBEN. Revise protein data values in plot_96_wells, how the range looks like (we should see edges )
 
 ## end of project meeting
-- Aim: Paper to publish: dry and wet - portable as much as possible: maybe docker
+
+Aim: Paper to publish: dry and wet - portable as much as possible: maybe docker
+
+
 - (1) Bioinfo pipeline:
   - new version of the amplicon sequencing pipeline after fixes on merged data per line
   - branch and modify to our own needs with explanation on how to install from scratch
@@ -134,14 +137,19 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - report with pdf or link to website
   - bam files
 - Current webapp - what needs to be finished?
-  - Results table need to be updated with the right columns and one line per samples
-  - Add result comments on project and add it on edit project
-  - Check project type: knock-in and knock-out
-  - Merge growth and abundance plots into one
-  - Sample tab: update well name on plot to match the one in table
+  - [ ] Results table need to be updated with the right columns and one line per samples
+  - [ ] Add result comments on project and add it on edit project
+  - [ ] Finish scoring with protein ratio 800/700 vs KO average
+  - [ ] Scale scoring system to 100%
+  - [x] Check project type: knock-in and knock-out - it is in!
+  - [ ] Merge growth and abundance plots into one
+  - [x] Sample tab: update well name on plot to match the one in table
 - Update loading data via webapp and ngs results manually
 - Load ngs results for knock-in project 3
 - Export selection of results not all results
+- Add growth slope calculation
+
+
 - How it went? What we could do better?
   - R/Shiny to Python/Pyramid: is it normal process? nope but lots of learning
   - Agile way of working is great

@@ -40,17 +40,17 @@ class NGSPlotter:
         titles.extend(["Zygosity", "Indel lenghts", "Allele sequences"])
         # See https://plot.ly/python/subplots/
         self.ngsfigure = tools.make_subplots(rows=4, cols=2,
-                                     subplot_titles=titles,
-                                     specs=[[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}]],
-                                     print_grid=False
-                                     )
+                                             subplot_titles=titles,
+                                             specs=[[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}]],
+                                             print_grid=False
+                                             )
         self.variants_plot(self.variant_types[0], 1, 1, 1)
         self.variants_plot(self.variant_types[1], 1, 2, 2)
         self.zygosity_plot(2, 1, 3)
         self.indellengths_plot(2, 2, 4)
         self.allelesequences_plot(3, 1, 5)
         self.typeofmutation_plot(4, 1, 6)
-        
+
         output_type = "file"
         if not ngs_file:
             output_type = "div"
@@ -71,14 +71,14 @@ class NGSPlotter:
 
     def typeofmutation_plot(self, row_index, column_index, anchor):
         """Type of mutation plot.
-        
-        This plot shows the *% of alleles that have a mutation of a certain type*.
+
+        This plot shows the % of alleles that have a mutation of a certain type.
         It shows allele data from all samples that have a mutation (so wt are excluded,
         and double and single mutants contribute with two and one alleles respectively).
         The types of mutation considered are
         *insertion*, *deletion* and *SNV* (single-nucleotide variant).
         """
-        
+
         query = self.dbsession.query(VariantResult)\
                               .join(VariantResult.sequencing_library_content)\
                               .join(SequencingLibraryContent.well)\
@@ -90,7 +90,7 @@ class NGSPlotter:
 
         varianttype = query.all()
         if len(varianttype) == 0:
-           return None       
+            return None
         guides =[]
         typeofvariant = []
         variant_caller_types = []
@@ -98,7 +98,7 @@ class NGSPlotter:
             guide_name = 'none'
             if i.sequencing_library_content.well.well_content.guides:
                 guide_name = i.sequencing_library_content.well.well_content.guides[0].name
-            if i.indel_length == None:
+            if i.indel_length is None:
                 typevar = i.variant_type
             elif i.indel_length > 0:
                 typevar = 'insertion'
@@ -109,7 +109,7 @@ class NGSPlotter:
             variant_caller_types.append(i.variant_caller)
             guides.append(guide_name)
             typeofvariant.append(typevar)
-        
+
         df = pandas.DataFrame({'caller': variant_caller_types, 'guides': guides, 'typeofvariant': typeofvariant})
         for variant_caller, group_by_variant_caller in df.groupby(['caller']):
             self._get_percent_plots_per_guide(group_by_variant_caller, 'typeofvariant', variant_caller, row_index, column_index, anchor)

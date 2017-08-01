@@ -158,31 +158,70 @@ class ProjectViews(object):
         sample_data_table_headers = [
             "plate",
             "well",
+            "guides",
+            "type",
             "sample",
             "barcode",
+            "zygosity",
+            "consequence",
+            "has off-target",
+            "variant caller",
+            "score",
+            #"variant types",
+            #"allele fractions",
             "protein",
-            "type",
-            "allele",
-            "allele fraction",
-            "frame",
-            "variant Type"]
+            ]
         sample_data_table_rows = []
         for layout in layouts:
             for well in layout.wells:
+                row = []
+                row.append(layout.geid)
+                row.append("{:s}{:02}".format(well.row, well.column))
+                guide_names = None
+                content_type = 'empty'
+                if well.well_content:
+                    content_type = well.well_content.content_type
+                    if well.well_content.guides:
+                        guide_names = "; ".join(g.name for g in well.well_content.guides)
+                row.append(guide_names)
+                row.append(content_type)
+                slc_fixed_cells_found = False
                 for slc in well.sequencing_library_contents:
-                    for vc in slc.variant_results:
-                        row = []
-                        row.append(layout.geid)
-                        row.append("{:s}{:02}".format(well.row, well.column))
+                    if slc.dna_source == 'fixed cells':
+                        slc_fixed_cells_found = True
                         row.append(slc.sequencing_sample_name)
                         row.append(slc.sequencing_barcode)
-                        row.append(vc.protein_effect)
-                        row.append(vc.consequence)
-                        row.append(vc.alleles)
-                        row.append("{0:.3f}".format(vc.allele_fraction))
-                        row.append(vc.frame)
-                        row.append(vc.variant_type)
-                        sample_data_table_rows.append(row)
+                        if slc.mutation_summaries:
+                            row.append(slc.mutation_summaries[0].zygosity)
+                            row.append(slc.mutation_summaries[0].consequence)
+                            row.append(slc.mutation_summaries[0].has_off_target)
+                            row.append(slc.mutation_summaries[0].variant_caller_presence)
+                            row.append(slc.mutation_summaries[0].score)
+                        else:
+                            row.append(None)
+                            row.append(None)
+                            row.append(None)
+                            row.append(None)
+                            row.append(None)
+                if not slc_fixed_cells_found:
+                    row.append(None)
+                    row.append(None)
+                    row.append(None)
+                    row.append(None)
+                    row.append(None)
+                    row.append(None)
+                    row.append(None)
+                    # if slc.variant_results:
+                    #     row.append("; ".join(vr.variant_type for vr in slc.variant_results))
+                    #     row.append("; ".join("{0:.3f}".format(vr.allele_fraction) for vr in slc.variant_results))
+                    # else:
+                    #     row.append(None)
+                    #     row.append(None)
+                well_abundance_ratio = None
+                if well.abundances:
+                    well_abundance_ratio = "{0:.3f}".format(well.abundances[0].ratio_800_700)
+                row.append(well_abundance_ratio)
+                sample_data_table_rows.append(row)
 
         return dict(project=project,
                     title="Genome Editing Core",

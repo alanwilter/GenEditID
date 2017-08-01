@@ -175,10 +175,12 @@ class Plotter:
                 if well.well_content.guides:
                     guide_name = well.well_content.guides[0].name
             if well.sequencing_library_contents:
+                # TODO need a loop here to make sure dna_source is fixed cells
+                # cannot trust order of items in list returned by sqlalchemy
+                # sequencing_library_contents[0].dna_source corresponds to fixed cells,
+                # and sequencing_library_contents[1].dna_source to gDNA
                 if well.sequencing_library_contents[0].mutation_summaries:
                     score = well.sequencing_library_contents[0].mutation_summaries[0].score
-                    # sequencing_library_contents[0].dna_source corresponds to fixed cells,
-                    # and sequencing_library_contents[1].dna_source to gDNA
                     zygosity = well.sequencing_library_contents[0].mutation_summaries[0].zygosity
             data.append([
                         well.experiment_layout.project.geid,
