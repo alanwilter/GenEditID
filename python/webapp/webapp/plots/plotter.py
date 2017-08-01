@@ -1,11 +1,12 @@
-import plotly.graph_objs as go
-import plotly.offline as py
-from plotly import tools
-from math import ceil, floor
-
 import pandas
 import sqlalchemy
 import logging
+
+from math import ceil, floor
+
+import plotly.graph_objs as go
+import plotly.offline as py
+from plotly import tools
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
@@ -96,7 +97,7 @@ class Plotter:
                               .join(ExperimentLayout.project)\
                               .filter(Project.geid == self.project_geid)\
                               .filter(WellContent.content_type.in_(['sample', 'knock-out', 'wild-type', 'normalisation']))\
-                              .filter(Well.growths.any())
+                              .filter(Well.abundances.any())
         wells = query.all()
         if len(wells) == 0:
             return None

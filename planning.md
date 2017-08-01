@@ -62,7 +62,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - **project description**
   - [x] Core Genome Editing comments section: box to add comments about the project, that should be updatable and stored on the database along the project
   - [x] project global overview: tab 'Project' from the layout excel file
-  - [ ] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
+  - [x] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
 - **global data exploration**, plots for:
   - RICH [x] Protein abundance
   - RICH [x] Growth curves
