@@ -36,9 +36,8 @@ class NGSPlotter:
         self.legend_groups.clear()
         titles = []
         for vt in self.variant_types:
-            titles.append('Type of mutation ({}s)'.format(vt))
-        titles.append("Zygosity")
-        titles.append("Indel lenghts")
+            titles.append('Consequence of mutation ({}s)'.format(vt))
+        titles.extend(["Zygosity", "Indel lenghts", "Allele sequences"])
         # See https://plot.ly/python/subplots/
         self.ngsfigure = tools.make_subplots(rows=4, cols=2,
                                      subplot_titles=titles,
@@ -50,6 +49,8 @@ class NGSPlotter:
         self.zygosity_plot(2, 1, 3)
         self.indellengths_plot(2, 2, 4)
         self.allelesequences_plot(3, 1, 5)
+        self.typeofmutation_plot(4, 1, 6)
+        
         output_type = "file"
         if not ngs_file:
             output_type = "div"
@@ -67,6 +68,52 @@ class NGSPlotter:
         })
         return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
+
+    def typeofmutation_plot(self, row_index, column_index, anchor):
+        """Type of mutation plot.
+        
+        This plot shows the *% of alleles that have a mutation of a certain type*.
+        It shows allele data from all samples that have a mutation (so wt are excluded,
+        and double and single mutants contribute with two and one alleles respectively).
+        The types of mutation considered are
+        *insertion*, *deletion* and *SNV* (single-nucleotide variant).
+        """
+        
+        query = self.dbsession.query(VariantResult)\
+                              .join(VariantResult.sequencing_library_content)\
+                              .join(SequencingLibraryContent.well)\
+                              .join(Well.experiment_layout)\
+                              .join(ExperimentLayout.project)\
+                              .filter(Project.geid == self.project_geid)\
+                              .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                              .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)
+
+        varianttype = query.all()
+        if len(varianttype) == 0:
+           return None       
+        guides =[]
+        typeofvariant = []
+        variant_caller_types = []
+        for i in varianttype:
+            guide_name = 'none'
+            if i.sequencing_library_content.well.well_content.guides:
+                guide_name = i.sequencing_library_content.well.well_content.guides[0].name
+            if i.indel_length == None:
+                typevar = i.variant_type
+            elif i.indel_length > 0:
+                typevar = 'insertion'
+            elif i.indel_length < 0:
+                typevar = 'deletion'
+            else:
+                typevar = None
+            variant_caller_types.append(i.variant_caller)
+            guides.append(guide_name)
+            typeofvariant.append(typevar)
+        
+        df = pandas.DataFrame({'caller': variant_caller_types, 'guides': guides, 'typeofvariant': typeofvariant})
+        for variant_caller, group_by_variant_caller in df.groupby(['caller']):
+            self._get_percent_plots_per_guide(group_by_variant_caller, 'typeofvariant', variant_caller, row_index, column_index, anchor)
+            self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
     def zygosity_plot(self, row_index, column_index, anchor):
         # we need to filter by gDNA, because there is a sample in project1 (GE-P6B4-G)
@@ -250,8 +297,6 @@ class NGSPlotter:
                     showlegend=legendgroup not in self.legend_groups,
                     xaxis="x{:d}".format(anchor),
                     yaxis="y{:d}".format(anchor))
-            print(legendgroup, guide_name, colourmap, variant_caller)
-            print(trace)
             self.ngsfigure.append_trace(trace, row_index, column_index)
             self.legend_groups.add(legendgroup)
 
