@@ -267,7 +267,7 @@ class Plotter:
                 figure.layout[i].update({'type': 'category'})
         # with this layout.update below, width and height are set in the plot.Perhaps you can set them directly on the plotting area on the web page
         # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
-        figure.layout.update(dict(autosize=False, width=850, height=plotheight, hovermode='closest'))
+        figure.layout.update(dict(autosize=False, width=850, height=plotheight, hovermode='closest', showlegend=False))
         # plot
         output_type = "file"
         if not plate_scoring_file:

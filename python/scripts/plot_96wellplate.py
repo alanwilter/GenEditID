@@ -163,7 +163,7 @@ for i in fig.layout:
 
 # with this layout.update below, width and height are set in the plot.Perhaps you can set them directly on the plotting area on the web page
     # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
-fig.layout.update(dict(autosize = False, width = 850, height = plotheight, hovermode = 'closest'))
+fig.layout.update(dict(autosize = False, width = 850, height = plotheight, hovermode = 'closest', showlegend = False))
 
 # plot
 pyoff.plot(fig, filename = 'plot96.html')
