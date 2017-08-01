@@ -159,8 +159,8 @@ class NGSPlotter:
             allindellengths.append(vr.indel_length)
             typecallers.append(vr.variant_caller)
         df = pandas.DataFrame({'caller': typecallers, 'guides': guides, 'indellengths': allindellengths})
-        for caller, gdata in df.groupby(['caller']):
-            self._get_percent_plots_per_guide(df, 'indellengths', caller, row_index, column_index, anchor)
+        for caller, group_by_variant_caller in df.groupby(['caller']):
+            self._get_percent_plots_per_guide(group_by_variant_caller, 'indellengths', caller, row_index, column_index, anchor)
         self.ngsfigure.layout.update({"xaxis{:d}".format(anchor): dict(title='Indel length (bp)')})
         self.ngsfigure.layout.update({"yaxis{:d}".format(anchor): dict(title='% of submitted samples per guide', range=[0, 100])})
 
@@ -197,8 +197,8 @@ class NGSPlotter:
         # convert 'results' to pandas dataframe and group by 'guides'
         df = pandas.DataFrame({'caller': typecaller, 'guides': guide, 'alleles': alleles, 'index5': allele_index5, 'index3': allele_index3})
         df = df.sort_values(by=['index5', 'index3'])  # calculate percentages of indel lengths and create bar plot 'data' dictionary
-        for caller, gdata in df.groupby(['caller']):
-            self._get_percent_plots_per_guide(df, 'alleles', caller, row_index, column_index, anchor, reverse_axis=False)
+        for caller, group_by_variant_caller in df.groupby(['caller']):
+            self._get_percent_plots_per_guide(group_by_variant_caller, 'alleles', caller, row_index, column_index, anchor, reverse_axis=False)
         # order the y-axis
         # get the ordered alleles in the y-axis
         allele_list_sorted = list(OrderedDict.fromkeys(df.alleles))
@@ -209,9 +209,9 @@ class NGSPlotter:
             })
 
     def _match_colors_to_guidenames(self):
-        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
-                           'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
-                           'rgb(213,94,0)', 'rgb(204, 121,167)']
+        colour_map_base = ['rgb(0,0,0)', 'rgb(230,159,0)', 'rgb(86,180,233)',
+                           'rgb(0,158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+                           'rgb(213,94,0)', 'rgb(204,121,167)']
         guidenames = [i.name for i in self.dbsession.query(Guide).join(Target).join(Project).filter(Project.geid == self.project_geid).all()]
         try:
             return dict(zip(guidenames, colour_map_base[0:len(guidenames)]))
@@ -219,18 +219,19 @@ class NGSPlotter:
             raise Exception('There are more guides than possible mapping colours for plotting')
 
     def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor, reverse_axis = False):
-        symbol = self.caller_symbols.get(variant_caller)
-        if not symbol:
-            symbol = "circle"
+        symbol = self.caller_symbols.get(variant_caller) if variant_caller else 'circle'
         for guide_name, group_by_guide in df.groupby(['guides']):
+            colourmap = self.guide_color_dict.get(guide_name)
             group_by_grouping_variable = group_by_guide.groupby([grouping_variable]).size()
             grouped_data_byvar_percent = group_by_grouping_variable*100 / group_by_grouping_variable.sum()
             htext = []
             for length_gdbp in range(len(grouped_data_byvar_percent)):
                 if variant_caller:
                     hovertext = [variant_caller] #add other elements to this list to display when hovering
+                    hovertext = ' '.join(hovertext)
+                    htext.append(hovertext)
                 else:
-                    hovertext = []
+                    hovertext = [] #add other elements to this list to display when hovering
                     hovertext = ' '.join(hovertext)
                     htext.append(hovertext)
             legendgroup = guide_name
@@ -242,13 +243,15 @@ class NGSPlotter:
                     marker=dict(
                         symbol=symbol,
                         size=self.marker_size,
-                        color=self.guide_color_dict.get(guide_name)
+                        color=colourmap
                         ),
                     text=htext,
                     legendgroup=legendgroup,
                     showlegend=legendgroup not in self.legend_groups,
                     xaxis="x{:d}".format(anchor),
                     yaxis="y{:d}".format(anchor))
+            print(legendgroup, guide_name, colourmap, variant_caller)
+            print(trace)
             self.ngsfigure.append_trace(trace, row_index, column_index)
             self.legend_groups.add(legendgroup)
 
