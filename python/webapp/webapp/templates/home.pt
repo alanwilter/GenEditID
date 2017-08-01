@@ -32,8 +32,8 @@
                   <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
               </p>
               <p>
-                  Set this check box to remove the existing project,
-                  select file again and upload.
+                  Set this check box to remove the existing project, and all its
+                  associated experimental data, select file again and upload.
                   <input name="blat" type="checkbox" value="true"></input>
               </p>
           </div>
@@ -62,14 +62,21 @@
   $(document).ready (
     function() {
         $('#project-data').DataTable ( {
-          "columnDefs": [ {
-             "targets": 1,
-             "data": "view_link",
-             "render": function ( data, type, full, meta ) {
-               return '<a href="'+data+'">view/edit</a>';
-             }
-           } ],
-           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+          "columnDefs": [
+            { "targets": 1,
+              "data": "view_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">view</a>';
+              }
+            },
+            { "targets": 2,
+              "data": "edit_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">edit</a>';
+              }
+            },
+          ],
+          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         } );
     } );
 </script>

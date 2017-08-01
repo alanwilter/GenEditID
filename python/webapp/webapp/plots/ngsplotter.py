@@ -1,10 +1,12 @@
+import pandas
+import sqlalchemy
+import logging
+
 import plotly.graph_objs as go
 import plotly.offline as py
 from plotly import tools
 
-import pandas
-import sqlalchemy
-import logging
+from collections import OrderedDict
 
 from dnascissors.config import cfg
 from dnascissors.model import Base
@@ -15,8 +17,6 @@ from dnascissors.model import Project
 from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import VariantResult
 from dnascissors.model import Well
-from dnascissors.model import WellContent
-from collections import OrderedDict
 
 
 class NGSPlotter:
@@ -173,7 +173,6 @@ class NGSPlotter:
             if well.well_content.guides:
                 guide_name = well.well_content.guides[0].name
             guides.append(guide_name)
-
             mutation_types.append(variant_result.consequence)
             variant_caller_types.append(variant_result.variant_caller)
         df = pandas.DataFrame({'caller': variant_caller_types, 'guides': guides, 'mutation': mutation_types})
@@ -265,7 +264,7 @@ class NGSPlotter:
         except Exception:
             raise Exception('There are more guides than possible mapping colours for plotting')
 
-    def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor, reverse_axis = False):
+    def _get_percent_plots_per_guide(self, df, grouping_variable, variant_caller, row_index, column_index, anchor, reverse_axis=False):
         symbol = self.caller_symbols.get(variant_caller) if variant_caller else 'circle'
         for guide_name, group_by_guide in df.groupby(['guides']):
             colourmap = self.guide_color_dict.get(guide_name)
@@ -274,17 +273,17 @@ class NGSPlotter:
             htext = []
             for length_gdbp in range(len(grouped_data_byvar_percent)):
                 if variant_caller:
-                    hovertext = [variant_caller] #add other elements to this list to display when hovering
+                    hovertext = [variant_caller]  # add other elements to this list to display when hovering
                     hovertext = ' '.join(hovertext)
                     htext.append(hovertext)
                 else:
-                    hovertext = [] #add other elements to this list to display when hovering
+                    hovertext = []  # add other elements to this list to display when hovering
                     hovertext = ' '.join(hovertext)
                     htext.append(hovertext)
             legendgroup = guide_name
             trace = go.Scatter(
-                    x = grouped_data_byvar_percent.tolist() if reverse_axis else grouped_data_byvar_percent.index.tolist(),
-                    y = grouped_data_byvar_percent.index.tolist() if reverse_axis else grouped_data_byvar_percent.tolist(),
+                    x=grouped_data_byvar_percent.tolist() if reverse_axis else grouped_data_byvar_percent.index.tolist(),
+                    y=grouped_data_byvar_percent.index.tolist() if reverse_axis else grouped_data_byvar_percent.tolist(),
                     name=guide_name,
                     mode='markers',
                     marker=dict(
@@ -299,6 +298,7 @@ class NGSPlotter:
                     yaxis="y{:d}".format(anchor))
             self.ngsfigure.append_trace(trace, row_index, column_index)
             self.legend_groups.add(legendgroup)
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG,

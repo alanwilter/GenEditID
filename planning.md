@@ -62,7 +62,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - **project description**
   - [x] Core Genome Editing comments section: box to add comments about the project, that should be updatable and stored on the database along the project
   - [x] project global overview: tab 'Project' from the layout excel file
-  - [ ] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
+  - [x] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
 - **global data exploration**, plots for:
   - RICH [x] Protein abundance
   - RICH [x] Growth curves
@@ -106,7 +106,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
       - [ ] IGV link
       - [ ] Allele fraction
       - [ ] Alleles
-  - [ ] Comments (this section is independent to the one described in 'project')
+  - [ ] Results Comments (this section is independent to the one described in 'project')
 - [ ] generate final user report
 
 ## problems to solve
@@ -119,3 +119,34 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] unable to fit a model on growth plots to extract curve (Discussion with Dominique on Thu 13 July)
 - [ ] make plots and data tables considering that we can have more than one dna_source. As it is currently, e.g. for project GEP00001, well.sequencing_library_contents[0].dna_source is 'fixed cells' and well.sequencing_library_contents[1].dna_source is 'gDNA'. We are selecting only fixed cells for simplification, but we need to show both (the reason to have gDNA and cells was to be able to compare the sequencing results from both). Also, in project one there is a sample (GE-P6B4-G) that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart), no fixed cells, so when you do well.sequencing_library_contents[0].dna_source, it results in 'gDNA'!
 - [ ] RUBEN. Revise protein data values in plot_96_wells, how the range looks like (we should see edges )
+
+## end of project meeting
+- Aim: Paper to publish: dry and wet - portable as much as possible: maybe docker
+- (1) Bioinfo pipeline:
+  - new version of the amplicon sequencing pipeline after fixes on merged data per line
+  - branch and modify to our own needs with explanation on how to install from scratch
+- (2) Coordinate translation to switch between reference genomes
+- (3) Primer design: make it automatic - primer pair if failed nested primers
+- Use replicates - update calculation instead of using average
+- Question? Several guides in single well: how to you put in the the layout file and load it?
+- Document the script methods - 3 to 4 lines of comments in plotter files
+- Access control to only genome editing core
+  - report with pdf or link to website
+  - bam files
+- Current webapp - what needs to be finished?
+  - Results table need to be updated with the right columns and one line per samples
+  - Add result comments on project and add it on edit project
+  - Check project type: knock-in and knock-out
+  - Merge growth and abundance plots into one
+  - Sample tab: update well name on plot to match the one in table
+- Update loading data via webapp and ngs results manually
+- Load ngs results for knock-in project 3
+- Export selection of results not all results
+- How it went? What we could do better?
+  - R/Shiny to Python/Pyramid: is it normal process? nope but lots of learning
+  - Agile way of working is great
+  - Python, Plotly, database learning
+  - Not spend that much time on the shiny
+  - 2 times three months deadline has a negative impact on the project flow
+  - Allocated working time to work together like two days per week
+  - Great to have meeting every morning at 10am, very useful
