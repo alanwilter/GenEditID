@@ -26,7 +26,8 @@ class HomeViews(object):
                       'clash': False,
                       'error': False,
                       'column_headers': ["geid",
-                                         "action",
+                                         "view",
+                                         "edit",
                                          "name",
                                          "scientist",
                                          "group leader",
@@ -39,7 +40,7 @@ class HomeViews(object):
                                          "growth data",
                                          "ngs data",
                                          ]
-                       }
+                     }
         try:
             # Table of projects
             rows = []
@@ -47,6 +48,7 @@ class HomeViews(object):
             for project in projects:
                 rows.append([project.geid,
                              "project/{}".format(project.id),
+                             "project/{}/edit".format(project.id),
                              project.name,
                              project.scientist,
                              project.group_leader,

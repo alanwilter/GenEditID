@@ -51,8 +51,8 @@
                   <span class='warning'>Warning!</span> The data that you are uploading, ${clash.key}, already exists.
               </p>
               <p>
-                  Set this check box to remove the existing data,
-                  select file again and upload.
+                  Set this check box to remove the existing data associated
+                  to ${clash.key}, select plate, data type and file again and upload.
                   <input name="blat" type="checkbox" value="true"></input>
               </p>
           </div>
