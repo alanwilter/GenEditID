@@ -24,32 +24,34 @@
         <h2>Create new project</h2>
         <p>
             Load a new project and its experiment layout from an Excel file
-            using the <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>appropriate template</a>.
+            using <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>this template</a>.
         </p>
-        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-            <div tal:condition="clash">
-                <p>
-                    <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
-                </p>
-                <p>
-                    Set this check box to remove the existing project, select file and
-                    upload again.
-                    <input name="blat" type="checkbox" value="true"></input>
-                </p>
-            </div>
-            <div class='error' tal:condition="error">
-                <p>
-                    Error: ${error}
-                </p>
-            </div>
-            <p>
-              <label for="upload">Select file:</label>
-              <input id="upload" name="layoutfile" type="file" value=""></input>
-              <input type="submit" name="submit" value="Upload"></input>
-            </p>
-            <p>
-                Loading data can take a few seconds. Thanks for your patience.
-            </p>
+        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
+          <div tal:condition="clash">
+              <p>
+                  <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
+              </p>
+              <p>
+                  Set this check box to remove the existing project,
+                  select file again and upload.
+                  <input name="blat" type="checkbox" value="true"></input>
+              </p>
+          </div>
+          <div class='error' tal:condition="error">
+              <p>
+                  Error: ${error}
+              </p>
+          </div>
+          <div class="form-group">
+            Select file:
+            <label class="btn btn-default btn-file">
+              <input type="file" id="upload" name="layoutfile" value=""></input>
+            </label>
+          </div>
+          <input class="btn btn-default" type="submit" name="submit" value="Upload"></input>
+          <p>
+              Loading data can take a few seconds. Thanks for your patience.
+          </p>
         </form>
         <hr/>
       </div>
@@ -64,7 +66,7 @@
              "targets": 1,
              "data": "view_link",
              "render": function ( data, type, full, meta ) {
-               return '<a href="'+data+'">view</a>';
+               return '<a href="'+data+'">view/edit</a>';
              }
            } ],
            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]

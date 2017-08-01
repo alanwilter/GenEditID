@@ -18,7 +18,7 @@
         <hr />
 
         <!-- Comments section ************************************************ -->
-        <h3>Update comments</h3>
+        <h3>Project's comments</h3>
         <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
           <p>
             Add/update comments:
@@ -41,17 +41,51 @@
         </table>
 
         <h4>Upload</h4>
-        <form id="upload_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
-          <p>
-            Select the plate layout
-            <select id="plate_selector">
+        <p>
+            Load a new cell growth (incucyte) or protein abundance (InCell Western)
+            data file for project ${project.geid}. Make sure to select the correct plate!
+        </p>
+        <form id="upload_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
+          <div tal:condition="clash">
+              <p>
+                  <span class='warning'>Warning!</span> The data that you are uploading, ${clash.key}, already exists.
+              </p>
+              <p>
+                  Set this check box to remove the existing data,
+                  select file again and upload.
+                  <input name="blat" type="checkbox" value="true"></input>
+              </p>
+          </div>
+          <div class='error' tal:condition="error">
+              <p>
+                  Error: ${error}
+              </p>
+          </div>
+          <div class="form-group">
+            Select the plate
+            <select id="plate_selector" name="plate_selector">
               <div tal:repeat="plate platelayouts">
                 <option value="plate0" tal:attributes="value plate">${plate}</option>
               </div>
             </select>
+          </div>
+          <div class="form-group">
+            the type of data
+            <select id="plate_type" name="plate_type">
+              <div tal:repeat="plate platetypes">
+                <option value="plate0" tal:attributes="value plate">${plate}</option>
+              </div>
+            </select>
+          </div>
+          <div class="form-group">
             and the file to upload
-            <input id="upload" name="layoutfile" type="file" value=""></input>
-            <input type="submit" name="submit" value="Upload"></input>
+            <label class="btn btn-default btn-file">
+              <input type="file" id="upload" name="datafile" value=""></input>
+            </label>
+          </div>
+          <input class="btn btn-default" type="submit" name="submit" value="Upload"></input>
+          <p>
+              Loading data can take a few seconds. Thanks for your patience.
           </p>
         </form>
         <hr />

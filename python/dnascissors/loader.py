@@ -441,9 +441,15 @@ class ProteinAbundanceLoader(Loader):
             raise Exception('No plate {:s}'.format(plate_id))
 
     def clean(self):
-        return self.session.query(ProteinAbundance).filter(ProteinAbundance.plate_id == plate.id).delete()
+        self.session.query(ProteinAbundance).filter(ProteinAbundance.plate_id == self.plate.id).delete()
+        self.session.flush()
 
-    def load(self):
+    def load(self, clean_if_exists=False):
+        if self.plate.is_abundance_plate:
+            if clean_if_exists:
+                self.clean()
+            else:
+                raise ExistingEntityException(Plate, self.plate.geid, "Already have protein abundance data for this plate {:s}. Will not overwrite it.".format(self.plate.geid))
         self.log.info("Loading InCell Western signal for plate {:s} from {:s}".format(self.plate_id, self.csv_file))
         with open(self.csv_file, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -501,9 +507,16 @@ class CellGrowthLoader(Loader):
             raise Exception('No plate {:s}'.format(plate_id))
 
     def clean(self):
-        return self.session.query(CellGrowth).filter(CellGrowth.plate_id == plate.id).delete()
+        self.session.query(CellGrowth).filter(CellGrowth.plate_id == self.plate.id).delete()
+        self.session.flush()
 
-    def load(self):
+    def load(self, clean_if_exists=False):
+        if self.plate.is_growth_plate:
+            if clean_if_exists:
+                self.clean()
+            else:
+                raise ExistingEntityException(Plate, self.plate.geid, "Already have cell growth data for this plate {:s}. Will not overwrite it.".format(self.plate.geid))
+
         self.log.info("Loading Incucyte growth information for plate {:s} from {:s}".format(self.plate_id, self.csv_file))
 
         with open(self.csv_file, 'r') as f:

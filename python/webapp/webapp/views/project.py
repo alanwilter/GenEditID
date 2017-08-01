@@ -1,3 +1,8 @@
+import os
+import uuid
+import shutil
+import logging
+
 import colander
 import deform.widget
 
@@ -7,6 +12,11 @@ from pyramid.view import view_config
 from dnascissors.model import Project
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Plate
+
+from dnascissors.loader import ExistingEntityException
+
+from dnascissors.loader import ProteinAbundanceLoader
+from dnascissors.loader import CellGrowthLoader
 
 from webapp.plots.plotter import Plotter
 from webapp.plots.ngsplotter import NGSPlotter
@@ -22,6 +32,7 @@ class ProjectContent(colander.MappingSchema):
 class ProjectViews(object):
 
     def __init__(self, request):
+        self.logger = logging.getLogger('webapp')
         self.request = request
         self.dbsession = request.dbsession
 
@@ -193,12 +204,14 @@ class ProjectViews(object):
 
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
+        upload_error = False
+        upload_clash = False
         plate_headers = [
-            "layout_geid",
-            "geid",
+            "layout geid",
+            "plate geid",
             "barcode",
             "description",
-            "uploaded data"]
+            "data"]
         plate_rows = []
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
@@ -211,7 +224,7 @@ class ProjectViews(object):
             row.append(plate.geid)
             row.append(plate.barcode)
             row.append(plate.description)
-            row.append(plate.is_data_available)
+            row.append(plate.plate_type)
             plate_rows.append(row)
         edit_form = self.projects_form("Update")
         if 'submit_comments' in self.request.params:
@@ -224,12 +237,65 @@ class ProjectViews(object):
             project.comments = appstruct['comments']
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
-        if 'upload_data' in self.request.params:
-            pass
+        if 'submit' in self.request.params:
+            print(self.request.params)
+            clean_existing = False
+            try:
+                clean_existing = self.request.POST['blat']
+            except KeyError:
+                pass
+            file_path = None
+            try:
+                file_path = self._upload("datafile")
+                if file_path and self.request.POST["plate_type"] and self.request.POST["plate_selector"]:
+                    if self.request.POST["plate_type"].startswith('growth'):
+                        loader = CellGrowthLoader(self.dbsession, file_path, self.request.POST["plate_selector"])
+                    if self.request.POST["plate_type"].startswith('abundance'):
+                        loader = ProteinAbundanceLoader(self.dbsession, file_path, self.request.POST["plate_selector"])
+                    try:
+                        loader.load(clean_existing)
+                        url = self.request.route_url('project_edit', projectid=project.id)
+                        return HTTPFound(url)
+                    except ExistingEntityException as e:
+                        upload_clash = e
+            except Exception as e:
+                self.logger.error("Have an unexpected error while uploading data: {}".format(e))
+                upload_error = str(e)
+            finally:
+                if file_path:
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
         return dict(title=title,
                     subtitle=subtitle,
                     projectid=project.id,
                     project=project,
                     plate_headers=plate_headers,
                     plate_rows=plate_rows,
-                    platelayouts=[p.geid for p in plates])
+                    platelayouts=[p.geid for p in plates],
+                    platetypes=['abundance (icw)', 'growth (incu)'],
+                    clash=upload_clash,
+                    error=upload_error)
+
+    def _upload(self, property):
+        filename = self.request.POST[property].filename
+        filedata = self.request.POST[property].file
+        if not filedata:
+            return None
+        self.logger.debug("Uploaded = %s" % filename)
+        file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), '.txt'))
+        temp_file_path = file_path + '~'
+        try:
+            filedata.seek(0)
+            with open(temp_file_path, 'wb') as output_file:
+                shutil.copyfileobj(filedata, output_file)
+            os.rename(temp_file_path, file_path)
+            statinfo = os.stat(file_path)
+            self.logger.info("Uploaded a file of {:d} bytes".format(statinfo.st_size))
+        finally:
+            try:
+                os.remove(temp_file_path)
+            except OSError:
+                pass
+        return file_path

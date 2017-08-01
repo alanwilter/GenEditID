@@ -240,17 +240,30 @@ class Plate(Base):
     description = Column(String)
 
     @property
-    def is_data_available(self):
+    def is_abundance_plate(self):
+        if len(self.abundances) > 0:
+            return True
+
+    @property
+    def is_growth_plate(self):
+        if len(self.growths) > 0:
+            return True
+
+    @property
+    def is_ngs_plate(self):
         for well in self.experiment_layout.wells:
-            if len(well.abundances) > 0:
-                return True
-            if len(well.growths) > 0:
-                return True
             if well.sequencing_library_contents:
                 for sequencing_library_content in well.sequencing_library_contents:
                     if len(sequencing_library_content.variant_results) > 0:
                         return True
-        return False
+
+    @property
+    def plate_type(self):
+        types = {'abundance': self.is_abundance_plate,
+                 'growth': self.is_growth_plate,
+                 #'NGS': self.is_ngs_plate
+                 }
+        return ','.join([k for k, v in types.items() if v is True])
 
 
 class WellContent(Base):
