@@ -177,10 +177,12 @@ class ProjectViews(object):
                 row = []
                 row.append(layout.geid)
                 row.append("{:s}{:02}".format(well.row, well.column))
-                guide_names = None
-                content_type = 'empty'
+                guide_names = 'no-guide'
+                content_type = 'empty-well'
+                zygosity = 'empty-well'
                 if well.well_content:
                     content_type = well.well_content.content_type
+                    zygosity = 'wt'
                     if well.well_content.guides:
                         guide_names = "; ".join(g.name for g in well.well_content.guides)
                 row.append(guide_names)
@@ -198,13 +200,13 @@ class ProjectViews(object):
                             row.append(slc.mutation_summaries[0].variant_caller_presence)
                             row.append(slc.mutation_summaries[0].score)
                         else:
-                            row.append(None)
+                            row.append(zygosity)
                             row.append(None)
                             row.append(None)
                             row.append(None)
                             row.append(None)
                 if not slc_fixed_cells_found:
-                    row.append(None)
+                    row.append(zygosity)
                     row.append(None)
                     row.append(None)
                     row.append(None)
