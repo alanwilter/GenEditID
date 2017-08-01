@@ -215,7 +215,7 @@ class Plotter:
             # create hover text to add to the scatter data structure
             hovertext = []
             for index, rows in grouped_data.iterrows():
-                htext = [rows.guide, rows.zygosity, 'protein=' + str(round(rows.protein_abundance, 2)), 'score=' + str(rows.score)]
+                htext = ["{:s}{:02}".format(rows.row, rows.column), rows.guide, rows.zygosity, 'protein=' + str(round(rows.protein_abundance, 2)), 'score=' + str(rows.score)]
                 htext = ', '.join(htext)  # the hover text needs to be a single string, it can't be a list
                 hovertext.append(htext)
             # create scatter plot data structure
@@ -237,7 +237,8 @@ class Plotter:
                     }
                 ),
                 # hover text
-                text=hovertext
+                text=hovertext,
+                hoverinfo='text'
             )
             dataplot.append(scatter)
         # create plot layout in a grid of two columns and n rows
