@@ -31,7 +31,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
 #### Done
-- [x] ANNE (3). calculate mutation_summary score and load
+- [ ] ANNE (3). calculate mutation_summary score and load. Currently score uses has_offtargets, zygosity and consequence. Add protein when the experiment is KO.
 - [x] ANNE (3). add values for variant_caller_presence
 - [x] ANNE (2). add values for has_frameshift
 - [x] ANNE (2). load guide mismatches

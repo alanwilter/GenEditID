@@ -3,8 +3,9 @@ title: "GEsubmissionForms_annotations"
 author: "Ruben Alvarez"
 date: "12 April 2017, latest update 12 July 2017"
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -89,6 +90,7 @@ The *Layout* describes the way samples are arranged in the plate wells, so ultim
 **geid: ** unique ID for a layout plate in the format *project_geid*_*two-digit number*s, e.g. GEP00001_01 and GEP00001_02.  
 **well_position: ** Well position in the format (A-H)(1-12), e.g. A1 and A12.  
 **cell_line_name: ** Name of the parental cell line used to derive a clone (if any) to gene-edit, e.g MCF7.  
+**cell pool: ** An id for the cell pool (normally, three pools are edited to ensure clones from each pool come from independent editing events).  
 **clone_name: ** Name of the parental cell line-derived clone. This is the source of cells used to gene-edit.  
 **guide_name: ** This corresponds to the name of the guide used to edit the cell clone and must match one of the guide names in Guide@name, e.g. STAT3.1.  
 **replicate_group: ** Numeric value. E.g. each gene-edited single clone will receive a unique number, e.g. 1, 2, 3, and if there is replication (e.g. for controls) a repeated number as in 4, 4, 4. Each plate will have a maximum of 96 replicate groups.  
