@@ -27,7 +27,7 @@ from webapp.plots.ngsplotter import NGSPlotter
 
 
 class ProjectContent(colander.MappingSchema):
-    comments = colander.SchemaNode(colander.String(), title="comments")
+    comments = colander.SchemaNode(colander.String(), title="comments", default='', missing='')
 
 
 class ProjectViews(object):
@@ -39,7 +39,7 @@ class ProjectViews(object):
 
     def projects_form(self, buttonTitle):
         schema = ProjectContent().bind(request=self.request)
-        submitButton = deform.form.Button(name='submit', title=buttonTitle)
+        submitButton = deform.form.Button(name='submit_comments', title=buttonTitle)
         return deform.Form(schema, buttons=(submitButton,))
 
     @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
@@ -217,6 +217,7 @@ class ProjectViews(object):
 
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
+        comments_error = False
         upload_error = False
         upload_clash = False
         plate_headers = [
@@ -245,8 +246,18 @@ class ProjectViews(object):
             try:
                 appstruct = edit_form.validate(fields)
             except deform.ValidationFailure as e:
-                return dict(project=project, form=e.render(), title=title, subtitle=subtitle)
-            print("New comments = %s" % appstruct['comments'])
+                return dict(title=title,
+                            subtitle=subtitle,
+                            projectid=project.id,
+                            project=project,
+                            comments_error=str(e.error),
+                            plate_headers=plate_headers,
+                            plate_rows=plate_rows,
+                            platelayouts=[p.geid for p in plates],
+                            platetypes=['abundance (icw)', 'growth (incu)'],
+                            clash=upload_clash,
+                            error=upload_error)
+            self.logger.debug("New comments = %s" % appstruct['comments'])
             project.comments = appstruct['comments']
             url = self.request.route_url('project_view', projectid=project.id)
             return HTTPFound(url)
@@ -284,6 +295,7 @@ class ProjectViews(object):
                     subtitle=subtitle,
                     projectid=project.id,
                     project=project,
+                    comments_error=comments_error,
                     plate_headers=plate_headers,
                     plate_rows=plate_rows,
                     platelayouts=[p.geid for p in plates],

@@ -20,6 +20,11 @@
         <!-- Comments section ************************************************ -->
         <h3>Project's comments</h3>
         <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+          <div class='error' tal:condition="comments_error">
+              <p>
+                  Error: ${comments_error}
+              </p>
+          </div>
           <p>
             Add/update comments:
             <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
