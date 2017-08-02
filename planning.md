@@ -4,26 +4,26 @@
 file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
 #### Done
-- ANNE (2) [x] we don't need 'barcode_size' in SequencingLibraryContent
+- [x] ANNE (2). we don't need 'barcode_size' in SequencingLibraryContent
   - remove it everywhere from model, template and loader
-- ANNE (2) [x] in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
-- ANNE (2) [x] in Project: change 'institute' to 'affiliation'
+- [x] ANNE (2). in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
+- [x] ANNE (2). in Project: change 'institute' to 'affiliation'
 
 ## data model (model.py)
-- ANNE (.) [ ] check that codes associated to classes are not in script but put back in class functions
-- ANNE (?) [ ] Add donor table: sequence, start, end on forward and excision sequence
+- [ ] ANNE (.). check that codes associated to classes are not in script but put back in class functions
+- [ ] ANNE (?). Add donor table: sequence, start, end on forward and excision sequence
 - [ ] add documentation to model.py (e.g. we have a relationship one to many in well to abundances. This is because you can take repeated measurements from the same well)
 - [ ] revise relationships model.py (e.g. we have a relationship one to many in sequencing_library_content to mutation_summaries. In this case we can't obtain a second mutation_summaries for the same library, so it's more meaningful if relationship is 1:1).
 
 #### Done
-- ANNE (2) [x] add 'cell_pool' to ExperimentLayout
-- ANNE (2) [x] add (editable) comments on projects
-- ANNE (2) [x] Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
-- ANNE (2) [x] Add column in mutation_summary for frameshift yes/no
-- ANNE (2) [x] add column in mutation_summary for score
-- ANNE (2) [x] Add mismatches table for guides: is_coding_region, regions, mismatches
-- ANNE (3) [x] Add 'project_type' ('knock-in', 'knock-out') to Project.
-- ANNE (3) [x] update database diagram
+- [x] ANNE (2). add 'cell_pool' to ExperimentLayout
+- [x] ANNE (2). add (editable) comments on projects
+- [x] ANNE (2). Add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
+- [x] ANNE (2). Add column in mutation_summary for frameshift yes/no
+- [x] ANNE (2). add column in mutation_summary for score
+- [x] ANNE (2). Add mismatches table for guides: is_coding_region, regions, mismatches
+- [x] ANNE (3). Add 'project_type' ('knock-in', 'knock-out') to Project.
+- [x] ANNE (3). update database diagram
 
 ## loader
 - ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
@@ -31,13 +31,13 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
 #### Done
-- ANNE (3) [x] calculate mutation_summary score and load
-- ANNE (3) [x] add values for variant_caller_presence
-- ANNE (2) [x] add values for has_frameshift
-- ANNE (2) [x] load guide mismatches
+- [x] ANNE (3). calculate mutation_summary score and load
+- [x] ANNE (3). add values for variant_caller_presence
+- [x] ANNE (2). add values for has_frameshift
+- [x] ANNE (2). load guide mismatches
 
 ## sequencing analysis pipeline (later)
-- CHANDU (3) [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
+- [ ] CHANDU (3). genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
 - [ ] pipeline to work with human and mouse genomes
 - [ ] Not urgent. primer design automation and loading data in DB (primer blast)
 
@@ -48,11 +48,11 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] propose solution on full automation
 
 ## plots / analysis
-- RUBEN (1) [x] 96-well plate scatter plot (Ruben - need the scores and the slopes)
+- [x] RUBEN (1). 96-well plate scatter plot (Ruben - need the scores and the slopes)
 - [x] Indelranges (Chandu)
-- CHANDU (2) [ ] Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
-- CHANDU (2) [ ] Heatmap [protein, NGS[[frameshift-frame1, frameshift-frame2, noframeshift], [offtarget], [zygosity]], growth slope]
-- RUBEN (2) [ ] Growth slopes (we need to calculate the slopes!) - done except with colors
+- [ ] CHANDU (2). Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
+- [ ] CHANDU (2). Heatmap [protein, NGS[[frameshift-frame1, frameshift-frame2, noframeshift], [offtarget], [zygosity]], growth slope]
+- [ ] RUBEN (2). Growth slopes (we need to calculate the slopes!) - done except with colors
 - [ ] Combined plot NGS + protein + slopes, color-coded for frameshifts
 
 - [ ] Not urgent. Current analysis is per single project > update to process multiple projects
@@ -64,11 +64,11 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [x] project global overview: tab 'Project' from the layout excel file
   - [x] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
 - **global data exploration**, plots for:
-  - RICH [x] Protein abundance
-  - RICH [x] Growth curves
+  - [x] RICH. Protein abundance
+  - [x] RICH. Growth curves
   - [ ] Growth slopes
   - NGS exploratory plots
-    - ANNE (1) [x] % Zygosities (‘homozygous’, ‘heterozygous’…)
+    - [x] ANNE (1). % Zygosities (‘homozygous’, ‘heterozygous’…)
     - [x] % Alleles (e.g. C/CATG, CTAA/C)
     - [ ] % Distances from cut site (to import)
     - [x] % Indel lengths
@@ -79,9 +79,9 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Heatmap
 - **sample details**
   - [x] plot: 96-well plates for score-based clone selection
-  - RICH [x] Data table per project
+  - [x] RICH. Data table per project
   - [ ] Per-sample plot of INDEL ranges
-  - LATER [ ] Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
+  - [ ] LATER. Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
 - **user report** for selected samples
   - need a way to select samples and get data table (and plots) only related to these
   - [x] project global overview (tab 'Project' from the layout excel file)
@@ -116,42 +116,45 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] revise queries, filtering by project might not be working correctly (we can use sample names as tracking system)
 - [ ] very large indels detected (90 bp!)
 - [ ] issue with *shiny app*: position_dodge messes up hover event data (Ruben is on it, raised issue at github plot.ly)
-- CHANDU (1) [x] haplotypecaller is giving two merged values for the same sample onto one row separated by comma
+- [x] CHANDU (1). haplotypecaller is giving two merged values for the same sample onto one row separated by comma
 - [ ] unable to fit a model on growth plots to extract curve (Discussion with Dominique on Thu 13 July)
 - [ ] make plots and data tables considering that we can have more than one dna_source. As it is currently, e.g. for project GEP00001, well.sequencing_library_contents[0].dna_source is 'fixed cells' and well.sequencing_library_contents[1].dna_source is 'gDNA'. We are selecting only fixed cells for simplification, but we need to show both (the reason to have gDNA and cells was to be able to compare the sequencing results from both). Also, in project one there is a sample (GE-P6B4-G) that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart), no fixed cells, so when you do well.sequencing_library_contents[0].dna_source, it results in 'gDNA'!
 - [ ] RUBEN. Revise protein data values in plot_96_wells, how the range looks like (we should see edges )
 
 ## end of project meeting
-
-Aim: Paper to publish: dry and wet - portable as much as possible: maybe docker
-
-
-- (1) Bioinfo pipeline:
-  - new version of the amplicon sequencing pipeline after fixes on merged data per line
-  - branch and modify to our own needs with explanation on how to install from scratch
-- (2) Coordinate translation to switch between reference genomes
-- (3) Primer design: make it automatic - primer pair if failed nested primers
-- Use replicates - update calculation instead of using average
-- Question? Several guides in single well: how to you put in the the layout file and load it?
-- Document the script methods - 3 to 4 lines of comments in plotter files
-- Access control to only genome editing core
-  - report with pdf or link to website
-  - bam files
-- Current webapp - what needs to be finished?
-  - [x] Results table need to be updated with the right columns and one line per samples
-  - [ ] Add result comments on project and add it on edit project
-  - [ ] Finish scoring with protein ratio 800/700 vs KO average
-  - [ ] Scale scoring system to 100%
-  - [ ] Merge growth and abundance plots into one
-  - [x] Check project type: knock-in and knock-out - it is in!
-  - [x] Sample tab: update well name on plot to match the one in table
-- Update loading data via webapp and ngs results manually
-- Load ngs results for knock-in project 3
-- Export selection of results not all results
-- Add growth slope calculation
+**Main aim:** Paper to publish: dry and wet - portable as much as possible: maybe docker
 
 
-- How it went? What we could do better?
+- **What's next?**
+  - (1) Bioinfo pipeline:
+    - new version of the amplicon sequencing pipeline after fixes on merged data per line
+    - branch and modify to our own needs with explanation on how to install from scratch
+  - (2) Coordinate translation to switch between reference genomes
+  - (3) Primer design: make it automatic - primer pair if failed nested primers
+  - Use replicates - update calculation instead of using average
+  - Question? Several guides in single well: how to you put in the the layout file and load it?
+  - Access control to only genome editing core
+    - report with pdf or link to website
+    - bam files
+  - Load ngs results for knock-in project 3
+  - Export selection of results not all results
+  - Add growth slope calculation
+
+
+- **What needs to be finished?**
+  - Current webapp
+    - [x] Results table need to be updated with the right columns and one line per samples
+    - [ ] ANNE - Add result comments on project and add it on edit project
+    - [ ] ANNE - Finish scoring with protein ratio 800/700 vs KO average
+    - [ ] ANNE - Scale scoring system to 100%
+    - [ ] Merge growth and abundance plots into one
+    - [x] Check project type: knock-in and knock-out - it is in!
+    - [x] Sample tab: update well name on plot to match the one in table
+  - [ ] ANNE. Update doc on loading data via webapp and ngs results manually
+  - [ ] RUBEN. Document the script methods - 3 to 4 lines of comments in plotter files
+
+
+- **How it went? What could we do better?**
   - R/Shiny to Python/Pyramid: is it normal process? nope but lots of learning
   - Agile way of working is great
   - Python, Plotly, database learning
