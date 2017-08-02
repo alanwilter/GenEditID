@@ -368,6 +368,15 @@ class VariantResult(Base):
                 return abs(self.indel_length) % 3
             return abs(self.indel_length)
 
+    @property
+    def variant_str_summary(self):
+        return "{}:{}:{}:{}:{:.3f}:{}".format(self.variant_caller,
+                                              self.variant_type,
+                                              self.frame,
+                                              self.gene_id,
+                                              self.allele_fraction,
+                                              self.alleles)
+
 
 class MutationSummary(Base):
     __tablename__ = 'mutation_summary'

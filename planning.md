@@ -27,7 +27,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
 ## loader
 - ANNE (3) [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
-- [ ] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down. The extension does not matter for the loader, it only needs to be the same format. We use the csv library to load the file and specify the delimiter to be tab. If we were renaming these files to .txt, we will need to update the loading scripts used to populate the database in `shell/` directory.
+- [x] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down. Answer: The extension does not matter for the loader, it only needs to be the same format. We use the csv library to load the file and specify the delimiter to be tab. If we were renaming these files to .txt, we will need to update the loading scripts used to populate the database in `shell/` directory.
 - [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
 #### Done
@@ -48,7 +48,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] propose solution on full automation
 
 ## plots / analysis
-- RUBEN (1) [ ] 96-well plate scatter plot (Ruben - need the scores and the slopes)
+- RUBEN (1) [x] 96-well plate scatter plot (Ruben - need the scores and the slopes)
 - [x] Indelranges (Chandu)
 - CHANDU (2) [ ] Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
 - CHANDU (2) [ ] Heatmap [protein, NGS[[frameshift-frame1, frameshift-frame2, noframeshift], [offtarget], [zygosity]], growth slope]
@@ -89,23 +89,24 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Combined plot (clone vs controls)
   - Data table
     - [x] per project and plate layout (i.e. GEP00001_01 and no GEP00001_01_incu)
-    - [ ] output data as soon as we have input (e.g. if there is protein data, show it regardless of presence of growth and NGS data). Ideally we could click on the 96-well plate and have the clone highlighted in this table, but this is not priority
+    - [x] output data as soon as we have input (e.g. if there is protein data, show it regardless of presence of growth and NGS data).
+    - [ ] Ideally we could click on the 96-well plate and have the clone highlighted in this table, but this is not priority
     - [ ] columns of the data table:
       - [x] Plate
       - [x] Well
       - [x] Sample name
       - [x] Fluidigm barcode
-      - [ ] score (output NaN if no NGS data available)
+      - [x] score (output NaN if no NGS data available)
       - [ ] Protein abundance (800/700) relative to wild type control (this needs to be calculated. Output NaN if no protein data available)
       - [ ] Protein abundance (800/700) relative to knock-out control (this needs to be calculated)
       - [ ] (Growth slope relative to wild type control (this needs to be calculated. Output NaN if no growth data available))
       - [ ] (Growth slope relative to knock-out control (this needs to be calculated))
       (these below, columns from the variant output. Output NaN if no NGS data available )
-      - [ ] Variant type/consequence
-      - [ ] Symbol (Gene ID)
+      - [x] Variant type/consequence
+      - [x] Symbol (Gene ID)
       - [ ] IGV link
-      - [ ] Allele fraction
-      - [ ] Alleles
+      - [x] Allele fraction
+      - [x] Alleles
   - [ ] Results Comments (this section is independent to the one described in 'project')
 - [ ] generate final user report
 
@@ -137,12 +138,12 @@ Aim: Paper to publish: dry and wet - portable as much as possible: maybe docker
   - report with pdf or link to website
   - bam files
 - Current webapp - what needs to be finished?
-  - [ ] Results table need to be updated with the right columns and one line per samples
+  - [x] Results table need to be updated with the right columns and one line per samples
   - [ ] Add result comments on project and add it on edit project
   - [ ] Finish scoring with protein ratio 800/700 vs KO average
   - [ ] Scale scoring system to 100%
-  - [x] Check project type: knock-in and knock-out - it is in!
   - [ ] Merge growth and abundance plots into one
+  - [x] Check project type: knock-in and knock-out - it is in!
   - [x] Sample tab: update well name on plot to match the one in table
 - Update loading data via webapp and ngs results manually
 - Load ngs results for knock-in project 3
