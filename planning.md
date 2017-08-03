@@ -30,8 +30,9 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [x] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down. Answer: The extension does not matter for the loader, it only needs to be the same format. We use the csv library to load the file and specify the delimiter to be tab. If we were renaming these files to .txt, we will need to update the loading scripts used to populate the database in `shell/` directory.
 - [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
 
-#### Done
+#### Corrections
 - [ ] ANNE (3). calculate mutation_summary score and load. Currently score uses has_offtargets, zygosity and consequence. Add protein when the experiment is KO.
+- [ ] ANNE. The score uses has_frameshift. However, has_frameshift is True if at least one of the alleles has a frameshift. Make it True only when both alleles have a frameshift (the reason: if one is frameshift and the other inframe, the result is presence of protein and partial KO, but with the current score it's highly rated)
 - [x] ANNE (3). add values for variant_caller_presence
 - [x] ANNE (2). add values for has_frameshift
 - [x] ANNE (2). load guide mismatches
