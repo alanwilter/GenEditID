@@ -223,13 +223,13 @@ class Plotter:
                 hovertext.append(htext)
             # create scatter plot data structure
             scatter = go.Scatter(
-                x=grouped_data['column'],
-                y=grouped_data['row'],
+                x=grouped_data['column'].tolist(),
+                y=grouped_data['row'].tolist(),
                 name=i,  # i is the plate
                 mode='markers',
                 marker=dict(
                     size='20',  # dot size
-                    color=grouped_data['score'],  # assign a color based on score
+                    color=grouped_data['score'].tolist(),  # assign a color based on score
                     showscale=True if nloop == 1 else False,
                     colorscale=color_scale,
                     cmin=7000,  # min value of the colorscale
