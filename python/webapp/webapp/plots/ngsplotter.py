@@ -74,7 +74,7 @@ class NGSPlotter:
         return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
                        
-    def indelstructure_plot(self, row_index, column_index, anchor):
+    def indelstructure_plot(self, row_index, column_index, anchor, getsample_plot = None):
         """Structure of indels plot.
         It shows the indels and SNVs on a genomic coordinate xaxis, with their size and
         allele frequency. Split by variant caller and showing guide positions.
@@ -136,7 +136,7 @@ class NGSPlotter:
             mutation_coordinate_end = mutation_coordinate_end % 10000
             allele_fraction = i.allele_fraction
             hovertext = [', '.join([variant_caller,'well: ' + '-'.join([plate, well_position]),
-                                    'length: '+ str(mutation_length), guide_name])] * 2
+                                    'sample: ' + seqsample, 'length: '+ str(mutation_length), guide_name])] * 2
             guidedict.update({guide_name:guide_coordinate})
             plotdict[variant_caller][seqsample].append({
                 'x':[mutation_coordinate_start, mutation_coordinate_end],
@@ -188,7 +188,31 @@ class NGSPlotter:
                                           })
         self.ngsfigure.layout.update({'shapes': shapes, 'hovermode': 'closest'})
         self.ngsfigure.layout['annotations'].extend(annots)
-            
+        
+        #---------------to get individual sample plots
+        fig = tools.make_subplots(rows = 1, cols = 2, subplot_titles = results_callers)
+        colindex = 1
+        sample_xaxisrange = []
+        for d_caller in results_callers:
+            for mut in plotdict[d_caller]['GE-P4C2-C']: #pass getsample_plot here
+                fig.append_trace(mut, 1, colindex)
+                sample_xaxisrange.append(mut.get('x'))
+            colindex += 1
+        
+        sample_xaxisranges = [i for x in sample_xaxisrange for i in x]
+        
+        for i in fig.layout:
+            if i.find('xaxis') == 0:
+                fig.layout[i].update({'range':[min(sample_xaxisranges)-10, max(sample_xaxisranges)+10], 'showgrid':False})
+            elif i.find('yaxis') == 0:
+                fig.layout[i].update({'range':[0,1.1]})
+        
+        fig.layout.update({
+            'shapes': shapes,
+            'hovermode': 'closest'})
+        fig.layout['annotations'].extend(annots)
+        #py.plot(fig)
+    
     def typeofmutation_plot(self, row_index, column_index, anchor):
         """Type of mutation plot.
 
