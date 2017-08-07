@@ -7,18 +7,13 @@ Created on Thu Aug  3 16:13:21 2017
 
 import pandas
 import sqlalchemy
-import logging
 
 import plotly.graph_objs as go
 import plotly.offline as py
 from plotly import tools
 
-from collections import OrderedDict, defaultdict
-
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from dnascissors.model import Guide
-from dnascissors.model import Target
 from dnascissors.model import ExperimentLayout
 from dnascissors.model import Project
 from dnascissors.model import SequencingLibraryContent
@@ -100,12 +95,10 @@ for a, callerdata in df.groupby(['caller']):
             xaxisrange = [trow.guide_coordinate - 125, trow.guide_coordinate +125]
             xvalues = [trow.mutation_coordinate_start, trow.mutation_coordinate_end]
             yvalues = [trow.allele_fraction] * 2
-            hovertext = [', '.join(['well:', '-'.join([trow.plate, trow.well_position]),
-                                    'length:', str(trow.indellength),
+            hovertext = [', '.join(['well: '+'-'.join([trow.plate, trow.well_position]),
+                                    'length: '+ str(trow.indellength),
                                     trow.guide])
                         ] * 2
-    #        xvalues = list(range(*[mutation_coordinate_start,trow.mutation_coordinate_end]))
-     #       yvalues = trow.allele_fraction * len(xvalues)
             plotdata_scatter.append({
                 'x':xvalues,
                 'y':yvalues,
@@ -137,9 +130,6 @@ for i in fig.layout:
     elif i.find('yaxis') == 0:
         fig.layout[i].update({'range':[0,1.1]})
 
-
-
-#####revise from here, some problem with the shapes (taking only first element of shapes?) and annotations not showing
 shapes = []
 annots = []
 for caller in ['1','2']:
