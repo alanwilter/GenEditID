@@ -37,24 +37,35 @@ class NGSPlotter:
     def combined_ngs_plot(self, ngs_file=None):
         self.legend_groups.clear()
         titles = []
-        for vt in self.variant_types:
-            titles.append('Consequence of mutation ({}s)'.format(vt))
-        titles.extend(["Zygosity", "Indel lenghts", "Allele sequences",
-                       "Type of mutation", "", "Indel structure-caller1",
-                       "Indel structure-caller2"])
+        #titles_variant = []
+        #for vt in self.variant_types:
+        #    titles_variant.append('Consequence of mutation ({}s)'.format(vt))
+        #titles.extend(["Indel structure-caller1", "Indel structure-caller2",
+        #"Type of mutation", "",
+        #'Consequence of mutation (INDELS)', 'Consequence of mutation (SNVs)',
+        #"Zygosity", "Indel lenghts",
+        #"Allele sequences"])
         # See https://plot.ly/python/subplots/
+        titles = ["Type of mutation", "",
+        "Indel structure-caller1", "Indel structure-caller2",
+        "Consequence of mutation (INDELS)", "Consequence of mutation (SNVs)",
+        "Zygosity", "Indel lenghts",
+        "Allele sequences"]
         self.ngsfigure = tools.make_subplots(rows=5, cols=2,
                                              subplot_titles=titles,
-                                             specs=[[{}, {}], [{}, {}], [{'colspan': 2}, None], [{}, {}], [{},{}]],
+                                             specs=[[{}, {}], [{}, {}], [{}, {}], [{},{}], [{'colspan': 2}, None]],
                                              print_grid=False
                                              )
-        self.variants_plot(self.variant_types[0], 1, 1, 1)
-        self.variants_plot(self.variant_types[1], 1, 2, 2)
-        self.zygosity_plot(2, 1, 3)
-        self.indellengths_plot(2, 2, 4)
-        self.allelesequences_plot(3, 1, 5)
-        self.typeofmutation_plot(4, 1, 6) #anchor is 6, but since the plot takes 2 columns, anchor '7' is taken with it
-        self.indelstructure_plot(5, [1,2], [8,9]) #these plots occupy 2 columns, one per variant caller
+        self.typeofmutation_plot(1, 1, 1)
+        self.indelstructure_plot(2, [1,2], [3,4]) #these plots occupy 2 columns, one anchor per variant caller
+        self.variants_plot(self.variant_types[0], 3, 1, 5)
+        self.variants_plot(self.variant_types[1], 3, 2, 6)
+        self.zygosity_plot(4, 1, 7)
+        self.indellengths_plot(4, 2, 8)
+        self.allelesequences_plot(5, 1, 9) #note: anchor 8 gives properties of this plot to indellengths_plot instead
+        
+        for anchors in range(1,10):
+            self.ngsfigure.layout.update({"yaxis{:d}".format(anchors): dict(titlefont = {'size':12})})
 
         output_type = "file"
         if not ngs_file:
@@ -67,7 +78,7 @@ class NGSPlotter:
                     'margin': go.Margin(
                         l=50,
                         r=50,
-                        b=100,
+                        b=350,
                         t=100,
                         pad=4)
         })
@@ -190,7 +201,7 @@ class NGSPlotter:
         self.ngsfigure.layout['annotations'].extend(annots)
         
         #---------------to get individual sample plots
-        fig = tools.make_subplots(rows = 1, cols = 2, subplot_titles = results_callers)
+        fig = tools.make_subplots(rows = 1, cols = 2, subplot_titles = results_callers, print_grid=False)
         colindex = 1
         sample_xaxisrange = []
         for d_caller in results_callers:
@@ -393,7 +404,10 @@ class NGSPlotter:
         # get the ordered alleles in the y-axis
         allele_list_sorted = list(OrderedDict.fromkeys(df.alleles))
         self.ngsfigure.layout.update({
-            "xaxis{:d}".format(anchor): dict(categoryorder='array', categoryarray=allele_list_sorted),
+            "xaxis{:d}".format(anchor): dict(categoryorder='array',
+                                             categoryarray=allele_list_sorted,
+                                             tickfont = {'size':9}
+                                            ),
             "yaxis{:d}".format(anchor): dict(title='% of alleles in submitted samples per guide', range=[0, 100]),
             "margin": {'l': 800}
             })

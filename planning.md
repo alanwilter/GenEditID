@@ -51,11 +51,12 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 ## plots / analysis
 - [x] RUBEN (1). 96-well plate scatter plot (Ruben - need the scores and the slopes)
 - [x] Indelranges (Chandu)
-- [ ] CHANDU (2). Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
+- [x] CHANDU (2). Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
 - [ ] CHANDU (2). Heatmap [protein, NGS[[frameshift-frame1, frameshift-frame2, noframeshift], [offtarget], [zygosity]], growth slope]
 - [ ] RUBEN (2). Growth slopes (we need to calculate the slopes!) - done except with colors
+- [x] Combined plot NGS + protein
 - [ ] Combined plot NGS + protein + slopes, color-coded for frameshifts
-
+- [ ] Ruben added code to get indelstructures from single variables. It is in ngsplotter.indelstructure_plot and needs to be put in the right place, connected to the table
 - [ ] Not urgent. Current analysis is per single project > update to process multiple projects
 - [ ] Not urgent. Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously - need to add an 'allele_number' field to the database and update the code
 
@@ -76,6 +77,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
     - [ ] % Type of mutation (‘wt’, ‘insertion’, ‘deletion’, ‘SNV’)
     - [x] % Type of variant (‘wt’, ‘frameshift’, ‘inframe’...)
     - [ ] INDEL ranges (visual location of alleles)
+    - [ ] ngsplotter.indelstructure_plot to add to plotter
   - [ ] Combined plots (NGS + protein + growth slopes)
   - [ ] Heatmap
 - **sample details**
