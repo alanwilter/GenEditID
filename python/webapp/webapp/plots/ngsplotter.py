@@ -46,26 +46,29 @@ class NGSPlotter:
         #"Zygosity", "Indel lenghts",
         #"Allele sequences"])
         # See https://plot.ly/python/subplots/
-        titles = ["Type of mutation", "",
-        "Indel structure-caller1", "Indel structure-caller2",
-        "Consequence of mutation (INDELS)", "Consequence of mutation (SNVs)",
-        "Zygosity", "Indel lenghts",
-        "Allele sequences"]
+        titles = ["Type of mutation",
+                  "",
+                  "Indel structure-caller1",
+                  "Indel structure-caller2",
+                  "Consequence of mutation (INDELS)",
+                  "Consequence of mutation (SNVs)",
+                  "Zygosity", "Indel lenghts",
+                  "Allele sequences"]
         self.ngsfigure = tools.make_subplots(rows=5, cols=2,
                                              subplot_titles=titles,
                                              specs=[[{}, {}], [{}, {}], [{}, {}], [{},{}], [{'colspan': 2}, None]],
                                              print_grid=False
                                              )
         self.typeofmutation_plot(1, 1, 1)
-        self.indelstructure_plot(2, [1,2], [3,4]) #these plots occupy 2 columns, one anchor per variant caller
+        self.indelstructure_plot(2, [1, 2], [3, 4])  # these plots occupy 2 columns, one anchor per variant caller
         self.variants_plot(self.variant_types[0], 3, 1, 5)
         self.variants_plot(self.variant_types[1], 3, 2, 6)
         self.zygosity_plot(4, 1, 7)
         self.indellengths_plot(4, 2, 8)
-        self.allelesequences_plot(5, 1, 9) #note: anchor 8 gives properties of this plot to indellengths_plot instead
-        
-        for anchors in range(1,10):
-            self.ngsfigure.layout.update({"yaxis{:d}".format(anchors): dict(titlefont = {'size':12})})
+        self.allelesequences_plot(5, 1, 9)  # note: anchor 8 gives properties of this plot to indellengths_plot instead
+
+        for anchors in range(1, 10):
+            self.ngsfigure.layout.update({"yaxis{:d}".format(anchors): dict(titlefont={'size': 12})})
 
         output_type = "file"
         if not ngs_file:
@@ -84,30 +87,30 @@ class NGSPlotter:
         })
         return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-                       
+
     def indelstructure_plot(self, row_index, column_index, anchor, getsample_plot = None):
         """Structure of indels plot.
         It shows the indels and SNVs on a genomic coordinate xaxis, with their size and
         allele frequency. Split by variant caller and showing guide positions.
-        
+
         """
         query = self.dbsession.query(VariantResult)\
-                  .join(VariantResult.sequencing_library_content)\
-                  .join(SequencingLibraryContent.well)\
-                  .join(SequencingLibraryContent.mutation_summaries)\
-                  .join(Well.well_content)\
-                  .join(WellContent.guides)\
-                  .join(Well.experiment_layout)\
-                  .join(ExperimentLayout.project)\
-                  .filter(Project.geid == self.project_geid)\
-                  .filter(SequencingLibraryContent.dna_source != 'gDNA')\
-                  .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)\
-                  .filter(MutationSummary.has_off_target == False)
+                    .join(VariantResult.sequencing_library_content)\
+                    .join(SequencingLibraryContent.well)\
+                    .join(SequencingLibraryContent.mutation_summaries)\
+                    .join(Well.well_content)\
+                    .join(WellContent.guides)\
+                    .join(Well.experiment_layout)\
+                    .join(ExperimentLayout.project)\
+                    .filter(Project.geid == self.project_geid)\
+                    .filter(SequencingLibraryContent.dna_source != 'gDNA')\
+                    .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)\
+                    .filter(MutationSummary.has_off_target is False)
         results = query.all()
         if len(results) == 0:
             return None
         # notes: this query gets only wells with guides, not gDNA, allele fraction > 0.1 and no offtargets
-        
+
         # get the caller and sequencing_sample_names
         results_callers = list(set(i.variant_caller for i in query.all()))
         results_samples = list(set(i.sequencing_library_content.sequencing_sample_name for i in query.all()))
@@ -116,14 +119,14 @@ class NGSPlotter:
         for caller in results_callers:
             plotcaller = {}
             for sam in results_samples:
-                plotcaller.update({sam:[]})
-            plotdict.update({caller:plotcaller})
+                plotcaller.update({sam: []})
+            plotdict.update({caller: plotcaller})
 
         # populate the plot dictionaries on the fly from the database
-        plotdata_xaxisrange =[]
-        guidedict = {} #list of guides with their coordinates
+        plotdata_xaxisrange =[ ]
+        guidedict = {}  # list of guides with their coordinates
         shapecolor = {'SNV': 'rgba(0, 0, 0, 0.5)', 'insertion': 'rgba(239, 163, 64, 0.5)', 'deletion': 'rgba(112, 161, 239, 0.5)'}
-        anchor_dict = {caller:anc for caller,anc in zip(results_callers, anchor)}
+        anchor_dict = {caller: anc for caller, anc in zip(results_callers, anchor)}
         for i in results:
             well = i.sequencing_library_content.well
             variant_caller = i.variant_caller
@@ -133,8 +136,8 @@ class NGSPlotter:
             guide_name = well.well_content.guides[0].name
             guide_coordinate = well.well_content.guides[0].amplicon_selections[0].guide_location % 10000 #to get just the last 4 digits, eg. 12345676 > 5676
             xaxisrange = [guide_coordinate - 125, guide_coordinate +125]
-            mutation_length = 0 if i.indel_length == None else i.indel_length
-            if mutation_length ==0:
+            mutation_length = 0 if i.indel_length is None else i.indel_length
+            if mutation_length == 0:
                 mutation = 'SNV'
             elif mutation_length > 0:
                 mutation = 'insertion'
@@ -142,88 +145,87 @@ class NGSPlotter:
                 mutation = 'deletion'
             mutation_coordinate = i.position
             mutation_coordinate_start = mutation_coordinate if mutation_length >=0 else mutation_coordinate - abs(mutation_length)
-            mutation_coordinate_start =mutation_coordinate_start % 10000
-            mutation_coordinate_end = mutation_coordinate + mutation_length if mutation_length >=0 else mutation_coordinate
+            mutation_coordinate_start = mutation_coordinate_start % 10000
+            mutation_coordinate_end = mutation_coordinate + mutation_length if mutation_length >= 0 else mutation_coordinate
             mutation_coordinate_end = mutation_coordinate_end % 10000
             allele_fraction = i.allele_fraction
-            hovertext = [', '.join([variant_caller,'well: ' + '-'.join([plate, well_position]),
+            hovertext = [', '.join([variant_caller, 'well: ' + '-'.join([plate, well_position]),
                                     'sample: ' + seqsample, 'length: '+ str(mutation_length), guide_name])] * 2
-            guidedict.update({guide_name:guide_coordinate})
+            guidedict.update({guide_name: guide_coordinate})
             plotdict[variant_caller][seqsample].append({
-                'x':[mutation_coordinate_start, mutation_coordinate_end],
-                'y':[allele_fraction]*2,
+                'x': [mutation_coordinate_start, mutation_coordinate_end],
+                'y': [allele_fraction]*2,
                 'xaxis': "x{:d}".format(anchor_dict[variant_caller]),
-                'yaxis':"y{:d}".format(anchor_dict[variant_caller]),
-                'name':guide_name,
-                'mode':'lines',
-                'legendgroup':guide_name,
-                'showlegend':guide_name not in self.legend_groups,
-                'line':{
-                    'color':shapecolor.get(mutation),
-                    'width':5
+                'yaxis': "y{:d}".format(anchor_dict[variant_caller]),
+                'name': guide_name,
+                'mode': 'lines',
+                'legendgroup': guide_name,
+                'showlegend': guide_name not in self.legend_groups,
+                'line': {
+                    'color': shapecolor.get(mutation),
+                    'width': 5
                 },
-                'text': hovertext  
+                'text': hovertext
             })
             self.legend_groups.add(guide_name)
             plotdata_xaxisrange.append(xaxisrange)
-        
-        shapes,annots = [],[]
-        col_index_dict = {caller:ri for caller, ri in zip(results_callers, column_index)}
+
+        shapes, annots = [], []
+        col_index_dict = {caller: ri for caller, ri in zip(results_callers, column_index)}
         for d_caller in plotdict:
             for d_sample in plotdict[d_caller]:
                 for mut in plotdict[d_caller][d_sample]:
                     self.ngsfigure.append_trace(mut, row_index, col_index_dict[d_caller])
-            for guidename,guidecoord in zip(guidedict, guidedict.values()):
-                shape={
-                'type': 'line',
-                'xref':"x{:d}".format(anchor_dict[d_caller]),
-                'yref':"y{:d}".format(anchor_dict[d_caller]),
-                'x0': guidecoord, 'y0': 0, 'x1': guidecoord, 'y1': 1,
-                'line': {'color': 'rgb(55, 128, 191)','width': 1, 'dash':'dashdot'},
+            for guidename, guidecoord in zip(guidedict, guidedict.values()):
+                shape = {
+                    'type': 'line',
+                    'xref': "x{:d}".format(anchor_dict[d_caller]),
+                    'yref': "y{:d}".format(anchor_dict[d_caller]),
+                    'x0': guidecoord, 'y0': 0, 'x1': guidecoord, 'y1': 1,
+                    'line': {'color': 'rgb(55, 128, 191)','width': 1, 'dash':'dashdot'},
                 }
-                annotation={
-                'text':guidename,
-                'x': guidecoord, 'y':1,
-                'xref':"x{:d}".format(anchor_dict[d_caller]),
-                 'yref':"y{:d}".format(anchor_dict[d_caller]),
-                'textangle':270,
-                'font':{'size':9}
+                annotation = {
+                    'text': guidename,
+                    'x': guidecoord, 'y':1,
+                    'xref': "x{:d}".format(anchor_dict[d_caller]),
+                     'yref': "y{:d}".format(anchor_dict[d_caller]),
+                    'textangle': 270,
+                    'font': {'size':9}
                 }
                 shapes.append(shape)
                 annots.append(annotation)
-    
-            self.ngsfigure.layout.update({"yaxis{:d}".format(anchor_dict[d_caller]):{'title':'mutation structure', 'range':[0, 1.1]},
-                                          "xaxis{:d}".format(anchor_dict[d_caller]):\
-                                                      {'range':[min(min(plotdata_xaxisrange)), max(max(plotdata_xaxisrange))],
-                                                       'showgrid':False}
+
+            self.ngsfigure.layout.update({"yaxis{:d}".format(anchor_dict[d_caller]): {'title': 'mutation structure', 'range': [0, 1.1]},
+                                          "xaxis{:d}".format(anchor_dict[d_caller]): {'range': [min(min(plotdata_xaxisrange)), max(max(plotdata_xaxisrange))],
+                                                                                      'showgrid': False}
                                           })
         self.ngsfigure.layout.update({'shapes': shapes, 'hovermode': 'closest'})
         self.ngsfigure.layout['annotations'].extend(annots)
-        
-        #---------------to get individual sample plots
-        fig = tools.make_subplots(rows = 1, cols = 2, subplot_titles = results_callers, print_grid=False)
+
+        # to get individual sample plots
+        fig = tools.make_subplots(rows=1, cols=2, subplot_titles=results_callers, print_grid=False)
         colindex = 1
         sample_xaxisrange = []
         for d_caller in results_callers:
-            for mut in plotdict[d_caller]['GE-P4C2-C']: #pass getsample_plot here
+            for mut in plotdict[d_caller]['GE-P4C2-C']:  # pass getsample_plot here
                 fig.append_trace(mut, 1, colindex)
                 sample_xaxisrange.append(mut.get('x'))
             colindex += 1
-        
+
         sample_xaxisranges = [i for x in sample_xaxisrange for i in x]
-        
+
         for i in fig.layout:
             if i.find('xaxis') == 0:
-                fig.layout[i].update({'range':[min(sample_xaxisranges)-10, max(sample_xaxisranges)+10], 'showgrid':False})
+                fig.layout[i].update({'range': [min(sample_xaxisranges)-10, max(sample_xaxisranges)+10], 'showgrid': False})
             elif i.find('yaxis') == 0:
-                fig.layout[i].update({'range':[0,1.1]})
-        
+                fig.layout[i].update({'range': [0, 1.1]})
+
         fig.layout.update({
             'shapes': shapes,
             'hovermode': 'closest'})
         fig.layout['annotations'].extend(annots)
         #py.plot(fig)
-    
+
     def typeofmutation_plot(self, row_index, column_index, anchor):
         """Type of mutation plot.
 
@@ -246,7 +248,7 @@ class NGSPlotter:
         varianttype = query.all()
         if len(varianttype) == 0:
             return None
-        guides =[]
+        guides = []
         typeofvariant = []
         variant_caller_types = []
         for i in varianttype:
@@ -406,8 +408,7 @@ class NGSPlotter:
         self.ngsfigure.layout.update({
             "xaxis{:d}".format(anchor): dict(categoryorder='array',
                                              categoryarray=allele_list_sorted,
-                                             tickfont = {'size':9}
-                                            ),
+                                             tickfont={'size': 9}),
             "yaxis{:d}".format(anchor): dict(title='% of alleles in submitted samples per guide', range=[0, 100]),
             "margin": {'l': 800}
             })

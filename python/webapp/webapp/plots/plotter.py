@@ -152,7 +152,7 @@ class Plotter:
             abundance_file = "protein_abundance_{}.html".format(self.project_geid)
         return py.plot(figure, filename=abundance_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-                       
+
     def combined_NGSandprotein_plot(self, combinedNGSprot_file=None):
         color_scale = [[0.0, 'rgb(185, 190, 193)'],  # e.g. this color is applied to the first 10% of values
                [0.3, 'rgb(200, 223, 247)'],
@@ -161,25 +161,24 @@ class Plotter:
                [0.7, 'rgb((237, 229, 90)'],
                [0.8, 'rgb((181, 221, 24)'],
                [1, 'rgb(39, 132, 1)']]
-               
+
         query = self.dbsession.query(Well)\
-                      .join(Well.experiment_layout)\
-                      .join(ExperimentLayout.project)\
-                      .join(Well.well_content)\
-                      .join(WellContent.guides)\
-                      .filter(Project.geid == self.project_geid)
-        #note I'm getting only the results with guides, ignoring the controls, etc.            
+                    .join(Well.experiment_layout)\
+                    .join(ExperimentLayout.project)\
+                    .join(Well.well_content)\
+                    .join(WellContent.guides)\
+                    .filter(Project.geid == self.project_geid)
+        # note I'm getting only the results with guides, ignoring the controls, etc.
         results = query.all()
         if not results:
             return None
-        
+
         # get all guides in the project
         guidenames = []
         for well in results:
             guidenames.append(well.well_content.guides[0].name)
-        
         guidenames = set(guidenames)
-        
+
         # build a list of plot traces
         data = []
         for well in results:
@@ -187,7 +186,6 @@ class Plotter:
             consequence = 'notsequenced'
             score = 0
             well_abundance_ratio = 0
-            
             if well.abundances:
                 well_abundance_ratio = well.abundances[0].ratio_800_700
             if well.well_content:
@@ -214,13 +212,13 @@ class Plotter:
             ])
             htext = [', '.join([str(i) for i in data_loop])]
             data.append(data_loop + htext)
-        
+
         df = pandas.DataFrame(data)
         column_names = ['wellposition', 'plate', 'consequence', 'protein', 'guide', 'score', 'zygosity', 'hovertext']
         df = df.rename(columns=dict(enumerate(column_names)))
         # group by plate layout
         dfgroup = df.groupby(['guide'])
-        
+
         dataplot = []
         for i, grouped_data in dfgroup:
             scatter = {
@@ -230,11 +228,11 @@ class Plotter:
                 'name': i,
                 'legendgroup': i,
                 'marker': {
-                    'color':grouped_data.score.tolist(),  # assign a color based on score
-                    'colorscale':color_scale,
-                    'cmin':7000,  # min value of the colorscale
-                    'cmax':9000,  # max value of the colorscale
-                    'colorbar':{  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
+                    'color': grouped_data.score.tolist(),  # assign a color based on score
+                    'colorscale': color_scale,
+                    'cmin': 7000,  # min value of the colorscale
+                    'cmax': 9000,  # max value of the colorscale
+                    'colorbar': {  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
                         'lenmode': "fraction",
                         'len': 0.4
                     }
@@ -242,23 +240,22 @@ class Plotter:
                 'text': grouped_data.hovertext.tolist()
             }
             dataplot.append(scatter)
-        
+
         categories = sorted(set(df.consequence))
         layout = go.Layout(
             title='Combined NGS and protein',
             xaxis={'categoryorder': 'array', 'categoryarray': categories},
             yaxis={'title': 'Relative protein abundance'},
-            hovermode = 'closest'
+            hovermode='closest'
         )
-        
-        figure = go.Figure(data = dataplot, layout = layout)
+
+        figure = go.Figure(data=dataplot, layout=layout)
         output_type = "file"
         if not combinedNGSprot_file:
             output_type = "div"
             combinedNGSprot_file = "combinedNGSprot_{}.html".format(self.project_geid)
         return py.plot(figure, filename=combinedNGSprot_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
-        
 
     def plate_scoring_plots(self, plate_scoring_file=None):
         results = self.dbsession.query(Well)\
