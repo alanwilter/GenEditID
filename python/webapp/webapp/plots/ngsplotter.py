@@ -2,9 +2,10 @@ import pandas
 import sqlalchemy
 import logging
 
-import plotly.graph_objs as go
-import plotly.offline as py
-from plotly import tools
+import plotly.graph_objs
+import plotly.offline
+import plotly.tools
+import plotly.exceptions
 
 from collections import OrderedDict
 
@@ -54,11 +55,11 @@ class NGSPlotter:
                   "Consequence of mutation (SNVs)",
                   "Zygosity", "Indel lenghts",
                   "Allele sequences"]
-        self.ngsfigure = tools.make_subplots(rows=5, cols=2,
-                                             subplot_titles=titles,
-                                             specs=[[{}, {}], [{}, {}], [{}, {}], [{},{}], [{'colspan': 2}, None]],
-                                             print_grid=False
-                                             )
+        self.ngsfigure = plotly.tools.make_subplots(rows=5, cols=2,
+                                                    subplot_titles=titles,
+                                                    specs=[[{}, {}], [{}, {}], [{}, {}], [{},{}], [{'colspan': 2}, None]],
+                                                    print_grid=False
+                                                    )
         self.typeofmutation_plot(1, 1, 1)
         self.indelstructure_plot(2, [1, 2], [3, 4])  # these plots occupy 2 columns, one anchor per variant caller
         self.variants_plot(self.variant_types[0], 3, 1, 5)
@@ -78,15 +79,18 @@ class NGSPlotter:
                     'autosize': False,
                     'width': 1000,
                     'height': 1500,
-                    'margin': go.Margin(
+                    'margin': plotly.graph_objs.Margin(
                         l=50,
                         r=50,
                         b=350,
                         t=100,
                         pad=4)
         })
-        return py.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
-                       include_plotlyjs=self.include_js, output_type=output_type)
+        try:
+            return plotly.offline.plot(self.ngsfigure, filename=ngs_file, auto_open=False, show_link=False,
+                                       include_plotlyjs=self.include_js, output_type=output_type)
+        except plotly.exceptions.PlotlyEmptyDataError:
+            return None
 
     def indelstructure_plot(self, row_index, column_index, anchor, getsample_plot = None):
         """Structure of indels plot.
@@ -203,7 +207,7 @@ class NGSPlotter:
         self.ngsfigure.layout['annotations'].extend(annots)
 
         # to get individual sample plots
-        fig = tools.make_subplots(rows=1, cols=2, subplot_titles=results_callers, print_grid=False)
+        fig = plotly.tools.make_subplots(rows=1, cols=2, subplot_titles=results_callers, print_grid=False)
         colindex = 1
         sample_xaxisrange = []
         for d_caller in results_callers:
@@ -224,7 +228,7 @@ class NGSPlotter:
             'shapes': shapes,
             'hovermode': 'closest'})
         fig.layout['annotations'].extend(annots)
-        #py.plot(fig)
+        #plotly.offline.plot(fig)
 
     def typeofmutation_plot(self, row_index, column_index, anchor):
         """Type of mutation plot.
@@ -440,7 +444,7 @@ class NGSPlotter:
                     hovertext = ' '.join(hovertext)
                     htext.append(hovertext)
             legendgroup = guide_name
-            trace = go.Scatter(
+            trace = plotly.graph_objs.Scatter(
                     x=grouped_data_byvar_percent.tolist() if reverse_axis else grouped_data_byvar_percent.index.tolist(),
                     y=grouped_data_byvar_percent.index.tolist() if reverse_axis else grouped_data_byvar_percent.tolist(),
                     name=guide_name,

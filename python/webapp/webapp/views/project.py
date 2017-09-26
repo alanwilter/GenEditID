@@ -193,7 +193,8 @@ class ProjectViews(object):
                         if slc.variant_results:
                             row_odict['variant results'] = "; ".join(vr.variant_str_summary for vr in slc.variant_results)
                 if well.abundances:
-                    row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
+                    if well.abundances[0].ratio_800_700:
+                        row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
                 sample_data_table_rows.append(list(row_odict.values()))
         sample_data_table_headers = row_odict.keys()
 
