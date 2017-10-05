@@ -144,10 +144,6 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [x] is presence of offtargets considered in calculation of zygosities?
 
 
-## End of project meeting - Thursday 5th Oct 2017
-**Main aim:** Paper to publish: dry and wet - portable as much as possible: maybe docker
-
-
 - **What's next?**
   - (1) Bioinfo pipeline:
     - new version of the amplicon sequencing pipeline after fixes on merged data per line
@@ -185,3 +181,54 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - 2 times three months deadline has a negative impact on the project flow
   - Allocated working time to work together like two days per week
   - Great to have meeting every morning at 10am, very useful
+
+
+## End of project meeting - Thursday 5th Oct 2017
+**Main aim:** Paper to publish: dry and wet - portable as much as possible: maybe docker
+
+- Introduction
+  - Is it useful what we currently have?
+  - What is incomplete?
+  - Smoothing the process at the NGS end
+  - New projects to go through the system
+  - Data presented in a more simplified way
+  - Project3: knock-in build-in genome - why data not in?
+  - Open system
+  - Data analysis is a manual step
+  - Amy point of contact from now on
+  - NGS submission - library prep done
+    - Next step: Submitting data into Genomics and within the system
+    - Human genome: all knock-out
+
+- Discussion
+  - Data loader: [support Amy for filling spreadsheet]
+    - support formula to load value?
+    - amplicon and primer coordinates: checking tools?
+      - guide RNA design - DeskGen
+      - primer design
+  - Primer design:
+    - automatisation of primer blast: no downloadable version
+      - currently primer3 but not the same as primer blast
+      - maybe checking primer3 vs primer blast?
+      - blat to check if there is no mistake
+  - Amplicon pipeline: running on GRCh38
+  - Sample submission to Genomics
+  - 10 projects coming on human cell lines
+  - Uploading experimental data: could be automated?
+  - Is projectID generated at uploading spreadsheet?
+  - Growth: 20 to 50% - filtering out some curves
+    - range of colours: for just one category and should be same colour
+  - Data table should be ranked by score
+  - Better presentation of analysis results: Allele faction and consensus
+  - User control: to be added in about 6 month time
+  - Adding extra data: post pipeline validation
+  - Copy numbers: two variant callers used
+  - Add allele frequency plot
+  - Clone report: genotype, growth, protein, and all sequence alignments (BAM files with link to IGV)
+  - knock-in problem: artificial genome, donor sequence to be store, no cell growth and no
+
+- Future
+  - Pool of clones
+
+- ACTIONS:
+  - week 16th Oct to load data with Amy
