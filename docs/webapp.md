@@ -147,6 +147,8 @@ pip install -r requirements-webapp.txt
 ./startwebapp &
 ```
 
+Log file /tmp/mod_wsgi-localhost:8080:1002/error_log
+
 Go to http://bioinf-ge001.cri.camres.org:8080/
 
 NB. running on port 8080, apache config needs to be fixed.
