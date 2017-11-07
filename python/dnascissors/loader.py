@@ -134,7 +134,7 @@ class Loader:
 class LayoutLoader(Loader):
 
     def __init__(self, session, workbook_file):
-        self.log = logging.getLogger('dnascissors')
+        self.log = logging.getLogger(__name__)
         self.session = session
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
@@ -432,7 +432,7 @@ class LayoutLoader(Loader):
 class ProteinAbundanceLoader(Loader):
 
     def __init__(self, session, csv_file, plate_id):
-        self.log = logging.getLogger('dnascissors')
+        self.log = logging.getLogger(__name__)
         self.session = session
         self.csv_file = csv_file
         self.plate_id = plate_id
@@ -498,7 +498,7 @@ class ProteinAbundanceLoader(Loader):
 class CellGrowthLoader(Loader):
 
     def __init__(self, session, csv_file, plate_id):
-        self.log = logging.getLogger('dnascissors')
+        self.log = logging.getLogger(__name__)
         self.session = session
         self.csv_file = csv_file
         self.plate_id = plate_id
@@ -565,7 +565,7 @@ class CellGrowthLoader(Loader):
 class VariantLoader(Loader):
 
     def __init__(self, session, project_geid, workbook_file, variant_caller):
-        self.log = logging.getLogger('dnascissors')
+        self.log = logging.getLogger(__name__)
         self.session = session
         self.project_geid = project_geid
         self.xls = pandas.ExcelFile(workbook_file)
@@ -673,7 +673,7 @@ class VariantLoader(Loader):
 class MutationLoader(Loader):
 
     def __init__(self, session, project_geid):
-        self.log = logging.getLogger('dnascissors')
+        self.log = logging.getLogger(__name__)
         self.session = session
         self.project_geid = project_geid
 

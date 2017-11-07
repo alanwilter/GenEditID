@@ -16,7 +16,7 @@ from dnascissors.loader import LayoutLoader
 
 class HomeViews(object):
     def __init__(self, request):
-        self.logger = logging.getLogger('webapp')
+        self.logger = logging.getLogger(__name__)
         self.request = request
         self.dbsession = request.dbsession
 
