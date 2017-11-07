@@ -232,3 +232,4 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 
 - ACTIONS:
   - week 16th Oct to load data with Amy
+  7th November- Amy GitHub training
