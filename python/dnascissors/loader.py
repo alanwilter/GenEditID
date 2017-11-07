@@ -42,6 +42,18 @@ class ExistingEntityException(Exception):
         return self.message
 
 
+class LoaderException(Exception):
+
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = "Loader error."
+        super(LoaderException, self).__init__(msg)
+        self.message = msg
+
+    def __str__(self):
+        return self.message
+
+
 # --------------------------------------------------------------------------------
 # Loader class
 # --------------------------------------------------------------------------------
@@ -123,7 +135,7 @@ class Loader:
                 return 'empty'
             elif value == 'empty-vector':
                 return 'empty-vector'
-            raise Exception("Well content type not recognised: {:s} (row {:d})".format(str(value), i))
+            raise LoaderException("Well content type not recognised: {:s} (row {:d})".format(str(value), i))
         else:
             return 'empty'
 
@@ -157,7 +169,7 @@ class LayoutLoader(Loader):
         sheet = self.xls.parse('Project')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.geid:
-                raise Exception('Project identifier is required on row {:d}'.format(i))
+                raise LoaderException('Project identifier is required on row {:d}'.format(i))
             project = self.session.query(Project).filter(Project.geid == row.geid).first()
             if project:
                 if clean_if_exists:
@@ -184,14 +196,14 @@ class LayoutLoader(Loader):
         sheet = self.xls.parse('Target')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.project_geid:
-                raise Exception('Project identifier is required on row {:d}'.format(i))
+                raise LoaderException('Project identifier is required on row {:d}'.format(i))
             project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
-                raise Exception('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
+                raise LoaderException('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
             if not row.species:
-                raise Exception('Species is required on row {:d}'.format(i))
+                raise LoaderException('Species is required on row {:d}'.format(i))
             if not row.assembly:
-                raise Exception('Genome assembly is required on row {:d}'.format(i))
+                raise LoaderException('Genome assembly is required on row {:d}'.format(i))
             # Find or create genome
             genome = self.session.query(Genome).filter(Genome.species == row.species).filter(Genome.assembly == row.assembly).first()
             if not genome:
@@ -201,7 +213,7 @@ class LayoutLoader(Loader):
             self.genome = genome
             # Find or create target
             if not row.name:
-                raise Exception('Target name is required on row {:d}'.format(i))
+                raise LoaderException('Target name is required on row {:d}'.format(i))
             target = self.session.query(Target).filter(Target.name == row.name).first()
             if target:
                 self.log.info("Already have a target called {:s}. It's from the project {:s}.".format(target.name, target.project.name))
@@ -221,12 +233,12 @@ class LayoutLoader(Loader):
         sheet = self.xls.parse('Guide')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.target_name:
-                raise Exception('Target name is required on row {:d}'.format(i))
+                raise LoaderException('Target name is required on row {:d}'.format(i))
             target = self.session.query(Target).filter(Target.name == row.target_name).first()
             if not target:
-                raise Exception('Target "{:s}" does not exist (row {:d})'.format(row.target_name, i))
+                raise LoaderException('Target "{:s}" does not exist (row {:d})'.format(row.target_name, i))
             if not row.name:
-                raise Exception('Guide name is required on row {:d}'.format(i))
+                raise LoaderException('Guide name is required on row {:d}'.format(i))
             guide = Guide(target=target, genome=self.genome)
             guide.name = row.name
             guide.guide_sequence = row.guide_sequence
@@ -241,7 +253,7 @@ class LayoutLoader(Loader):
         sheet = self.xls.parse('GuideMismatches')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.guide_name:
-                raise Exception('Guide name is required on row {:d}'.format(i))
+                raise LoaderException('Guide name is required on row {:d}'.format(i))
             guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
             guide_mismatch = GuideMismatch(guide=guide)
             guide_mismatch.is_off_target_coding_region = bool(row.is_off_target_coding_region)
@@ -256,10 +268,10 @@ class LayoutLoader(Loader):
         for i, row in enumerate(sheet.itertuples(), 1):
             # Need the guide first.
             if not row.guide_name:
-                raise Exception('Guide name is required on row {:d}'.format(i))
+                raise LoaderException('Guide name is required on row {:d}'.format(i))
             guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
             if not guide:
-                raise Exception('Guide "{:s}" does not exist (row {:d})'.format(row.guide_name, i))
+                raise LoaderException('Guide "{:s}" does not exist (row {:d})'.format(row.guide_name, i))
             # Find or create the amplicon
             amplicon = self.session.query(Amplicon).filter(Amplicon.genome == self.genome)\
                                                    .filter(Amplicon.chromosome == str(row.chromosome))\
@@ -281,7 +293,7 @@ class LayoutLoader(Loader):
                 if previous_strand:
                     strand = previous_strand
                 else:
-                    raise Exception("Have no guide strand on row {:d}".format(i))
+                    raise LoaderException("Have no guide strand on row {:d}".format(i))
             selection = self.session.query(AmpliconSelection)\
                                     .filter(AmpliconSelection.amplicon == amplicon)\
                                     .filter(AmpliconSelection.guide_location == int(row.guide_location))\
@@ -299,7 +311,7 @@ class LayoutLoader(Loader):
                 self.log.info('Created amplicon selection of amplicon {:s}_chr{:s}_{:d} at {:d}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, selection.guide_location))
             # Find or create forward primer
             if not row.forward_primer_geid:
-                raise Exception('Forward primer GEID is required on row {:d}'.format(i))
+                raise LoaderException('Forward primer GEID is required on row {:d}'.format(i))
             forward_primer = self.session.query(Primer).filter(Primer.geid == row.forward_primer_geid).first()
             if not forward_primer:
                 forward_primer = Primer(genome=self.genome)
@@ -314,7 +326,7 @@ class LayoutLoader(Loader):
             self.log.info('Linked amplicon {:s}_chr{:s}_{:d} with forward primer {:s}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, forward_primer.geid))
             # Find or create reverse primer
             if not row.reverse_primer_geid:
-                raise Exception('Reverse primer GEID is required on row {:d}'.format(i))
+                raise LoaderException('Reverse primer GEID is required on row {:d}'.format(i))
             reverse_primer = self.session.query(Primer).filter(Primer.geid == row.reverse_primer_geid).first()
             if not reverse_primer:
                 reverse_primer = Primer(genome=self.genome)
@@ -336,18 +348,18 @@ class LayoutLoader(Loader):
             content = None
             # Need to find project.
             if not row.project_geid:
-                raise Exception('Project identifier is required on row {:d}'.format(i))
+                raise LoaderException('Project identifier is required on row {:d}'.format(i))
             project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
-                raise Exception('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
+                raise LoaderException('Project "{:s}" does not exist (row {:d})'.format(row.project_geid, i))
             # May also need to find a guide.
             if self.get_value(row.guide_name):
                 guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
                 if not guide:
-                    raise Exception("There is no guide with the name {:s}".format(str(row.guide_name)))
+                    raise LoaderException("There is no guide with the name {:s}".format(str(row.guide_name)))
             # Find or create experiment layout
             if not row.geid:
-                raise Exception('Experiment layout GEID is required on row {:d}'.format(i))
+                raise LoaderException('Experiment layout GEID is required on row {:d}'.format(i))
             layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
                 layout = ExperimentLayout(project=project)
@@ -365,7 +377,7 @@ class LayoutLoader(Loader):
             # Clone
             if self.get_value(row.clone_name):
                 if not cell_line:
-                    raise Exception('Cannot have a clone without a cell line on row {:d}'.format(i))
+                    raise LoaderException('Cannot have a clone without a cell line on row {:d}'.format(i))
                 clone = self.session.query(Clone).filter(Clone.cell_line == cell_line).filter(Clone.name == row.clone_name).first()
                 if not clone:
                     clone = Clone(cell_line=cell_line)
@@ -384,7 +396,7 @@ class LayoutLoader(Loader):
                 self.log.info("Created well content for clone {:s}".format(content.clone.name))
             # Well
             if not row.well_position:
-                raise Exception('Well position is required on row {:d}'.format(i))
+                raise LoaderException('Well position is required on row {:d}'.format(i))
             well = Well(experiment_layout=layout)
             well.row = row.well_position[0]
             well.column = int(row.well_position[1:])
@@ -397,7 +409,7 @@ class LayoutLoader(Loader):
         for row in df.itertuples():
             experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
             if not experiment_layout:
-                raise Exception('Experiment layout GEID {:s} is required for plate GEID {:s}'.format(row.experiment_layout_geid, row.geid))
+                raise LoaderException('Experiment layout GEID {:s} is required for plate GEID {:s}'.format(row.experiment_layout_geid, row.geid))
             plate = Plate(experiment_layout=experiment_layout)
             plate.geid = row.geid
             plate.barcode = row.plate_barcode
@@ -438,7 +450,7 @@ class ProteinAbundanceLoader(Loader):
         self.plate_id = plate_id
         self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
-            raise Exception('No plate {:s}'.format(plate_id))
+            raise LoaderException('No plate {:s}'.format(plate_id))
 
     def clean(self):
         self.session.query(ProteinAbundance).filter(ProteinAbundance.plate_id == self.plate.id).delete()
@@ -475,7 +487,7 @@ class ProteinAbundanceLoader(Loader):
                                            .filter(Well.column == column)\
                                            .first()
                         if not well:
-                            raise Exception("There is no well at {:s}{:d} on plate {:s}".format(rowchar, column, self.plate.geid))
+                            raise LoaderException("There is no well at {:s}{:d} on plate {:s}".format(rowchar, column, self.plate.geid))
                         self.log.info("Setting well {:s}{:d} on {:s} for ICW {:d}".format(well.row, well.column, self.plate.geid, channel))
 
                         abundance = self.session.query(ProteinAbundance)\
@@ -504,7 +516,7 @@ class CellGrowthLoader(Loader):
         self.plate_id = plate_id
         self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
-            raise Exception('No plate {:s}'.format(plate_id))
+            raise LoaderException('No plate {:s}'.format(plate_id))
 
     def clean(self):
         self.session.query(CellGrowth).filter(CellGrowth.plate_id == self.plate.id).delete()
@@ -543,7 +555,7 @@ class CellGrowthLoader(Loader):
                                            .filter(Well.column == wellcolumn)\
                                            .first()
                         if not well:
-                            raise Exception("There is no well at {:s}{:d} on plate {:s}".format(wellrow, wellcolumn, self.plate.geid))
+                            raise LoaderException("There is no well at {:s}{:d} on plate {:s}".format(wellrow, wellcolumn, self.plate.geid))
                         value = float(line[column])
                         self.log.info("Setting well {:s}{:d} on {:s} for Incucyte {:f} at {:s}".format(well.row, well.column, self.plate.geid, value, line[0]))
                         growth = self.session.query(CellGrowth)\
@@ -629,7 +641,7 @@ class VariantLoader(Loader):
                                           .filter(SequencingLibraryContent.sequencing_barcode == row.barcode) \
                                           .first()
             if not seq_lib_content:
-                raise Exception("There is no sequencing library content for {:s} sample with {:s} barcode".format(row.sample, row.barcode))
+                raise LoaderException("There is no sequencing library content for {:s} sample with {:s} barcode".format(row.sample, row.barcode))
             result = VariantResult(sequencing_library_content=seq_lib_content)
             result.variant_caller = self.variant_caller
             result.variant_type = variant_type
@@ -717,7 +729,7 @@ class MutationLoader(Loader):
                         # select mutation only if within the amplicon range
                         mutations.append(variant)
                 elif len(well.well_content.guides) > 1:
-                    raise Exception('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
+                    raise LoaderException('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
         return mutations, nb_variants, mutations_has_off_target
 
     def _characterise_mutations_(self, mutations, nb_variants):

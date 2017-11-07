@@ -83,8 +83,8 @@ class HomeViews(object):
                 except Exception as e:
                     self.logger.error("Have an unexpected error while creating project: {}".format(e))
                     return_map['error'] = str(e)
-                except DBAPIError as e:
-                    self.logger.error("Have an unexpected database error while creating project: {}".format(e))
+                except ValueError as e:
+                    self.logger.error("Have an unexpected value error while creating project: {}".format(e))
                     return_map['error'] = str(e)
                 finally:
                     if file_path:
