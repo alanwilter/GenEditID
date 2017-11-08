@@ -30,6 +30,7 @@ See [docs/project_description.md](docs/project_description.md)
 ## People involved
 
 * Ruben Alvarez [@rubenalv](https://github.com/rubenalv)
+* Amy Smith [@smith04](https://github.com/smith04)
 * Rich Bowers [@rich7409](https://github.com/rich7409)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
@@ -40,7 +41,8 @@ See [planning](planning.md)
 
 ## How to...
 
-See [How to...](docs/howto.md) install and run this project
+- See [How to...](docs/howto.md) install and run this project
+- Access the Genome Editing WebApp [http://bioinf-ge001.cri.camres.org:8080/](http://bioinf-ge001.cri.camres.org:8080/)
 
 ## Need help with Git?
 
