@@ -295,8 +295,9 @@ class NGSPlotter:
             guide_name = 'none'
             if well.sequencing_library_contents[0].mutation_summaries:
                 mutation_zygosity = well.sequencing_library_contents[0].mutation_summaries[0].zygosity
-            if well.well_content.guides:
-                guide_name = well.well_content.guides[0].name
+            if well.well_content:
+                if well.well_content.guides:
+                    guide_name = well.well_content.guides[0].name
             zygosities.append(mutation_zygosity)
             guides.append(guide_name)
         df = pandas.DataFrame({'guides': guides, 'zygosities': zygosities})
