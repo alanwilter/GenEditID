@@ -11,6 +11,7 @@ from sqlalchemy.exc import DBAPIError
 
 from dnascissors.model import Project
 from dnascissors.loader import ExistingEntityException
+from dnascissors.loader import LoaderException
 from dnascissors.loader import LayoutLoader
 
 
@@ -73,18 +74,26 @@ class HomeViews(object):
                 try:
                     file_path = self._upload("layoutfile", ".xlsx")
                     # Now do the load, after cleaning project.
+                    self.dbsession.begin_nested()
                     loader = LayoutLoader(self.dbsession, file_path)
-                    try:
-                        loader.load_all(clean_existing)
-                        url = self.request.route_url('home')
-                        return HTTPFound(url)
-                    except ExistingEntityException as e:
-                        return_map['clash'] = e
-                except Exception as e:
-                    self.logger.error("Have an unexpected error while creating project: {}".format(e))
+                    loader.load_all(clean_existing)
+                    self.dbsession.commit()
+                    url = self.request.route_url('home')
+                    return HTTPFound(url)
+                except ExistingEntityException as e:
+                    self.dbsession.rollback()
+                    return_map['clash'] = e
+                except LoaderException as e:
+                    self.dbsession.rollback()
+                    self.logger.error("Have an unexpected loader error while creating project: {}".format(e))
                     return_map['error'] = str(e)
                 except ValueError as e:
+                    self.dbsession.rollback()
                     self.logger.error("Have an unexpected value error while creating project: {}".format(e))
+                    return_map['error'] = str(e)
+                except DBAPIError as e:
+                    self.dbsession.rollback()
+                    self.logger.error("Have an unexpected database error while creating project: {}".format(e))
                     return_map['error'] = str(e)
                 finally:
                     if file_path:
@@ -92,6 +101,26 @@ class HomeViews(object):
                             os.remove(file_path)
                         except OSError:
                             pass
+                    rows = []
+                    projects = self.dbsession.query(Project).all()
+                    for project in projects:
+                        rows.append([project.geid,
+                                     "project/{}".format(project.id),
+                                     "project/{}/edit".format(project.id),
+                                     project.name,
+                                     project.scientist,
+                                     project.group_leader,
+                                     project.group,
+                                     project.start_date,
+                                     project.end_date,
+                                     project.description,
+                                     project.comments,
+                                     project.is_abundance_data_available,
+                                     project.is_growth_data_available,
+                                     project.is_variant_data_available,
+                                     ])
+                    return_map['rows'] = rows
+                    return return_map
             return return_map
         except DBAPIError:
             return Response(self.db_err_msg, content_type='text/plain', status=500)
