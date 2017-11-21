@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mod_wsgi-express start-server pyramid.wsgi --port 8080 --user ge --group users --server-root=/home/ge/
+
