@@ -121,7 +121,8 @@ Starting the web app:
 ```
 sudo su - ge
 source venv/bin/activate
-mod_wsgi-express start-server genome-editing/python/webapp/pyramid.wsgi --port 8080
+cd genome-editing/python/webapp
+mod_wsgi-express start-server pyramid.wsgi --port 8080 --user ge --group users --server-root=/home/ge/
 ```
 http://bioinf-ge001.cri.camres.org:8080/
 
@@ -144,10 +145,10 @@ cd python/webapp
 pip install -r requirements-webapp.txt
 
 # start
-./startwebapp &
+./prod_startwebapp &
 ```
 
-Log file /tmp/mod_wsgi-localhost:8080:1002/error_log
+Log file /home/ge/error_log
 
 Go to http://bioinf-ge001.cri.camres.org:8080/
 
