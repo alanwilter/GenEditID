@@ -368,10 +368,10 @@ class LayoutLoader(Loader):
                 self.log.info('Created experiment layout {} in project {}'.format(layout.geid, project.geid))
             # Cell line
             if self.get_value(row.cell_line_name):
-                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).filter(CellLine.genome == self.genome).first()
+                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
                 if not cell_line:
-                    cell_line = CellLine(name=row.cell_line_name, genome=self.genome)
-                    cell_line.pool = self.get_value(row.cell_pool)
+                    cell_line = CellLine(name=row.cell_line_name)
+                    #cell_line.pool = self.get_value(row.cell_pool)
                     self.session.add(cell_line)
                     self.log.info('Created cell line {}'.format(cell_line.name))
             # Clone

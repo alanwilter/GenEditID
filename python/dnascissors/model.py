@@ -87,7 +87,7 @@ class Target(Base):
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
-    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='target_genome_fk'), nullable=False)
     genome = relationship(Genome)
     name = Column(String(32), unique=True, nullable=False, index=True)
     gene_id = Column(String(32), nullable=False, index=True)
@@ -109,7 +109,7 @@ class Guide(Base):
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
-    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='guide_genome_fk'), nullable=False)
     genome = relationship(Genome)
     well_contents = relationship('WellContent', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     name = Column(String(32), nullable=False, index=True)
@@ -179,7 +179,7 @@ primer_amplicon_association = Table('primer_amplicon_association', Base.metadata
 class Primer(Base):
     __tablename__ = 'primer'
     id = Column(Integer, primary_key=True)
-    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
+    genome_id = Column(Integer, ForeignKey('genome.id', name='primer_genome_fk'), nullable=False)
     genome = relationship(Genome)
     amplicons = relationship('Amplicon', secondary=primer_amplicon_association)
     geid = Column(String(8), unique=True, nullable=False, index=True)
@@ -192,10 +192,8 @@ class Primer(Base):
 class CellLine(Base):
     __tablename__ = 'cell_line'
     id = Column(Integer, primary_key=True)
-    genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
-    genome = relationship(Genome)
     name = Column(String(32), unique=True, nullable=False, index=True)
-    pool = Column(String(32))
+    #pool = Column(String(32))
     description = Column(String(1024))
 
 

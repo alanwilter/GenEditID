@@ -1,4 +1,3 @@
 #!/bin/bash
 
-pserve production.ini --reload --reload-interval=60
-
+pserve development.ini --reload --reload-interval=60
