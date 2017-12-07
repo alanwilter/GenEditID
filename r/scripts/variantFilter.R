@@ -11,21 +11,21 @@ cleanColNames <- function( tab, varType, varCaller ){
   names(tab) <- gsub('\\.','_',names(tab) )
   names(tab) <- gsub('__','_',names(tab) )
   names(tab) <- sub('_$','', names(tab))
-  
+
   names(tab)[match( 'X5_context', names(tab) ) ] <- 'fivePrimeContext'
   names(tab)[match( 'X3_context', names(tab) ) ] <- 'threePrimeContext'
   tab <- mutate( tab, varType=rep(varType, nrow(tab)),
                  varCaller=rep(varCaller, nrow(tab))
                  )
   return(tab)
-  
+
 }
 
 # Need to add additional column indicating on or off targets
 # filter based on alle frequency
 # Filter all the sites <0.15 ( equvivalent of 6 alleles 100/6 ~ .15%)
 # Filter all the alleles show high frequency ( > 90),
-# which indicates there are two alleles 
+# which indicates there are two alleles
 # 0.4 -0.6 allele frequency indicates heterozygous
 
 # It may depend on the length of the indel, longer the indel, rarer the homozygous probability
@@ -58,15 +58,15 @@ db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.o
 # Actual cut sites in DB :  amplicon_selection (col name:guide_location)
 
 # Map sequencing_library_content and amplicon_selection through intermediate tables
-# For more info - crispr_db_diagram_postgres.pdf
+# For more info - db_diagram.pdf
 
 # sequencing_library_content
 #      |
 #     \|/
-#     well 
+#     well
 #      |
 #     \|/
-#     well_content 
+#     well_content
 #      |
 #     \|/
 #  guide_well_content_association
@@ -80,43 +80,43 @@ db <- src_postgres(user="gene", password="gene", host="bioinf-ge001.cri.camres.o
 ########################################
 # sequencing_library_content -> well -> well_content
 
-sequencing_library_content <- tbl(db, 'sequencing_library_content') %>%  
-  rename( well_content_id=well_id) %>% 
-  select( -id) %>% 
+sequencing_library_content <- tbl(db, 'sequencing_library_content') %>%
+  rename( well_content_id=well_id) %>%
+  select( -id) %>%
   as.data.frame()
 
 # well_id in sequencing_library_id == well_content_id
 
-well <- tbl( db, 'well') %>% 
-  select( -row, -column) %>% 
+well <- tbl( db, 'well') %>%
+  select( -row, -column) %>%
   as.data.frame()
 
 # merger sequencing_library_content + well
-seq_library_con_plus_well <- left_join(sequencing_library_content, well, by='well_content_id') 
+seq_library_con_plus_well <- left_join(sequencing_library_content, well, by='well_content_id')
 
 
 # in in seq_library_con_plus_well == id in well_content
 well_content <- tbl(db, 'well_content') %>%  as.data.frame()
 
-seq_lib_con_plus_well_plus_well_con <- left_join(seq_library_con_plus_well, well_content, by='id') 
+seq_lib_con_plus_well_plus_well_con <- left_join(seq_library_con_plus_well, well_content, by='id')
 ###############################################
 
-guide_well_content_association <- tbl( db, 'guide_well_content_association') %>% 
+guide_well_content_association <- tbl( db, 'guide_well_content_association') %>%
   as.data.frame()
 
-guide <- tbl(db, 'guide') %>%  
-  rename( guide_id = id) %>% 
+guide <- tbl(db, 'guide') %>%
+  rename( guide_id = id) %>%
   as.data.frame()
 
 amplicon_selection <- tbl( db, 'amplicon_selection') %>% as.data.frame()
 
-amplicon <- tbl(db, 'amplicon') %>% 
-  select( -dna_feature:-end) %>% 
+amplicon <- tbl(db, 'amplicon') %>%
+  select( -dna_feature:-end) %>%
   as.data.frame()
 as_plus_a <- left_join( amplicon_selection, amplicon, by='id')
 
-slc_plus_w_plus_wc_gwca <- left_join( seq_lib_con_plus_well_plus_well_con, 
-                                      guide_well_content_association, by='well_content_id') 
+slc_plus_w_plus_wc_gwca <- left_join( seq_lib_con_plus_well_plus_well_con,
+                                      guide_well_content_association, by='well_content_id')
 
 #######################################################
 
@@ -134,7 +134,7 @@ tab <- mutate( tab,OnTarget=ifelse(OnTarget == 'FALSE', FALSE, TRUE) )
 
 
 # add cut site info
-tab <- mutate(tab, cutSite=ifelse(Amplicon =='STAT3.2.in__STAT3.3.in__STAT3.4.in', 40497640,  
+tab <- mutate(tab, cutSite=ifelse(Amplicon =='STAT3.2.in__STAT3.3.in__STAT3.4.in', 40497640,
                                   ifelse( Amplicon == 'STAT3.1.in', 40498700, 125765667)))
 tab <- mutate(tab, distance=abs(Position - cutSite))
 
@@ -147,7 +147,7 @@ tab <- mutate(tab, distance=abs(Position - cutSite))
 
 # disScore = distance based score
 
-tab <- mutate( tab, disScore=rep( 0, nrow(tab))) 
+tab <- mutate( tab, disScore=rep( 0, nrow(tab)))
 tab[ tab$distance ==0, 'disScore'] <- 4
 tab[ (tab$distance >=1 & tab$distance < 6), 'disScore']  <- 3
 tab[ (tab$distance >=6 & tab$distance < 11), 'disScore']  <- 2
@@ -158,12 +158,12 @@ tab[ tab$distance > 10, 'disScore']  <- 1
 # Het = 40-60%
 
 # Filter out AF < 0.15 ( probably wt or false positives)
-# Filter out AF > 90 and indel length > 3 #Ruben. Instead of filter out, weigh down. 
+# Filter out AF > 90 and indel length > 3 #Ruben. Instead of filter out, weigh down.
                                           # These could still be valid clones, although we don't have confidence to call them.
 
 # Allele frequency distribution plot
-p <- ggplot( data=tab, aes( x=Allele_fraction)) + 
-       geom_histogram( bins = 11, colour='orange', fill='white') + 
+p <- ggplot( data=tab, aes( x=Allele_fraction)) +
+       geom_histogram( bins = 11, colour='orange', fill='white') +
        ggtitle( 'Allele fraction distribution') +
        xlab( 'Allele Fraction')
 ggsave('totalAlleleFractionDistribution.pdf', p)
@@ -185,7 +185,7 @@ p <- ggplot( data=filter(tab, Allele_fraction < 0.15), aes( x=Allele_fraction)) 
 ggsave( 'lowerEndAlleleFractionDistribution.pdf', p)
 
 
-# Total indel length distribution 
+# Total indel length distribution
 p <- ggplot( data=tab, aes( x=Indel_length)) +
   geom_histogram( colour='orange', fill='white') +
   ggtitle( 'Indel Length Distribution') +
@@ -201,19 +201,19 @@ ggsave( 'indelLengthDistributionAtHigherAlleFraction.pdf', p)
 
 
 
-  
-  
+
+
 tab <- filter(tab, Allele_fraction > 0.15)
 
 tab <- filter(tab, !(Allele_fraction > 0.9 & abs(Indel_length) > 3  ))
 
-# filter based on consequence #Ruben. Weigh down instead. Inframe_deletion could generate a phenotype if it is on a key position 
+# filter based on consequence #Ruben. Weigh down instead. Inframe_deletion could generate a phenotype if it is on a key position
                               #in the protein.
                               #Very careful with filtering, because values in 'sample' are not unique. If you filter out 'intron,non_coding_transcript'
                               #you will think that GE-P1B4-C is a good HET line because of alleleFrequency and OnTarget == TRUE. However it should be heavily weighed down because
                               #it's showing an off-target. When filtering, do it with effect on 'sample' groups, not on rows.
 
-tab <- filter(tab, Variant_type_consequence == 'frameshift' | 
+tab <- filter(tab, Variant_type_consequence == 'frameshift' |
                 Variant_type_consequence == 'stop_gained,frameshift')
 
 # Filter based on on/off-target
@@ -224,14 +224,14 @@ write.csv( x=tab, file='SLX-13775_variantsINDELS_filtered.csv', row.names=F)
 
 #Ruben. Suggested scoring system (the higher the better): what do you think, does it look OK from your experience? If not, feel free to modify
   #so we can test it later
- 
+
   #Variant.type.consequence:
    # "frameshift": 5
    # "inframe_deletion": 1
    # "intron,non_coding_transcript": 0 #note that this will super-rarely happen for targets, because we would not normally target an intron.
                                        #so this almost always going to be the case of an off-target.
    # "stop_gained,frameshift": 6
- 
+
  #Allele.fraction
    # Filter out A.f < 0.15
    # A.f > 0.4 & A.f < 0.6: score 5 (however we are assuming that we have 2 alleles here, and in project 2 we have three alleles.
