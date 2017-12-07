@@ -6,7 +6,7 @@ source venv/bin/activate
 
 shell/load_ref_data.sh
 
-PROJNAME='GEP00003'
+PROJNAME='GEP00004'
 PROJDIR=data/${PROJNAME}
 
 echo 'Loading project' ${PROJNAME}

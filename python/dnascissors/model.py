@@ -16,11 +16,30 @@ guide_well_content_association = Table('guide_well_content_association', Base.me
 )
 
 
+class Genome(Base):
+    # Ref from https://www.ncbi.nlm.nih.gov/grc
+    __tablename__ = 'genome'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), unique=True, nullable=False, index=True)
+
+    @property
+    def species(self):
+        return self.name.split('[')[0][:-1]
+
+    @property
+    def assembly(self):
+        return self.name.split('[')[1][:-1]
+
+
+class CellLine(Base):
+    # Ref from http://web.expasy.org/cellosaurus/
+    # Data ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
+    __tablename__ = 'cell_line'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32), unique=True, nullable=False, index=True)
+
+
 class Project(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Project
-    columns: geid	name	scientist	affiliation	group	group_leader	start_date	description
-    """
     __tablename__ = 'project'
     id = Column(Integer, primary_key=True)
     geid = Column(String(8), unique=True, nullable=False, index=True)
@@ -68,19 +87,7 @@ class Project(Base):
         return False
 
 
-class Genome(Base):
-    __tablename__ = 'genome'
-    id = Column(Integer, primary_key=True)
-    species = Column(String(32), nullable=False, index=True)
-    assembly = Column(String(32), nullable=False, index=True)
-    UniqueConstraint('species', 'assembly', name='unique_genome_species_assembly')
-
-
 class Target(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Target
-    columns: project_geid	name	species	assembly	gene_id	chromosome	start	end	strand	description
-    """
     __tablename__ = 'target'
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='CASCADE'))
@@ -99,10 +106,6 @@ class Target(Base):
 
 
 class Guide(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Guide
-    columns: target_name	name	guide_sequence	pam_sequence	activity	exon	nuclease
-    """
     __tablename__ = 'guide'
     id = Column(Integer, primary_key=True)
     target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='CASCADE'))
@@ -121,10 +124,6 @@ class Guide(Base):
 
 
 class GuideMismatch(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: GuideMismatches
-    columns: guide_name	is_off_target_coding_region	number_of_mismatches	number_of_offtargets
-    """
     __tablename__ = 'guide_mismatch'
     id = Column(Integer, primary_key=True)
     guide_id = Column(Integer, ForeignKey('guide.id', name='guide_mismatch_guide_fk', ondelete='CASCADE'))
@@ -148,10 +147,6 @@ class Amplicon(Base):
 
 
 class AmpliconSelection(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: AmpliconSelection
-    columns: guide_name	experiment_type	guide_location	guide_strand	score	amplicon_name	is_on_target	dna_feature	chromosome	primer_geid	primer_sequence	primer_strand	primer_start	primer_end	description
-    """
     __tablename__ = 'amplicon_selection'
     id = Column(Integer, primary_key=True)
     guide_id = Column(Integer, ForeignKey('guide.id', name="ampliconselection_guide_fk", ondelete='CASCADE'))
@@ -189,30 +184,14 @@ class Primer(Base):
     end = Column(Integer, nullable=False)
 
 
-class CellLine(Base):
-    __tablename__ = 'cell_line'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32), unique=True, nullable=False, index=True)
-    #pool = Column(String(32))
-    description = Column(String(1024))
-
-
 class Clone(Base):
     __tablename__ = 'clone'
     id = Column(Integer, primary_key=True)
-    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cellline_fk', ondelete='CASCADE'))
-    cell_line = relationship(
-        CellLine,
-        backref=backref('clones', uselist=True, cascade='delete,all'))
     name = Column(String(32), nullable=False, unique=True, index=True)
     description = Column(String(1024))
 
 
 class ExperimentLayout(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: ExperimentLayout
-    columns: project_geid	geid	well_position	cell_line_name	clone_name	guide_name	replicate_group	is_control	content_type
-    """
     __tablename__ = 'experiment_layout'
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id', name='experiment_layout_project_fk', ondelete='CASCADE'))
@@ -223,10 +202,6 @@ class ExperimentLayout(Base):
 
 
 class Plate(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: Plate
-    columns: experiment_layout_geid	plate_barcode	geid	description
-    """
     __tablename__ = 'plate'
     id = Column(Integer, primary_key=True)
     experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='plate_experiment_layout_fk', ondelete='CASCADE'))
@@ -272,6 +247,9 @@ class WellContent(Base):
         Clone,
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
+    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='well_content_cell_line_fk'))
+    cell_line = relationship(CellLine)
+    cell_pool = Column(String(32))
     replicate_group = Column(Integer, nullable=False, default=0)
     content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)
@@ -297,10 +275,6 @@ class Well(Base):
 
 
 class SequencingLibrary(Base):
-    """
-    template file: data/templates/YYYYMMDD_GEPXXXXX.xlsx | sheet: SequencingLibrary
-    columns: experiment_layout_geid	well_position	dna_source	slxid	library_type	sequencing_barcode	sequencing_sample_name
-    """
     __tablename__ = 'sequencing_library'
     id = Column(Integer, primary_key=True)
     slxid = Column(String(12), unique=True, nullable=False)

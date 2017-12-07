@@ -141,6 +141,43 @@ class Loader:
 
 
 # --------------------------------------------------------------------------------
+# RefLoader class
+# --------------------------------------------------------------------------------
+class RefLoader(Loader):
+
+    GENOMES = ['Homo sapiens [GRCh37]',
+               'Homo sapiens [GRCh38]',
+               'Mus musculus [GRCm38]']
+
+    CELL_LINES = ['MCF7',
+                  'T47D',
+                  'MESC',
+                  'A549']
+
+    def __init__(self, session):
+        self.log = logging.getLogger(__name__)
+        self.session = session
+
+    def load_genomes(self):
+        for genome_name in self.GENOMES:
+            # Find or create genome
+            genome = self.session.query(Genome).filter(Genome.name == genome_name).first()
+            if not genome:
+                genome = Genome(name=genome_name)
+                self.session.add(genome)
+                self.log.info('Created genome {}'.format(genome.name))
+
+    def load_celllines(self):
+        for cell_line_name in self.CELL_LINES:
+            # Find or create cell line
+            cell_line = self.session.query(CellLine).filter(CellLine.name == cell_line_name).first()
+            if not cell_line:
+                cell_line = CellLine(name=cell_line_name)
+                self.session.add(cell_line)
+                self.log.info('Created cell line {}'.format(cell_line.name))
+
+
+# --------------------------------------------------------------------------------
 # LayoutLoader class
 # --------------------------------------------------------------------------------
 class LayoutLoader(Loader):
@@ -200,17 +237,12 @@ class LayoutLoader(Loader):
             project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
             if not project:
                 raise LoaderException('Project "{}" does not exist (row {})'.format(row.project_geid, i))
-            if not row.species:
-                raise LoaderException('Species is required on row {}'.format(i))
-            if not row.assembly:
-                raise LoaderException('Genome assembly is required on row {}'.format(i))
-            # Find or create genome
-            genome = self.session.query(Genome).filter(Genome.species == row.species).filter(Genome.assembly == row.assembly).first()
-            if not genome:
-                genome = Genome(species=row.species, assembly=row.assembly)
-                self.session.add(genome)
-                self.log.info('Created genome species {}, assembly {}'.format(genome.species, genome.assembly))
-            self.genome = genome
+            if not row.genome:
+                raise LoaderException('Genome is required on row {}'.format(i))
+            # Find genome
+            self.genome = self.session.query(Genome).filter(Genome.name == row.genome).first()
+            if not self.genome:
+                raise LoaderException('Genome {} not found'.format(row.genome))
             # Find or create target
             if not row.name:
                 raise LoaderException('Target name is required on row {}'.format(i))
@@ -366,32 +398,30 @@ class LayoutLoader(Loader):
                 layout.geid = row.geid
                 self.session.add(layout)
                 self.log.info('Created experiment layout {} in project {}'.format(layout.geid, project.geid))
-            # Cell line
+            # Cell line pool
+            cell_line = None
             if self.get_value(row.cell_line_name):
                 cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
                 if not cell_line:
-                    cell_line = CellLine(name=row.cell_line_name)
-                    #cell_line.pool = self.get_value(row.cell_pool)
-                    self.session.add(cell_line)
-                    self.log.info('Created cell line {}'.format(cell_line.name))
+                    raise LoaderException('Cell line {} not found'.format(row.cell_line_name))
             # Clone
             if self.get_value(row.clone_name):
                 if not cell_line:
                     raise LoaderException('Cannot have a clone without a cell line on row {}'.format(i))
-                clone = self.session.query(Clone).filter(Clone.cell_line == cell_line).filter(Clone.name == row.clone_name).first()
+                clone = self.session.query(Clone).filter(Clone.name == row.clone_name).first()
                 if not clone:
-                    clone = Clone(cell_line=cell_line)
-                    clone.name = row.clone_name
+                    clone = Clone(name=row.clone_name)
                     self.session.add(clone)
-                    self.log.info('Created clone {} from cell row {}'.format(clone.name, clone.cell_line.name))
+                    self.log.info('Created clone {} in cell line {}'.format(clone.name, cell_line.name))
             # Well content
             if clone:
-                content = WellContent(clone=clone)
+                content = WellContent(clone=clone, cell_line=cell_line)
                 if guide:
                     content.guides.append(guide)
                 content.replicate_group = self.get_int(row.replicate_group)
                 content.is_control = bool(row.is_control)
                 content.content_type = self.to_content_type(row.content_type, i)
+                content.cell_pool = self.get_string(row.cell_pool)
                 self.session.add(content)
                 self.log.info("Created well content for clone {}".format(content.clone.name))
             # Well

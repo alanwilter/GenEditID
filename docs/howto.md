@@ -107,6 +107,26 @@ shell/load_project_GEP00001.sh
 - Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
 - Run `shell/load_project_GEP00001.sh` script to load all data associated to GEP00001 project
 
+### Database migration
+
+Using alembic http://alembic.zzzcomputing.com/en/latest/index.html
+
+* Creating an environment
+  ```bash
+  source venv/bin/activate
+  pip install alambic
+  cd python
+  alembic init dbmigration
+  ```
+* Creating and running a migration script automatically
+  ```bash
+  # modify model.py and automatically generate the changes
+  alembic revision --autogenerate -m 'add columns to project'
+
+  alembic upgrade head
+  ```
+
+
 ## NGS analysis
 
 See these files for more information:

@@ -24,7 +24,7 @@
         <h2>Create new project</h2>
         <p>
             Load a new project and its experiment layout from an Excel file
-            using <a href='static/YYYYMMDD_GEPXXXXX.xlsx'>this template</a>.
+            using <a href='static/GEPXXXXX.xlsx'>this template</a>.
         </p>
         <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
           <div tal:condition="clash">

@@ -4,12 +4,13 @@ cd $BASEDIR
 source venv/bin/activate
 #export PYTHONPATH=`pwd`/python
 
-PROJDATE='20151101'
+shell/load_ref_data.sh
+
 PROJNAME='GEP00002'
-PROJDIR=data/${PROJDATE}_${PROJNAME}
+PROJDIR=data/${PROJNAME}
 
 echo 'Loading project' ${PROJNAME}
-python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJDATE}_${PROJNAME}.xlsx
+python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx
 
 for plateid in 01 02 03
 do
