@@ -23,6 +23,8 @@
 - http://docs.pylonsproject.org/projects/deform/en/latest/api.html
 - https://plot.ly/python/reference/
 
+Our first draft of our WebApp design
+![Image of web-design](web-design.jpg)
 
 ## Getting started
 
@@ -67,7 +69,8 @@
 
 Go to http://localhost:8080
 
-## Running the webapp after first setup
+
+## Running the WebApp after first setup
 
 Edit `python/webapp/development.ini` to check you are pointing to the right database
 
@@ -78,6 +81,7 @@ pserve development.ini --reload
 ```
 
 Go to http://localhost:8080
+
 
 ## Setting up the server for production
 

@@ -4,7 +4,7 @@ Information on setting up the server from scratch (actually from a minimal insta
 
 ## Postgres
 
-See [postgres.md](the Postgres document).
+See [database.md](the Postgres document).
 
 ## Java
 
