@@ -86,6 +86,7 @@ See these files for more information:
 - [How to visualise NGS data and variants?](ngs-data-vis.md)
 - [NGS Downstream processing and plotting](ngs-downstream.md)
 
+- [Documentation of the Genome Editing plots](plots.md)
 
 ## Loaders and Results in WebApp
 

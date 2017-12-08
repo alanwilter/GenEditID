@@ -1,26 +1,15 @@
----
-title: "GEplot_descriptions"
-author: "Ruben Alvarez"
-date: "17 July 2017"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-# Documentation of the Genome Editing plot outputs  
+# Documentation of the Genome Editing plots  
 
 ## Protein plot:  
-This plot shows the IncellWestern 800nm/700nm ratios, with guides and controls one column each in the x-axis. Each dot corresponds to a single well. 
-![](GEplots_protein.png)
+This plot shows the IncellWestern 800nm/700nm ratios, with guides and controls one column each in the x-axis. Each dot corresponds to a single well.
+![](plot_protein.png)
 
 ## Growth plot:  
 This plot shows IncuCyte data as growth curves, mapping colours to guides and controls. Each line corresponds to a single well.  
-![](GEplots_growth.png)
+![](plot_growth.png)
 
 ### Slopes plot  
-When the growth slopes can be calculated, this plot shows the values with guides and controls one column each in the x-axis. Each dot corresponds to a single well. 
+When the growth slopes can be calculated, this plot shows the values with guides and controls one column each in the x-axis. Each dot corresponds to a single well.
 
 ## Combined data plots:  
 
@@ -32,7 +21,7 @@ A combination of protein ratios (xaxis), growth slopes (yaxis) and NGS genotypin
 
 ## NGS plots:
 These (except the *INDEL structre* plot) are experiment-wide exploratory plots, that will provide information about zygosity frequencies, alleles, indel sizes, etc., and show if different guides result preferences for certain types of mutations. The sgRNA guides are represented independently (in this case, STAT3.1 to 3.4).  
-![](GEplots_ngs.png)
+![](plot_ngs.png)
 
 ### Type of mutation  
 This plot shows the *% of alleles that have a mutation of a certain type*. It shows allele data from all samples that have a mutation (so wt are excluded, and double and single mutants contribute with two and one alleles respectively). The types of mutation considered are *insertion*, *deletion* and *SNV* (single-nucleotide variant).  
@@ -60,4 +49,4 @@ This plot shows the *% of samples submitted for NGS on a per-guide and per-allel
 
 ## 96-well plate plot  
 This plot shows the plates in the experiment, colour-coding the wells accordingly to the scoring system, to suggest the highest-scored clones for selection.  
-![](GEplots_96wellplate.png)
+![](plot_plates.png)
