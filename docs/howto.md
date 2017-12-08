@@ -92,7 +92,7 @@ See these files for more information:
 For more information see [WebApp](webapp.md).
 
 
-## R
+## R (legacy)
 
 ### Installing R 3.3.2
 [https://cran.r-project.org/bin/macosx/](https://cran.r-project.org/bin/macosx/)

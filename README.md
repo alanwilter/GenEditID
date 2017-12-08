@@ -5,10 +5,10 @@
 
 ## Project description
 
-See [docs/project_description.md](docs/project_description.md)
+See our [Project Description](docs/project_description.md)
 
 * One [database](docs/howto.md#database)
-* One [NGS analysis]((docs/howto.md#ngs-analysis)) to run the amplicon sequencing pipeline
+* One [NGS analysis](docs/howto.md#ngs-analysis) to run the amplicon sequencing pipeline
 * One [Web App](docs/webapp.md)
 
 ### How to...

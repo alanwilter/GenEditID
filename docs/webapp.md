@@ -23,8 +23,10 @@
 - http://docs.pylonsproject.org/projects/deform/en/latest/api.html
 - https://plot.ly/python/reference/
 
-Our first draft of our WebApp design
+
+## Our first draft of our WebApp design
 ![Image of web-design](web-design.jpg)
+
 
 ## Getting started
 
