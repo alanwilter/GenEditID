@@ -8,6 +8,6 @@
 
 /home/bioinformatics/software/pipelines/kickstart/current/bin/kickstart \
   --aligner=bwamem \
-  --genome=GRCm38 \
+  --genome=GRCh38 \
   --library=SLX-13775 \
   --fastq-only
