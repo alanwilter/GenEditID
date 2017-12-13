@@ -251,17 +251,17 @@ class LayoutLoader(Loader):
             target = self.session.query(Target).filter(Target.name == row.name).first()
             if target:
                 self.log.info("Already have a target called {}. It's from the project {}.".format(target.name, target.project.name))
-                return
-            target = Target(project=project, genome=self.genome)
-            target.name = row.name
-            target.gene_id = row.gene_id
-            target.chromosome = str(row.chromosome)
-            target.start = int(row.start)
-            target.end = int(row.end)
-            target.strand = self.to_strand(row.strand, i)
-            target.description = self.get_string(row.description, 1024)
-            self.session.add(target)
-            self.log.info('Created target {}'.format(target.name))
+            else:
+                target = Target(project=project, genome=self.genome)
+                target.name = row.name
+                target.gene_id = row.gene_id
+                target.chromosome = str(row.chromosome)
+                target.start = int(row.start)
+                target.end = int(row.end)
+                target.strand = self.to_strand(row.strand, i)
+                target.description = self.get_string(row.description, 1024)
+                self.session.add(target)
+                self.log.info('Created target {}'.format(target.name))
 
     def load_guides(self):
         sheet = self.xls.parse('Guide')

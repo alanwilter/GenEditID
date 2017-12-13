@@ -25,9 +25,7 @@ def main():
     loader = LayoutLoader(session, options.file_layout)
 
     try:
-        if options.clean_db:
-            loader.clean()
-        loader.load_all()
+        loader.load_all(options.clean_db)
         session.commit()
     except Exception as e:
         log.exception(e)

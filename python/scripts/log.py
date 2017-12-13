@@ -63,8 +63,10 @@ LOGGING = {
 
 def get_custom_logger(logfile=None, noemail=True):
     if logfile:
-        if not os.path.exists(os.path.dirname(logfile)):
-            os.makedirs(os.path.dirname(logfile))
+        logdir = os.path.dirname(logfile)
+        if logdir != "":
+            if not os.path.exists(logdir):
+                os.makedirs(logdir)
         LOGGING['handlers']['info_file']['filename'] = logfile
         LOGGING['handlers']['error_file']['filename'] = logfile + ".errors"
     if not noemail:
