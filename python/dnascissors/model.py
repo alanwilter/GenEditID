@@ -20,15 +20,9 @@ class Genome(Base):
     # Ref from https://www.ncbi.nlm.nih.gov/grc
     __tablename__ = 'genome'
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), unique=True, nullable=False, index=True)
-
-    @property
-    def species(self):
-        return self.name.split('[')[0][:-1]
-
-    @property
-    def assembly(self):
-        return self.name.split('[')[1][:-1]
+    species = Column(String(32), nullable=False, index=True)
+    assembly = Column(String(32), unique=True, nullable=False, index=True)
+    UniqueConstraint('species', 'assembly', name='unique_genome_species_assembly')
 
 
 class CellLine(Base):
@@ -187,8 +181,16 @@ class Primer(Base):
 class Clone(Base):
     __tablename__ = 'clone'
     id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False, unique=True, index=True)
+    name = Column(String(32), nullable=False, index=True)
+    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cell_line_fk'))
+    cell_line = relationship(CellLine)
+    cell_pool = Column(String(32))
+    project_id = Column(Integer, ForeignKey('project.id', name='clone_project_fk', ondelete='CASCADE'))
+    project = relationship(
+        Project,
+        backref=backref('clones', uselist=True, cascade='delete,all'))
     description = Column(String(1024))
+    UniqueConstraint('name', 'cell_pool', 'project', name='unique_clone_in_project')
 
 
 class ExperimentLayout(Base):
@@ -247,9 +249,6 @@ class WellContent(Base):
         Clone,
         backref=backref('well_contents', uselist=True, cascade='delete,all'))
     guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
-    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='well_content_cell_line_fk'))
-    cell_line = relationship(CellLine)
-    cell_pool = Column(String(32))
     replicate_group = Column(Integer, nullable=False, default=0)
     content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False)
     is_control = Column(Boolean, nullable=False, default=False)

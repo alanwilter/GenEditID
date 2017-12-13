@@ -160,12 +160,14 @@ class RefLoader(Loader):
 
     def load_genomes(self):
         for genome_name in self.GENOMES:
+            species = genome_name.split('[')[0][:-1]
+            assembly = genome_name.split('[')[1][:-1]
             # Find or create genome
-            genome = self.session.query(Genome).filter(Genome.name == genome_name).first()
+            genome = self.session.query(Genome).filter(Genome.assembly == assembly).first()
             if not genome:
-                genome = Genome(name=genome_name)
+                genome = Genome(species=species, assembly=assembly)
                 self.session.add(genome)
-                self.log.info('Created genome {}'.format(genome.name))
+                self.log.info('Created genome {}'.format(genome.assembly))
 
     def load_celllines(self):
         for cell_line_name in self.CELL_LINES:
@@ -240,7 +242,7 @@ class LayoutLoader(Loader):
             if not row.genome:
                 raise LoaderException('Genome is required on row {}'.format(i))
             # Find genome
-            self.genome = self.session.query(Genome).filter(Genome.name == row.genome).first()
+            self.genome = self.session.query(Genome).filter(Genome.assembly == row.genome.split('[')[1][:-1]).first()
             if not self.genome:
                 raise LoaderException('Genome {} not found'.format(row.genome))
             # Find or create target
@@ -408,20 +410,23 @@ class LayoutLoader(Loader):
             if self.get_value(row.clone_name):
                 if not cell_line:
                     raise LoaderException('Cannot have a clone without a cell line on row {}'.format(i))
-                clone = self.session.query(Clone).filter(Clone.name == row.clone_name).first()
+                clone = self.session.query(Clone).filter(Clone.name == row.clone_name)\
+                                                 .filter(Clone.cell_pool == self.get_string(row.cell_pool))\
+                                                 .filter(Clone.project == project)\
+                                                 .first()
                 if not clone:
-                    clone = Clone(name=row.clone_name)
+                    clone = Clone(name=row.clone_name, cell_pool=self.get_string(row.cell_pool), project=project)
+                    clone.cell_line = cell_line
                     self.session.add(clone)
-                    self.log.info('Created clone {} in cell line {}'.format(clone.name, cell_line.name))
+                    self.log.info('Created clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line.name, clone.cell_pool))
             # Well content
             if clone:
-                content = WellContent(clone=clone, cell_line=cell_line)
+                content = WellContent(clone=clone)
                 if guide:
                     content.guides.append(guide)
                 content.replicate_group = self.get_int(row.replicate_group)
                 content.is_control = bool(row.is_control)
                 content.content_type = self.to_content_type(row.content_type, i)
-                content.cell_pool = self.get_string(row.cell_pool)
                 self.session.add(content)
                 self.log.info("Created well content for clone {}".format(content.clone.name))
             # Well

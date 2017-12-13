@@ -387,8 +387,8 @@ class Plotter:
     def _create_classifier(self, well_content):
         parts = []
         if well_content.clone:
-            if well_content.cell_line:
-                parts.append(well_content.cell_line.name)
+            if well_content.clone.cell_line:
+                parts.append(well_content.clone.cell_line.name)
             parts.append(well_content.clone.name)
         if well_content.guides:
             parts.append(",".join(g.name for g in well_content.guides))
