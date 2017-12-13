@@ -7,8 +7,7 @@
 #SBATCH --job-name amplicon-pipeline
 #SBATCH --output amplicon-pipeline.%j.out
 
-#perlbrew use perl-5.16.0
 export JAVA_OPTS=-Xmx10240m
-/home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/bin/run-pipeline \
+perlbrew use perl-5.16.0 && /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/bin/run-pipeline \
   --mode slurm \
   config.gatk.xml
