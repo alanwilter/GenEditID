@@ -1,33 +1,36 @@
 # Run the Amplicon Sequencing Pipeline
 
+## Reference genome
 
-## Fetch fastq files
+Use `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
 
+
+## Copy scripts onto cluster in project folder
+
+- Create GE project folder on cluster
+```
+ssh clust1-headnode
+cd /path/to/scratch/space
+mkdir GEP00006
+```
+
+- Copy scripts
+```
+scp shell/ngs/* clust1-headnode:/path/to/scratch/space/GEP00006/.
+```
+
+## Fetch fastq files using kickstart
+
+See [Kickstart documentation](https://intranet.cri.camres.org/core-facilities/bioinformatics/sequencing/kickstart)
+It is intended to help with setting up a consistent working directory structure and to fetch and prepare files for downstream analysis work which generates a meta data file to use with the alignment pipeline to align FASTQ data.
+
+Edit `job_kickstart.sh` to update `--library=SLX-ID` to the one associated with the GE project
 ```
 sbatch job_kickstart.sh
 ```
 
 
-## Alignment steps
-
-```
-mkdir bam
-cd bam
-```
-
-### Create alignment configuration file
-
-Note reference genomes in the standard path `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38` are not GATK compatible, therefore use Matt's GATK compatible ones in `/scratchb/bioinformatics/eldrid01/reference_data/reference_genomes/homo_sapiens/GRCh38/`.
-
-```
-./create_alignment_config.sh SLX-13775 /path/to/project/fastq  general alignment.xml
-```
-
-Modify `alignment.xml`:
-- remove line with samtools
-- add software path `<softwareDir>/home/bioinformatics/pipelinesoftware/alignment/el7</softwareDir>`
-
-### Run alignment pipeline
+## Alignment
 
 ```
 sbatch job_alignment.sh
@@ -36,52 +39,47 @@ sbatch job_alignment.sh
 
 ## Amplicon sequencing steps
 
-### Create target and amplicon files
+### Create target and amplicon files from GE database
 
-Both amplicon and target files should be in picard style with header section
-Get header from .dict file from reference genomes
-For instance for GRCh38 header is from `/scratchb/bioinformatics/eldrid01/reference_data/reference_genomes/homo_sapiens/GRCh38/fasta/hsa.GRCh38.dict`
+Get header from .dict file from the reference genome:
+`/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
 
 Extract amplicon and target coordinates from the database using script `create_pipeline_files.py`:
 ```
-python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=data/seqdict/hsa.GRCh38.dict
+python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=/path/to/hsa.GRCh38.dict
 ```
 
-And copy these files into your project directory under new folder `amplicon`.
+And copy these files into your project directory `amplicon/` folder.
 
 ### Create sample name and id mapping file
 
 ```
-./create_samples_file.sh samplesheet.csv samples.txt
+./create_samples_file.sh samplesheet.csv amplicon/samples.txt
 ```
 
 ### Haplotype caller config
 
 - Copy haplotype config file and modify
 ```
-cp /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/config/config.gatk.xml /path/to/project/amplicon/.
+cp /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/config/config.vardict.xml /path/to/project/amplicon/.
 ```
 
 - Edit these lines
 
 ```
-<mode>slurm</mode>
-<referenceSequence>/scratchb/bioinformatics/eldrid01/reference_data/reference_genomes/homo_sapiens/GRCh38/fasta/hsa.GRCh38.fa</referenceSequence>
-<variantEffectPredictorAssembly>GRCh38</variantEffectPredictorAssembly>
+<referenceSequence>homo_sapiens.fa</referenceSequence>
+<variantEffectPredictorAssembly>GRCh37</variantEffectPredictorAssembly>
 ```
+to
+```
+<referenceSequence>/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa</referenceSequence>
+<variantEffectPredictorAssembly>GRCh38_hs38d1</variantEffectPredictorAssembly>
+```
+
 
 ### Run the amplicon pipeline
 
-- Install `perl` dependency using `perlbrew` prior to run the pipeline
-
-```
-cd ~
-curl -L https://install.perlbrew.pl | bash
-ln -s ~/perl5/perlbrew/bin/perlbrew bin/.
-perlbrew install perl-5.16.0
-```
-
 - Run the pipeline
 ```
-sbatch job_amplicon_pipeline.sh
+sbatch job_amplicon.sh
 ```
