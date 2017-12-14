@@ -1,0 +1,324 @@
+<?xml version="1.1" encoding="ISO-8859-1"?>
+<meta:metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:meta="http://cancerresearchuk.org/workflow/meta"
+               xsi:schemaLocation="http://cancerresearchuk.org/workflow/meta http://content.cruk.cam.ac.uk/bioinformatics/schema/workflow/metadata-1.7.xsd">
+
+
+    <!-- Targeted amplicon sequencing analysis pipeline configuration
+
+         Iterates over BAM files in a specified directory, corresponding to
+         entries in the specified sample sheet, extracting separate BAM files
+         for each amplicon and calling SNV and indel variants using the selected
+         variant caller.
+    -->
+
+
+    <!-- pipeline definition -->
+    <pipeline>${install}/pipelines/ampliconseq.xml</pipeline>
+
+
+    <!-- directory for writing temporary or intermediate files, should be
+         available to all nodes on a cluster
+    -->
+    <tempDirectory>${work}/temp</tempDirectory>
+
+
+    <!-- directory to write files containing standard output and error for each
+         task
+    -->
+    <jobOutputDirectory>${work}/logs</jobOutputDirectory>
+
+
+    <!-- file to write version information to -->
+    <summaryFile errorsOnly="false" fullOnly="false">${work}/logs/${runId}.summary.csv</summaryFile>
+
+
+    <!-- file to write version information to -->
+    <versionsFile format="text">${work}/logs/${runId}.versions.txt</versionsFile>
+
+
+    <!-- file to write pipeline execution log to -->
+    <logFile enhanced="true" detail="normal">${work}/logs/${runId}.pipeline.log</logFile>
+
+
+    <!-- execution mode can be local, if running without a job scheduler, or
+         lsf, torque or slurm
+    -->
+    <mode>local</mode>
+
+
+    <executionConfiguration>
+
+        <!-- configuration options for running in local mode -->
+        <execution mode="local">
+
+            <!-- maximum number of CPU resources to use at any one time,
+                 increase to run multiple tasks concurrently
+            -->
+            <maxCpuResources>8</maxCpuResources>
+
+        </execution>
+
+        <!-- configuration options for running on a compute cluster with the
+             Platform LSF scheduler
+        -->
+        <execution mode="lsf">
+
+            <!-- the LSF queue to submit jobs to -->
+            <queue>bioinformatics</queue>
+
+            <!-- the maximum number of jobs to be submitted at any one time -->
+            <maximumSubmittedJobs>50</maximumSubmittedJobs>
+
+        </execution>
+
+        <!-- configuration options for running on a compute cluster with the
+             SLURM scheduler
+        -->
+        <execution mode="slurm">
+
+            <!-- the SLURM queue to submit jobs to -->
+            <queue>general</queue>
+
+            <!-- the maximum number of jobs to be submitted at any one time -->
+            <maximumSubmittedJobs>50</maximumSubmittedJobs>
+
+        </execution>
+
+    </executionConfiguration>
+
+
+    <variables>
+
+        <!-- the identifier for this pipeline execution, used in naming tasks
+             and intermediate and output files
+        -->
+        <runId>GEPID</runId>
+
+        <!-- the class path for running GATK tools, usually the path to the GATK
+             jar file
+        -->
+        <gatkClasspath>${install}/gatk.jar</gatkClasspath>
+
+        <!-- the working directory, by default set to the directory from which
+             the pipeline was run
+        -->
+        <work>@{user.dir}/amplicon/vardict/</work>
+
+        <!-- the directory to which output files will be written, defaults to
+             the working directory
+        -->
+        <outputDir>${work}/output</outputDir>
+
+        <!-- the directory to which output VCF files will be written, defaults
+             to the output directory
+        -->
+        <outputVcfDir>${outputDir}/vcf</outputVcfDir>
+
+        <!-- the file name prefix for output VCF and coverage files (can be left
+             unset)
+        -->
+        <outputFilePrefix>${runId}.</outputFilePrefix>
+
+        <!-- the sample sheet file containing sample names for each dataset, a
+             two column file with ID and SAMPLE headers, can be left unset
+        -->
+        <sampleSheet>@{user.dir}/amplicon/samples.txt</sampleSheet>
+
+        <!-- the amplicon intervals file in Picard-style interval format -->
+        <ampliconIntervals>@{user.dir}/amplicon/amplicons.txt</ampliconIntervals>
+
+        <!-- the target intervals file in Picard-style interval format -->
+        <targetIntervals>$@{user.dir}/amplicon/targets.txt</targetIntervals>
+
+        <!-- the minimum number of non-overlapping amplicon sets to create -->
+        <minimumNumberOfNonOverlappingAmpliconSets>3</minimumNumberOfNonOverlappingAmpliconSets>
+
+        <!-- the directory in which to look for aligned sequence data BAM files,
+             defaults to the working directory
+        -->
+        <bamDir>@{user.dir}/bam/</bamDir>
+
+        <!-- the suffix for BAM files to be analyzed, the remaining prefix is
+             the dataset identifier and is used in naming of intermediate files
+        -->
+        <bamSuffix>bwamem.homo_sapiens.bam</bamSuffix>
+
+        <!-- the reference sequence FASTA file used for aligning the sequence
+             data; should be indexed and have an accompanying sequence
+             dictionary
+        -->
+        <referenceSequence>/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa</referenceSequence>
+
+        <!-- the maximum number of datasets to process concurrently -->
+        <maxConcurrentDatasets>50</maxConcurrentDatasets>
+
+        <!-- the maximum distance of the alignment start/end to the amplicon
+             start/end position
+        -->
+        <maxDistanceFromAmpliconEnd>0</maxDistanceFromAmpliconEnd>
+
+        <!-- set to true if both ends of the amplicon need to be anchored by
+             paired end reads
+        -->
+        <requireBothEndsAnchored>true</requireBothEndsAnchored>
+
+        <!-- the variant caller (one of HaplotypeCaller, UnifiedGenotyper,
+             FreeBayes or VarDict)
+        -->
+        <variantCaller>VarDict</variantCaller>
+
+        <!-- the VarDict executable, by default assumes the VarDict executable
+             from the Java version of VarDict is available on the path
+        -->
+        <vardictExecutable>VarDict</vardictExecutable>
+
+        <!-- the VarDict strand bias script -->
+        <vardictStrandBiasScript>${install}/scripts/vardict/teststrandbias.R</vardictStrandBiasScript>
+
+        <!-- the VarDict script for converting its output to VCF -->
+        <vardictVar2vcfScript>${install}/scripts/vardict/var2vcf_valid.pl</vardictVar2vcfScript>
+
+        <!-- the minimum allele fraction for calling variants
+             (applies to FreeBayes and VarDict)
+        -->
+        <minimumAlleleFraction>0.01</minimumAlleleFraction>
+
+        <!-- how to handle overlapping read pairs when computing allele read
+             counts and SNV metrics, options are:
+
+             RETAIN_BOTH
+                 Count both reads of a pair from the same fragment
+
+             DISCARD_IF_DISCORDANT_OR_USE_HIGHEST_MAPPING_QUALITY
+                 Discard both reads if they have different base calls at the
+                 locus of interest, or use read with highest mapping quality if
+                 they have the same base
+
+             DISCARD_IF_DISCORDANT_OR_USE_HIGHEST_BASE_QUALITY
+                 Discard both reads if they have different base calls at the
+                 locus of interest, or use read with highest base quality if
+                 they have the same base
+
+             RETAIN_HIGHEST_MAPPING_QUALITY
+                 Use read with highest mapping quality
+
+             RETAIN_HIGHEST_BASE_QUALITY
+                 Use read with highest base quality
+        -->
+        <countOverlappingReadPairsMode>DISCARD_IF_DISCORDANT_OR_USE_HIGHEST_BASE_QUALITY</countOverlappingReadPairsMode>
+
+        <!-- minimum mapping quality for reads to be included when computing
+             read counts and SNV metrics
+        -->
+        <minimumMappingQuality>1</minimumMappingQuality>
+
+        <!-- minimum base quality for reads to be included when computing
+             read counts and SNV metrics
+        -->
+        <minimumBaseQuality>10</minimumBaseQuality>
+
+        <!-- whether to exclude supplementary alignments when computing
+             read counts and SNV metrics
+        -->
+        <excludeSupplementaryAlignments>true</excludeSupplementaryAlignments>
+
+        <!-- the fraction of measurements with the highest allele fraction
+             to exclude from fitting a distribution to the background noise
+             (assume these are not due to error/noise)
+        -->
+        <excludeHighestFractionBackgroundNoise>0.1</excludeHighestFractionBackgroundNoise>
+
+        <!-- the maximum allele fraction to include in fitting a distribution
+             to the background noise
+             (assume anything above this is not due to error/noise)
+        -->
+        <maximumAlleleFractionBackgroundNoise>0.03</maximumAlleleFractionBackgroundNoise>
+
+        <!-- the names of filters used in selecting high confidence SNV calls;
+             can contain multiple filter names in a comma-separated list where
+             each has a corresponding filter expression in the
+             snvFilterExpression variable
+        -->
+        <snvFilterName>OtherAlternateAllele</snvFilterName>
+
+        <!-- the filter expression to use for selecting high confidence SNV
+             calls; can contain multiple expressions in a comma-separated list
+             where each has a corresponding name in the snvFilterName variable
+        -->
+        <snvFilterExpression><![CDATA[AlternateAlleleFraction < (1.0 - ReferenceAlleleFraction - AlternateAlleleFraction)]]></snvFilterExpression>
+
+        <!-- the names of filters used in selecting high confidence indel calls;
+             can contain multiple filter names in a comma-separated list where
+             each has a corresponding filter expression in the
+             indelFilterExpression variable
+        -->
+        <indelFilterName>LowAlleleFraction</indelFilterName>
+
+        <!-- the filter expression to use for selecting high confidence indel
+             calls; can contain multiple expressions in a comma-separated list
+             where each has a corresponding name in the indelFilterName variable
+        -->
+        <indelFilterExpression><![CDATA[AF < 0.01]]></indelFilterExpression>
+
+        <!-- the path to the Ensembl Variant Effect Predictor script (default
+             setting assumes that the script is on the path)
+        -->
+        <variantEffectPredictorScript>vep</variantEffectPredictorScript>
+
+        <!-- the offline cache directory used by Ensembl Variant Effect
+             Predictor
+        -->
+        <variantEffectPredictorCacheDirectory>~/.vep</variantEffectPredictorCacheDirectory>
+
+        <!-- the species annotation data to be used by Ensembl Variant Effect
+             Predictor
+        -->
+        <variantEffectPredictorSpecies>homo_sapiens</variantEffectPredictorSpecies>
+
+        <!-- the genome assembly to be used by Ensembl Variant Effect Predictor
+        -->
+        <variantEffectPredictorAssembly>GRCh38_hs38d1</variantEffectPredictorAssembly>
+
+        <!-- the length of sequence context bordering the variant on the 5' and
+             3' ends to output
+        -->
+        <sequenceContextLength>5</sequenceContextLength>
+
+        <!-- the coverage threshold used in determining the confidence of called
+             variants, in conditional formatting of the coverage table
+             spreadsheet and for calculating allele fractions
+        -->
+        <coverageThreshold>100</coverageThreshold>
+
+        <!-- whether to add IGV hyperlinks to the SNV and indel output files
+             and Excel spreadsheet
+        -->
+        <addIGVExcelHyperlinks>true</addIGVExcelHyperlinks>
+
+        <!-- tab-delimited file containing variants for specific calling; these
+             may be known mutations for which a row in the annotated variant
+             table is required whether the mutation is called or not (optional)
+        -->
+        <specificCallingVariants></specificCallingVariants>
+
+        <!-- tab-delimited file containing blacklisted variants to be excluded
+             from final collated variant spreadsheet (optional)
+        -->
+        <blacklistedVariants></blacklistedVariants>
+
+        <!-- tab-delimited file containing SNVs to be included in the allele
+             fraction table; if not specified, the union of all high- and
+             medium-confidence SNVs called in this run is used (optional)
+        -->
+        <snvsForAlleleFractionTable></snvsForAlleleFractionTable>
+
+        <!-- maximum tolerated difference in allele fraction above which a
+             variant will be flagged when comparing replicate samples for a
+             patient
+        -->
+        <maxAlleleFractionDifference>0.25</maxAlleleFractionDifference>
+
+    </variables>
+
+</meta:metadata>

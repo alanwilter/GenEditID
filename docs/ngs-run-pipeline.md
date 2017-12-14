@@ -14,7 +14,7 @@ cd /path/to/scratch/space
 mkdir GEP00006
 ```
 
-- Copy scripts
+- Copy scripts and ampliconseq config files
 ```
 scp shell/ngs/* clust1-headnode:/path/to/scratch/space/GEP00006/.
 ```
@@ -57,29 +57,29 @@ And copy these files into your project directory `amplicon/` folder.
 ./create_samples_file.sh samplesheet.csv amplicon/samples.txt
 ```
 
-### Haplotype caller config
+### Vardict config
 
-- Copy haplotype config file and modify
-```
-cp /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/config/config.vardict.xml /path/to/project/amplicon/.
-```
-
-- Edit these lines
+Edit this line in `config.vardict.xml`
 
 ```
-<referenceSequence>homo_sapiens.fa</referenceSequence>
-<variantEffectPredictorAssembly>GRCh37</variantEffectPredictorAssembly>
+<runId>GEPID</runId>
 ```
-to
+
+### Gatk config
+
+Edit this line in `config.gatk.xml`
+
 ```
-<referenceSequence>/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa</referenceSequence>
-<variantEffectPredictorAssembly>GRCh38_hs38d1</variantEffectPredictorAssembly>
+<runId>GEPID</runId>
 ```
 
 
-### Run the amplicon pipeline
+### Run the amplicon pipelines
 
-- Run the pipeline
+
 ```
-sbatch job_amplicon.sh
+mkdir amplicon/vardict
+mkdir amplicon/gatk
+sbatch job_amplicon_vardict.sh
+sbatch job_amplicon_gatk.sh
 ```
