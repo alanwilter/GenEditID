@@ -44,7 +44,7 @@
     <!-- execution mode can be local, if running without a job scheduler, or
          lsf, torque or slurm
     -->
-    <mode>local</mode>
+    <mode>slurm</mode>
 
 
     <executionConfiguration>
@@ -103,7 +103,7 @@
         <!-- the working directory, by default set to the directory from which
              the pipeline was run
         -->
-        <work>@{user.dir}/amplicon/vardict/</work>
+        <work>amplicon/vardict/</work>
 
         <!-- the directory to which output files will be written, defaults to
              the working directory
@@ -123,26 +123,26 @@
         <!-- the sample sheet file containing sample names for each dataset, a
              two column file with ID and SAMPLE headers, can be left unset
         -->
-        <sampleSheet>@{user.dir}/amplicon/samples.txt</sampleSheet>
+        <sampleSheet>amplicon/samples.txt</sampleSheet>
 
         <!-- the amplicon intervals file in Picard-style interval format -->
-        <ampliconIntervals>@{user.dir}/amplicon/amplicons.txt</ampliconIntervals>
+        <ampliconIntervals>amplicon/amplicons.txt</ampliconIntervals>
 
         <!-- the target intervals file in Picard-style interval format -->
-        <targetIntervals>$@{user.dir}/amplicon/targets.txt</targetIntervals>
+        <targetIntervals>amplicon/targets.txt</targetIntervals>
 
         <!-- the minimum number of non-overlapping amplicon sets to create -->
-        <minimumNumberOfNonOverlappingAmpliconSets>3</minimumNumberOfNonOverlappingAmpliconSets>
+        <minimumNumberOfNonOverlappingAmpliconSets>1</minimumNumberOfNonOverlappingAmpliconSets>
 
         <!-- the directory in which to look for aligned sequence data BAM files,
              defaults to the working directory
         -->
-        <bamDir>@{user.dir}/bam/</bamDir>
+        <bamDir>@{user.dir}/idbam/</bamDir>
 
         <!-- the suffix for BAM files to be analyzed, the remaining prefix is
              the dataset identifier and is used in naming of intermediate files
         -->
-        <bamSuffix>bwamem.homo_sapiens.bam</bamSuffix>
+        <bamSuffix>bam</bamSuffix>
 
         <!-- the reference sequence FASTA file used for aligning the sequence
              data; should be indexed and have an accompanying sequence
@@ -278,7 +278,7 @@
 
         <!-- the genome assembly to be used by Ensembl Variant Effect Predictor
         -->
-        <variantEffectPredictorAssembly>GRCh38_hs38d1</variantEffectPredictorAssembly>
+        <variantEffectPredictorAssembly>GRCh38</variantEffectPredictorAssembly>
 
         <!-- the length of sequence context bordering the variant on the 5' and
              3' ends to output

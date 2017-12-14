@@ -19,10 +19,10 @@ def convert_strand(s):
 def create_files(session, project, seq_dict):
     amp_file = "amplicons.txt"
     target_file = "targets.txt"
-    
+
     copyfile(seq_dict, amp_file)
     copyfile(seq_dict, target_file)
-    
+
     with open(amp_file, "a") as amp_out, open(target_file, "a") as tar_out:
         ampliconQuery = session.query(Amplicon)\
                             .join(AmpliconSelection.amplicon)\
@@ -31,38 +31,38 @@ def create_files(session, project, seq_dict):
                             .join(Target.project)\
                             .filter(Project.geid == project)\
                             .order_by(Amplicon.chromosome.asc(), Amplicon.start.asc())
-        
+
         # Should do this as another query with IN [amplicon.in_(Primer.amplicons], but it doesn't seem to work.
         primers = session.query(Primer).all()
 
         for a in ampliconQuery.all():
-            
+
             #print("Amplicon {} {} {}-{}".format(a.id, a.chromosome, a.start, a.end))
-                  
-            amp_out.write("{}\t{}\t{}\t+\t{}\n".format(a.chromosome, a.start, a.end,
+
+            amp_out.write("chr{}\t{}\t{}\t+\t{}\n".format(a.chromosome, a.start, a.end,
                                                         "{}_{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
-            
+
             aprimers = [ p for p in primers if a in p.amplicons ]
-            
+
             tstart = a.start + 1
             tend = a.end - 1
-                
+
             for p in aprimers:
                 #print("Has primer {} {}-{} {} {}".format(p.id, p.start, p.end, p.strand, p.sequence))
-                
+
                 if p.strand == 'forward':
                     tstart = p.start + 1
                 if p.strand == 'reverse':
                     tend = p.end - 1
-            
-            tar_out.write("{}\t{}\t{}\t+\t{}\n".format(a.chromosome, tstart, tend,
+
+            tar_out.write("chr{}\t{}\t{}\t+\t{}\n".format(a.chromosome, tstart, tend,
                                                         "{}_{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
+
 
 def samplesheet_to_text(samplesheet):
     with open(samplesheet, "r") as input, open("samples.txt", "w") as out:
         reader = csv.reader(input)
         next(reader) # Skip header line.
-        
         out.write("Barcode\tSample\n")
         for line in reader:
             out.write(line[2])
@@ -91,10 +91,9 @@ def main():
     try:
         if options.dict:
             create_files(session, options.project, options.dict)
-            
         if options.sheet:
             samplesheet_to_text(options.sheet)
-            
+
         session.commit()
     except Exception as e:
         log.exception(e)

@@ -39,22 +39,22 @@ sbatch job_alignment.sh
 
 ## Amplicon sequencing steps
 
-### Create target and amplicon files from GE database
+### Create targets, amplicons and samples files from GE database
 
 Get header from .dict file from the reference genome:
 `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
 
-Extract amplicon and target coordinates from the database using script `create_pipeline_files.py`:
+Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
-python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=/path/to/hsa.GRCh38.dict
+python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=/path/to/hsa.GRCh38.dict --samplesheet=samplesheet.csv
 ```
 
 And copy these files into your project directory `amplicon/` folder.
 
-### Create sample name and id mapping file
+### Make the BAMs match the ids
 
 ```
-./create_samples_file.sh samplesheet.csv amplicon/samples.txt
+./rename_bam_files.sh
 ```
 
 ### Vardict config
