@@ -1,3 +1,4 @@
+import csv
 import sqlalchemy
 
 from dnascissors.config import cfg
@@ -57,6 +58,18 @@ def create_files(session, project, seq_dict):
             tar_out.write("{}\t{}\t{}\t+\t{}\n".format(a.chromosome, tstart, tend,
                                                         "{}_{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
 
+def samplesheet_to_text(samplesheet):
+    with open(samplesheet, "r") as input, open("samples.txt", "w") as out:
+        reader = csv.reader(input)
+        next(reader) # Skip header line.
+        
+        out.write("Barcode\tSample\n")
+        for line in reader:
+            out.write(line[2])
+            out.write('\t')
+            out.write(line[0])
+            out.write('\n')
+
 
 def main():
     import argparse
@@ -64,7 +77,8 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", dest="project", action="store", help="The project id.", required=True)
-    parser.add_argument("--seq-dict", dest="dict", action="store", help="The reference sequence dictionary.", required=True)
+    parser.add_argument("--seq-dict", dest="dict", action="store", help="The reference sequence dictionary. Needed to produce amplicons.txt and targets.txt", required=False)
+    parser.add_argument("--samplesheet", dest="sheet", action="store", help="The sample sheet CSV. Converts into samples.txt", required=False)
     options = parser.parse_args()
 
     log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'create_pipeline_files.log'))
@@ -75,7 +89,12 @@ def main():
     session = DBSession()
 
     try:
-        create_files(session, options.project, options.dict)
+        if options.dict:
+            create_files(session, options.project, options.dict)
+            
+        if options.sheet:
+            samplesheet_to_text(options.sheet)
+            
         session.commit()
     except Exception as e:
         log.exception(e)
