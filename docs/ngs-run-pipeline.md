@@ -41,12 +41,12 @@ sbatch job_alignment.sh
 
 ### Create targets, amplicons and samples files from GE database
 
-Get header from .dict file from the reference genome:
+Get dict file from the reference genome:
 `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
 
 Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
-python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=/path/to/hsa.GRCh38.dict --samplesheet=samplesheet.csv
+python python/scripts/create_pipeline_files.py --project=GEP00006 --seq-dict=/path/to/hsa.GRCh38.dict --samplesheet=/path/to/samplesheet.csv
 ```
 
 And copy these files into your project directory `amplicon/` folder.
@@ -76,6 +76,11 @@ Edit this line in `config.gatk.xml`
 
 ### Run the amplicon pipelines
 
+NB. You need to have Java 8 installed and you may have to add it to your path.
+```
+export JAVA_HOME=/home/bioinformatics/software/java/latest
+export PATH=${JAVA_HOME}/bin:${PATH}
+```
 
 ```
 mkdir amplicon/vardict
