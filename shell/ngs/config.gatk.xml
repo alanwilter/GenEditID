@@ -90,6 +90,13 @@
 
     <variables>
 
+        <!-- the location of the software dependencies
+        -->
+        <softwareDir>/home/bioinformatics/pipelinesoftware/ampliconseq/el7</softwareDir>
+        <rhome>${softwareDir}/R-3.4.0</rhome>
+        <rscriptExecutable>${rhome}/bin/Rscript</rscriptExecutable>
+        <rlibs>${rhome}/lib64/R/library</rlibs>
+
         <!-- the identifier for this pipeline execution, used in naming tasks
              and intermediate and output files
         -->
