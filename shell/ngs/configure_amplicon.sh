@@ -1,3 +1,12 @@
+echo 'Creating pipeline directories'
+mkdir amplicon_vardict
+mkdir amplicon_gatk
+
+echo "Setting project $1 into config files"
+sed -i "s/GEPID/$1/g" config.vardict.xml
+sed -i "s/GEPID/$1/g" config.gatk.xml
+
+echo 'Making BAMs match the IDs'
 mkdir idbam
 cd idbam
 for bam in ../bam/*.bam

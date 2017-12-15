@@ -8,5 +8,5 @@
   --aligner=bwamem \
   --species=homo_sapiens \
   --genome-version=GRCh38_hs38d1 \
-  --library=SLX-ID \
+  --library=$1 \
   --fastq-only

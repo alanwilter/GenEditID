@@ -100,7 +100,7 @@
         <!-- the identifier for this pipeline execution, used in naming tasks
              and intermediate and output files
         -->
-        <runId>GEPID</runId>
+        <runId>GEPID.gatk</runId>
 
         <!-- the class path for running GATK tools, usually the path to the GATK
              jar file
@@ -110,7 +110,7 @@
         <!-- the working directory, by default set to the directory from which
              the pipeline was run
         -->
-        <work>amplicon/gatk/</work>
+        <work>amplicon_gatk/</work>
 
         <!-- the directory to which output files will be written, defaults to
              the working directory
@@ -130,13 +130,13 @@
         <!-- the sample sheet file containing sample names for each dataset, a
              two column file with ID and SAMPLE headers, can be left unset
         -->
-        <sampleSheet>amplicon/samples.txt</sampleSheet>
+        <sampleSheet>samples.txt</sampleSheet>
 
         <!-- the amplicon intervals file in Picard-style interval format -->
-        <ampliconIntervals>amplicon/amplicons.txt</ampliconIntervals>
+        <ampliconIntervals>amplicons.txt</ampliconIntervals>
 
         <!-- the target intervals file in Picard-style interval format -->
-        <targetIntervals>amplicon/targets.txt</targetIntervals>
+        <targetIntervals>targets.txt</targetIntervals>
 
         <!-- the minimum number of non-overlapping amplicon sets to create -->
         <minimumNumberOfNonOverlappingAmpliconSets>1</minimumNumberOfNonOverlappingAmpliconSets>
