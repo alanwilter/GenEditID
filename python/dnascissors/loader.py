@@ -347,6 +347,9 @@ class LayoutLoader(Loader):
             if not row.forward_primer_geid:
                 raise LoaderException('Forward primer GEID is required on row {}'.format(i))
             forward_primer = self.session.query(Primer).filter(Primer.geid == str(row.forward_primer_geid)).first()
+            # check reverse primer coordinnates after forward primer
+            if not (int(row.forward_primer_start) < int(row.forward_primer_end) < int(row.reverse_primer_start) < int(row.reverse_primer_end)):
+                raise LoaderException('Forward primer coordinates must be before reverse ones on row {}'.format(i))
             if not forward_primer:
                 forward_primer = Primer(genome=self.genome)
                 forward_primer.geid = str(row.forward_primer_geid)
@@ -356,6 +359,9 @@ class LayoutLoader(Loader):
                 forward_primer.end = int(row.forward_primer_end)
                 self.session.add(forward_primer)
                 self.log.info('Created primer {}'.format(forward_primer.geid))
+            else:
+                if not forward_primer.strand == 'forward' or not forward_primer.start == int(row.forward_primer_start) or not forward_primer.end == int(row.forward_primer_end):
+                    raise LoaderException('Forward primer GEID {} does not match what already recorded'.format(forward_primer.geid))
             forward_primer.amplicons.append(amplicon)
             self.log.info('Linked amplicon {}_chr{}_{} with forward primer {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, forward_primer.geid))
             # Find or create reverse primer
@@ -371,6 +377,9 @@ class LayoutLoader(Loader):
                 reverse_primer.end = int(row.reverse_primer_end)
                 self.session.add(reverse_primer)
                 self.log.info('Created primer {}'.format(reverse_primer.geid))
+            else:
+                if not reverse_primer.strand == 'reverse' or not reverse_primer.start == int(row.reverse_primer_start) or not reverse_primer.end == int(row.reverse_primer_end):
+                    raise LoaderException('Reverse primer GEID {} does not match what already recorded'.format(reverse_primer.geid))
             reverse_primer.amplicons.append(amplicon)
             self.log.info('Linked amplicon {}_chr{}_{} with forward primer {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, reverse_primer.geid))
 
