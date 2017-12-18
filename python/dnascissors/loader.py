@@ -152,7 +152,8 @@ class RefLoader(Loader):
     CELL_LINES = ['MCF7',
                   'T47D',
                   'MESC',
-                  'A549']
+                  'A549',
+                  'HUES9']
 
     def __init__(self, session):
         self.log = logging.getLogger(__name__)

@@ -31,6 +31,8 @@ sbatch job_kickstart.sh SLX-ID
 
 ## Align
 
+- Edit `realignment-meta.xml` by adding `<markDuplicates>false</markDuplicates>` into the list of `<variables>`.
+
 ```
 sbatch job_alignment.sh
 ```

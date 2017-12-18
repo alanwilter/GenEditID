@@ -171,7 +171,7 @@ class Primer(Base):
     genome_id = Column(Integer, ForeignKey('genome.id', name='primer_genome_fk'), nullable=False)
     genome = relationship(Genome)
     amplicons = relationship('Amplicon', secondary=primer_amplicon_association)
-    geid = Column(String(8), unique=True, nullable=False, index=True)
+    geid = Column(String(32), unique=True, nullable=False, index=True)
     sequence = Column(String(250), nullable=False)
     strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     start = Column(Integer, nullable=False)
