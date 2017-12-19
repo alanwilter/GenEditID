@@ -23,7 +23,6 @@ The following software needs to be installed:
   ```
   /home/bioinformatics/pipelinesoftware/ampliconseq/el7/R-3.4.0/lib64/R/library/
   ```
-
 - R packages shiny, DT and highcharter for R/Shiny visualization tool (optional)
 - [x] Perl
   ```
@@ -41,7 +40,6 @@ The following software needs to be installed:
   source ${PERLBREW_ROOT}/etc/bashrc
   ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0
   ```
-
 - [ ] [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
   ```
   perl5/perlbrew/bin/perlbrew use perl-5.16.0
@@ -55,16 +53,9 @@ The following software needs to be installed:
   perl INSTALL.pl  
   # ----------------------------------------------------------------------------
   # create cache files in /home/pajon01/.vep
-  # specify species files 42 43 44 45 46 47 58 59 60
-  # 42 : homo_sapiens_merged_vep_89_GRCh37.tar.gz
-  # 43 : homo_sapiens_merged_vep_89_GRCh38.tar.gz
-  # 44 : homo_sapiens_refseq_vep_89_GRCh37.tar.gz
+  # specify species files 45 59
   # 45 : homo_sapiens_refseq_vep_89_GRCh38.tar.gz
-  # 46 : homo_sapiens_vep_89_GRCh37.tar.gz
-  # 47 : homo_sapiens_vep_89_GRCh38.tar.gz
-  # 58 : mus_musculus_merged_vep_89_GRCm38.tar.gz
   # 59 : mus_musculus_refseq_vep_89_GRCm38.tar.gz
-  # 60 : mus_musculus_vep_89_GRCm38.tar.gz
   ```
 
 
