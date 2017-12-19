@@ -53,11 +53,14 @@ The following software needs to be installed:
   perl INSTALL.pl  
   # ----------------------------------------------------------------------------
   # create cache files in /home/pajon01/.vep
-  # specify species files 45 59
-  # 45 : homo_sapiens_refseq_vep_89_GRCh38.tar.gz
-  # 59 : mus_musculus_refseq_vep_89_GRCm38.tar.gz
+  # specify species files
+  # 47 : homo_sapiens_vep_89_GRCh38.tar.gz
+  # 60 : mus_musculus_vep_89_GRCm38.tar.gz
+  # FASTA files for the following species are available
+  # 29 : homo_sapiens
+  # 38 : mus_musculus
   ```
-
+  and add `vep` to your path `ln -s /home/pajon01/ensembl-vep-release-89/vep ~/bin/.`
 
 ## Reference genome
 
