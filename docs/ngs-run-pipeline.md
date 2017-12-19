@@ -4,28 +4,28 @@
 
 The following software needs to be installed:
 
-* [x] Unix Bourne and Bash shells
-* [x] Java SE 8 or above, add it to your `.bashrc` file, and test java version `java -version`
+- [x] Unix Bourne and Bash shells
+- [x] Java SE 8 or above, add it to your `.bashrc` file, and test java version `java -version`
   ```
   export JAVA_HOME=/home/bioinformatics/software/java/latest
   export PATH=${JAVA_HOME}/bin:${PATH}
   ```
-* [x] Genome Analysis Toolkit (GATK) [version 3.7]
+- [x] Genome Analysis Toolkit (GATK) [version 3.7]
   ```
   /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/gatk.jar
   ```
-* FreeBayes (optional)
-* [x] VarDict (Java version only, optional) [version 1.5.1], set `<vardictExecutable>` to
+- FreeBayes (optional)
+- [x] VarDict (Java version only, optional) [version 1.5.1], set `<vardictExecutable>` to
   ```
   /home/bioinformatics/software/vardict/VarDict-1.5.1/bin/VarDict
   ```
-* [x] R including the packages Nozzle.R1, base64, scales, forcats, readr, tidyr, dplyr, ggplot2, fitdistrplus
+- [x] R including the packages Nozzle.R1, base64, scales, forcats, readr, tidyr, dplyr, ggplot2, fitdistrplus
   ```
   /home/bioinformatics/pipelinesoftware/ampliconseq/el7/R-3.4.0/lib64/R/library/
   ```
 
-* R packages shiny, DT and highcharter for R/Shiny visualization tool (optional)
-* [x] Perl
+- R packages shiny, DT and highcharter for R/Shiny visualization tool (optional)
+- [x] Perl
   ```
   cd ~
   wget -O - https://install.perlbrew.pl | bash
@@ -42,7 +42,7 @@ The following software needs to be installed:
   ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0
   ```
 
-* [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
+- [ ] [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
   ```
   perl5/perlbrew/bin/perlbrew use perl-5.16.0
   cpanm Archive::Zip
