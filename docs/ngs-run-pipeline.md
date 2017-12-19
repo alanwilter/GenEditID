@@ -1,5 +1,73 @@
 # Run the Amplicon Sequencing Pipeline
 
+## Dependencies
+
+The following software needs to be installed:
+
+* [x] Unix Bourne and Bash shells
+* [x] Java SE 8 or above, add it to your `.bashrc` file, and test java version `java -version`
+  ```
+  export JAVA_HOME=/home/bioinformatics/software/java/latest
+  export PATH=${JAVA_HOME}/bin:${PATH}
+  ```
+* [x] Genome Analysis Toolkit (GATK) [version 3.7]
+  ```
+  /home/bioinformatics/software/pipelines/ampliconseq/ampliconseq-pipeline-0.4.1/gatk.jar
+  ```
+* FreeBayes (optional)
+* [x] VarDict (Java version only, optional) [version 1.5.1], set `<vardictExecutable>` to
+  ```
+  /home/bioinformatics/software/vardict/VarDict-1.5.1/bin/VarDict
+  ```
+* [x] R including the packages Nozzle.R1, base64, scales, forcats, readr, tidyr, dplyr, ggplot2, fitdistrplus
+  ```
+  /home/bioinformatics/pipelinesoftware/ampliconseq/el7/R-3.4.0/lib64/R/library/
+  ```
+
+* R packages shiny, DT and highcharter for R/Shiny visualization tool (optional)
+* [x] Perl
+  ```
+  cd ~
+  wget -O - https://install.perlbrew.pl | bash
+  perl5/perlbrew/bin/perlbrew install perl-5.16.0
+  perl5/perlbrew/bin/perlbrew use perl-5.16.0
+  curl -L https://cpanmin.us | perl - App::cpanminus
+  mkdir tmp
+  ```
+  add these lines to your `.bashrc` file
+  ```
+  export PERLBREW_ROOT=${HOME}/perl5/perlbrew
+  export PERLBREW_HOME=${HOME}/tmp/.perlbrew
+  source ${PERLBREW_ROOT}/etc/bashrc
+  ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0
+  ```
+
+* [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
+  ```
+  perl5/perlbrew/bin/perlbrew use perl-5.16.0
+  cpanm Archive::Zip
+  cpanm DBI
+  cpanm File::Copy::Recursive
+  cpanm Bio::Root::Version
+  curl -L -O https://github.com/Ensembl/ensembl-vep/archive/release/89.zip
+  unzip 89.zip
+  cd ensembl-vep-release-89/
+  perl INSTALL.pl  
+  # ----------------------------------------------------------------------------
+  # create cache files in /home/pajon01/.vep
+  # specify species files 42 43 44 45 46 47 58 59 60
+  # 42 : homo_sapiens_merged_vep_89_GRCh37.tar.gz
+  # 43 : homo_sapiens_merged_vep_89_GRCh38.tar.gz
+  # 44 : homo_sapiens_refseq_vep_89_GRCh37.tar.gz
+  # 45 : homo_sapiens_refseq_vep_89_GRCh38.tar.gz
+  # 46 : homo_sapiens_vep_89_GRCh37.tar.gz
+  # 47 : homo_sapiens_vep_89_GRCh38.tar.gz
+  # 58 : mus_musculus_merged_vep_89_GRCm38.tar.gz
+  # 59 : mus_musculus_refseq_vep_89_GRCm38.tar.gz
+  # 60 : mus_musculus_vep_89_GRCm38.tar.gz
+  ```
+
+
 ## Reference genome
 
 Use `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
@@ -59,12 +127,6 @@ python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/
 And copy these three files into your project directory.
 
 ### Run the amplicon pipelines
-
-NB. You need to have Java 8 installed and you may have to add it to your path.
-```
-export JAVA_HOME=/home/bioinformatics/software/java/latest
-export PATH=${JAVA_HOME}/bin:${PATH}
-```
 
 ```
 sbatch job_amplicon_vardict.sh

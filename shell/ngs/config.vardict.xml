@@ -178,7 +178,7 @@
         <!-- the VarDict executable, by default assumes the VarDict executable
              from the Java version of VarDict is available on the path
         -->
-        <vardictExecutable>VarDict</vardictExecutable>
+        <vardictExecutable>/home/bioinformatics/software/vardict/VarDict-1.5.1/bin/VarDict</vardictExecutable>
 
         <!-- the VarDict strand bias script -->
         <vardictStrandBiasScript>${install}/scripts/vardict/teststrandbias.R</vardictStrandBiasScript>
