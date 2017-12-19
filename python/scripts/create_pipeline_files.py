@@ -8,14 +8,6 @@ from shutil import copyfile
 import log as logger
 
 
-def convert_strand(s):
-    if s == 'forward':
-        return '+'
-    if s == 'reverse':
-        return '-'
-    return '*'
-
-
 def create_files(session, project, seq_dict):
     amp_file = "amplicons.txt"
     target_file = "targets.txt"
