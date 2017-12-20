@@ -678,7 +678,13 @@ class VariantLoader(Loader):
                   'indel_length',
                   'forward_context',
                   'alleles',
-                  'reverse_context']
+                  'reverse_context',
+                  'position_noise_threshold',
+                  'library_noise_threshold',
+                  'allele_fraction_indep_computed',
+                  'depth_indep_computed']
+        if len(sheet) == 0:
+            return
         sheet.columns = header
         for i, row in enumerate(sheet.itertuples(), 1):
             seq_lib_content = self.session.query(SequencingLibraryContent) \

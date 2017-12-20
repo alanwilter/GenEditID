@@ -257,8 +257,9 @@ class NGSPlotter:
         variant_caller_types = []
         for i in varianttype:
             guide_name = 'none'
-            if i.sequencing_library_content.well.well_content.guides:
-                guide_name = i.sequencing_library_content.well.well_content.guides[0].name
+            if i.sequencing_library_content.well.well_content:
+                if i.sequencing_library_content.well.well_content.guides:
+                    guide_name = i.sequencing_library_content.well.well_content.guides[0].name
             if i.indel_length is None:
                 typevar = i.variant_type
             elif i.indel_length > 0:
@@ -361,8 +362,9 @@ class NGSPlotter:
         for vr in variant_results:
             well = vr.sequencing_library_content.well
             guide_name = 'none'
-            if well.well_content.guides:
-                guide_name = well.well_content.guides[0].name
+            if well.well_content:
+                if well.well_content.guides:
+                    guide_name = well.well_content.guides[0].name
             guides.append(guide_name)
             allindellengths.append(vr.indel_length)
             typecallers.append(vr.variant_caller)
