@@ -56,3 +56,6 @@ test
 
 # Default plotly output file
 temp-plot.html
+
+# Data file
+*.json
