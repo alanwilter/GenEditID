@@ -1,74 +1,44 @@
 # Planning - What's next? Our TODO list!
 
 ## layout data template
-file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
+file `data/templates/GEPXXXXX.xlsx` with documentation explaining each sheets and each columns.
 
-- **Done**
-  - [x] we don't need 'barcode_size' in SequencingLibraryContent
-    - remove it everywhere from model, template and loader
-  - [x] in tab GuideMismatches: 'regions' would better be 'number_of_mismatches', and 'mismatches' should be 'number_of_offtargets'
-  - [x] in Project: change 'institute' to 'affiliation'
 
 ## data model (model.py)
-- [ ] check that codes associated to classes are not in script but put back in class functions
 - [ ] add donor table: sequence, start, end on forward and excision sequence
 - [ ] add documentation to model.py (e.g. we have a relationship one to many in well to abundances. This is because you can take repeated measurements from the same well)
 - [ ] revise relationships model.py (e.g. we have a relationship one to many in sequencing_library_content to mutation_summaries. In this case we can't obtain a second mutation_summaries for the same library, so it's more meaningful if relationship is 1:1).
 
-- **Done**
-  - [x] add 'cell_pool' to ExperimentLayout
-  - [x] add (editable) comments on projects
-  - [x] add column in mutation_summary for found in both variant callers VH, V-, -H, or V?
-  - [x] add column in mutation_summary for frameshift yes/no
-  - [x] add column in mutation_summary for score
-  - [x] add mismatches table for guides: is_coding_region, regions, mismatches
-  - [x] add 'project_type' ('knock-in', 'knock-out') to Project.
-  - [x] update database diagram
 
 ## loader
 - [ ] Add checks and error messages to ensure layouts are correct (e.g. in ExperimentLayout, a .content_type "wild-type" cannot have a guide associated), and a .content_type "empty" should not have anything else associated other than well position, a "sample" should have all values (cell_line, clone, guide, replicate).
 - [ ] In the loader, it may be better to calculate 'hour' from the timestamp. I'll talk to the incucyte techs about this, so don't change anything just yet.
-
-- **Done**
-  - [x] In the loader, *ProteinAbundanceLoader* class, change file type from '.csv' to '.txt' (or it looks like extension is not used in the loader, only sep?). It's a tab-delimited file anyway, so this way we can keep it consistent with the growth data .txt extension. I am doing the documentation of protein and growth file formats and noting this down. Answer: The extension does not matter for the loader, it only needs to be the same format. We use the csv library to load the file and specify the delimiter to be tab. If we were renaming these files to .txt, we will need to update the loading scripts used to populate the database in `shell/` directory.
-
-
-#### Corrections
 - [ ] calculate mutation_summary score and load. Currently score uses has_offtargets, zygosity and consequence. Add protein when the experiment is KO.
 - [ ] The score uses has_frameshift. However, has_frameshift is True if at least one of the alleles has a frameshift. Make it True only when both alleles have a frameshift (the reason: if one is frameshift and the other inframe, the result is presence of protein and partial KO, but with the current score it's highly rated)
 
-- **Done**
-  - [x] add values for variant_caller_presence
-  - [x] add values for has_frameshift
-  - [x] load guide mismatches
 
-## sequencing analysis pipeline (later)
-- [ ] genome coordinates. The user is using hg19 coordinates for primers and guides. We need a script to translate these coordinates to hg18.
+## sequencing analysis pipeline
 - [ ] pipeline to work with human and mouse genomes
-- [ ] Not urgent. primer design automation and loading data in DB (primer blast)
+- [ ] primer design automation and loading data in DB (primer blast)
 
-## pipeline automation (later)
-- [ ] install pipeline in production as well as the software dependencies and databases for annotations
-- [ ] check reference genomes in place
+
+## automation
+- [x] install pipeline in production as well as the software dependencies and databases for annotations
+- [x] check reference genomes in place
 - [ ] create a space on the cluster for genome editing projects or elsewhere
 - [ ] propose solution on full automation
+
 
 ## plots / analysis
 - [ ] Heatmap [protein, NGS[[frameshift-frame1, frameshift-frame2, noframeshift], [offtarget], [zygosity]], growth slope]
 - [ ] Growth slopes (we need to calculate the slopes!) - done except with colors
 - [ ] Combined plot NGS + protein + slopes, color-coded for frameshifts
-- [ ] Added code to get indelstructures from single variables. It is in ngsplotter.indelstructure_plot and needs to be put in the right place, connected to the table
+- [ ] Added code to get indel structures from single variables. It is in ngsplotter.indelstructure_plot and needs to be put in the right place, connected to the table
 - [ ] Not urgent. Current analysis is per single project > update to process multiple projects
 - [ ] Not urgent. Current score calculations are based on allele number == 2. However in the PTEN project 3 alleles are knocked, and in future projects multiple positions could be edited simultaneously - need to add an 'allele_number' field to the database and update the code
 
-- **Done**
-  - [x] 96-well plate scatter plot (need the scores and the slopes)
-  - [x] Indelranges
-  - [x] Type of mutation bar plot (%of samples submitted to NGS vs x =[wt, ins, del, SNV])
-  - [x] Combined plot NGS + protein
 
-
-## pyramid webapp
+## web app
 - **global data exploration**, plots for:
   - [ ] Growth slopes
   - NGS exploratory plots
@@ -80,7 +50,7 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Heatmap
 - **sample details**
   - [ ] Per-sample plot of INDEL ranges
-  - [ ] LATER. Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
+  - [ ] Visualisation of reads (.bam files) in IGV browser (external) (ideally a link to the .bam that opens an IGV server, or an IGV installed locally on the user's computer)
 - **user report** for selected samples
   - need a way to select samples and get data table (and plots) only related to these
   - [ ] plot INDEL ranges
@@ -97,38 +67,6 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - [ ] Results Comments (this section is independent to the one described in 'project')
 - [ ] generate final user report
 
-- **Done**
-  - **project description**
-    - [x] Core Genome Editing comments section: box to add comments about the project, that should be updatable and stored on the database along the project
-    - [x] project global overview: tab 'Project' from the layout excel file
-    - [x] project detailed overview (on demand, clicking somewhere): tabs 'Project', 'Target', 'Guide' and 'Guidemismatches' from the layout excel file
-  - **global data exploration**, plots for:
-    - [x] Protein abundance
-    - [x] Growth curves
-    - NGS exploratory plots
-      - [x] % Zygosities (‘homozygous’, ‘heterozygous’…)
-      - [x] % Alleles (e.g. C/CATG, CTAA/C)
-      - [x] % Indel lengths
-      - [x] % Type of variant (‘wt’, ‘frameshift’, ‘inframe’...)
-    - **sample details**
-      - [x] plot: 96-well plates for score-based clone selection
-      - [x] Data table per project
-    - **user report** for selected samples
-      - [x] project global overview (tab 'Project' from the layout excel file)
-      - Data table
-        - [x] per project and plate layout (i.e. GEP00001_01 and no GEP00001_01_incu)
-        - [x] output data as soon as we have input (e.g. if there is protein data, show it regardless of presence of growth and NGS data).
-        - columns of the data table:
-          - [x] Plate
-          - [x] Well
-          - [x] Sample name
-          - [x] Fluidigm barcode
-          - [x] score (output NaN if no NGS data available)
-          - [x] Variant type/consequence
-          - [x] Symbol (Gene ID)
-          - [x] Allele fraction
-          - [x] Alleles
-
 
 ## Problems to solve
 - [ ] revise queries, filtering by project might not be working correctly (we can use sample names as tracking system)
@@ -139,29 +77,25 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
 - [ ] make plots and data tables considering that we can have more than one dna_source. As it is currently, e.g. for project GEP00001, well.sequencing_library_contents[0].dna_source is 'fixed cells' and well.sequencing_library_contents[1].dna_source is 'gDNA'. We are selecting only fixed cells for simplification, but we need to show both (the reason to have gDNA and cells was to be able to compare the sequencing results from both). Also, in project one there is a sample (GE-P6B4-G) that is gDNA only (it was sent for sequencing only as gDNA, without a 'fixed cells' counterpart), no fixed cells, so when you do well.sequencing_library_contents[0].dna_source, it results in 'gDNA'!
 - [ ] Revise protein data values in plot_96_wells, how the range looks like (we should see edges )
 
-- **Done**
-  - [x] in plot_typeofvariants.py and plot_distances.py, weird result: for guide STAT3.1 I get a -91 indel_length with haplotypecaller, but according to the excel file that should be STAT3.3 instead (sample GE-P1B5-C).
-  - [x] is presence of offtargets considered in calculation of zygosities?
-
 
 - **What's next?**
-  - (1) Bioinfo pipeline:
-    - new version of the amplicon sequencing pipeline after fixes on merged data per line
-    - branch and modify to our own needs with explanation on how to install from scratch
+  - (1) Bioinformatics pipeline:
+    - [x] new version of the amplicon sequencing pipeline after fixes on merged data per line
   - (2) Coordinate translation to switch between reference genomes
+    - [x] use latest versions of genomes for everything e.g. Homo sapiens [GRCh38] or Mus musculus [GRCm38]
   - (3) Primer design: make it automatic - primer pair if failed nested primers
   - Use replicates - update calculation instead of using average
-  - Question? Several guides in single well: how to you put in the the layout file and load it?
+  - Question? Several guides in single well: how do you put in the layout file and load it?
   - Access control to only genome editing core
     - report with pdf or link to website
     - bam files
-  - Load ngs results for knock-in project 3
+  - Load NGS results for knock-in project 3
   - Export selection of results not all results
   - Add growth slope calculation
 
 
 - **What needs to be finished?**
-  - Current webapp
+  - Current web app
     - [x] Results table need to be updated with the right columns and one line per samples
     - [ ] Add result comments on project and add it on edit project
     - [ ] Finish scoring with protein ratio 800/700 vs KO average
@@ -181,6 +115,32 @@ file `data/templatesYYYYMMDD_GEPXXXXX.xlsx`
   - 2 times three months deadline has a negative impact on the project flow
   - Allocated working time to work together like two days per week
   - Great to have meeting every morning at 10am, very useful
+
+
+## Catchup meeting - Wednesday 10th January 2018
+**Main aim:** Project specific autopsies and moving forward
+
+- Project specific autopsies
+  - Plots with missing data on web app
+  - Results table with missing columns on web app
+- Moving forward
+  - improve submitted form — check if columns could be locked
+  - create standard location for BAM files
+  - add BAM files in browser then results linked to hyperlink in IGV to take you to the right file
+  - review scoring system: add threshold on number of reads
+  - automatic submission to genomics
+  - fully automated process: from submission to genomics to amplicon pipeline to upload to genome editing system
+  - knock-in issue if insertion of 200 fragment — too long for alignment of 300 reads
+    - build specific reference genome for each project when we have long knockin
+
+- Next
+  - link on the website to results excel table and also to the BAM files
+  - column in the excel table so that the barcode number/clone number/well position can all be linked as they are in the submission form
+  - summary of the wild type reads in this table too, for example FLD0001/A1 should be a parental wild type control, it would be good to see this to check for contamination in wells
+  - if wild type reads are found within clones it would be good for this also to be listed so that we know that we have a heterozygous mutation
+  - next project is a knock in project to run through the pipeline
+    - over a 21bp region knock in 7 point mutations on both alleles
+    - combining barcodes: screen the off targets for ATG5 in the same library
 
 
 ## End of project meeting - Thursday 5th Oct 2017
