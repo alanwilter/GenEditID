@@ -90,13 +90,14 @@ class Target(Base):
         backref=backref('targets', uselist=True, cascade='delete,all'))
     genome_id = Column(Integer, ForeignKey('genome.id', name='target_genome_fk'), nullable=False)
     genome = relationship(Genome)
-    name = Column(String(32), unique=True, nullable=False, index=True)
+    name = Column(String(32), nullable=False, index=True)
     gene_id = Column(String(32), nullable=False, index=True)
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
     strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False, index=True)
     description = Column(String(1024))
+    UniqueConstraint('name', 'project', name='unique_target_in_project')
 
 
 class Guide(Base):
