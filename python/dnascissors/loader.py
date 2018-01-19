@@ -190,13 +190,14 @@ class LayoutLoader(Loader):
         self.session = session
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
+        self.project = None
 
     def clean(self, project):
         self.session.delete(project)
         self.session.flush()
 
     def load_all(self, clean_if_exists=False):
-        self.load_projects(clean_if_exists)
+        self.load_project(clean_if_exists)
         self.load_targets()
         self.load_guides()
         self.load_guide_mismatches()
@@ -205,9 +206,11 @@ class LayoutLoader(Loader):
         self.load_plates()
         self.load_sequencing_libraries()
 
-    def load_projects(self, clean_if_exists=False):
+    def load_project(self, clean_if_exists=False):
         sheet = self.xls.parse('Project')
-        for i, row in enumerate(sheet.itertuples(), 1):
+        if len(sheet) > 1:
+            raise LoaderException('More than one Project in the submission form')
+        for row in sheet.itertuples():
             if not row.geid:
                 raise LoaderException('Project identifier is required on row {}'.format(i))
             project = self.session.query(Project).filter(Project.geid == row.geid).first()
@@ -230,16 +233,12 @@ class LayoutLoader(Loader):
             project.project_type = row.project_type
             project.description = self.get_string(row.description, 1024)
             self.session.add(project)
+            self.project = project
             self.log.info('Created project {}'.format(project.name))
 
     def load_targets(self):
         sheet = self.xls.parse('Target')
         for i, row in enumerate(sheet.itertuples(), 1):
-            if not row.project_geid:
-                raise LoaderException('Project identifier is required on row {}'.format(i))
-            project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
-            if not project:
-                raise LoaderException('Project "{}" does not exist (row {})'.format(row.project_geid, i))
             if not row.genome:
                 raise LoaderException('Genome is required on row {}'.format(i))
             # Find genome
@@ -249,11 +248,11 @@ class LayoutLoader(Loader):
             # Find or create target
             if not row.name:
                 raise LoaderException('Target name is required on row {}'.format(i))
-            target = self.session.query(Target).filter(Target.name == row.name).first()
+            target = self.session.query(Target).filter(Target.name == row.name).filter(Target.project == self.project).first()
             if target:
                 self.log.info("Already have a target called {}. It's from the project {}.".format(target.name, target.project.name))
             else:
-                target = Target(project=project, genome=self.genome)
+                target = Target(project=self.project, genome=self.genome)
                 target.name = row.name
                 target.gene_id = row.gene_id
                 target.chromosome = str(row.chromosome)
@@ -269,7 +268,7 @@ class LayoutLoader(Loader):
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.target_name:
                 raise LoaderException('Target name is required on row {}'.format(i))
-            target = self.session.query(Target).filter(Target.name == row.target_name).first()
+            target = self.session.query(Target).filter(Target.name == row.target_name).filter(Target.project == self.project).first()
             if not target:
                 raise LoaderException('Target "{}" does not exist (row {})'.format(row.target_name, i))
             if not row.name:
@@ -329,18 +328,26 @@ class LayoutLoader(Loader):
                     strand = previous_strand
                 else:
                     raise LoaderException("Have no guide strand on row {}".format(i))
+            # get score
+            selection_score = None
+            if pandas.notnull(row.score):  # and row.score != 'NA':
+                selection_score = int(row.score)
             selection = self.session.query(AmpliconSelection)\
                                     .filter(AmpliconSelection.amplicon == amplicon)\
+                                    .filter(AmpliconSelection.guide == guide)\
+                                    .filter(AmpliconSelection.experiment_type == row.experiment_type)\
                                     .filter(AmpliconSelection.guide_location == int(row.guide_location))\
-                                    .filter(AmpliconSelection.guide_strand == strand).first()
+                                    .filter(AmpliconSelection.guide_strand == strand)\
+                                    .filter(AmpliconSelection.is_on_target == bool(row.is_on_target))\
+                                    .filter(AmpliconSelection.score == selection_score)\
+                                    .filter(AmpliconSelection.description == self.get_string(row.description, 1024)).first()
             if not selection:
                 selection = AmpliconSelection(guide=guide, amplicon=amplicon)
                 selection.experiment_type = row.experiment_type
                 selection.guide_location = int(row.guide_location)
                 selection.guide_strand = strand
                 selection.is_on_target = bool(row.is_on_target)
-                if pandas.notnull(row.score): # and row.score != 'NA':
-                    selection.score = int(row.score)
+                selection.score = selection_score
                 selection.description = self.get_string(row.description, 1024)
                 self.session.add(selection)
                 self.log.info('Created amplicon selection of amplicon {}_chr{}_{} at {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, selection.guide_location))
@@ -390,12 +397,6 @@ class LayoutLoader(Loader):
             guide = None
             clone = None
             content = None
-            # Need to find project.
-            if not row.project_geid:
-                raise LoaderException('Project identifier is required on row {}'.format(i))
-            project = self.session.query(Project).filter(Project.geid == row.project_geid).first()
-            if not project:
-                raise LoaderException('Project "{}" does not exist (row {})'.format(row.project_geid, i))
             # May also need to find a guide.
             if self.get_value(row.guide_name):
                 guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
@@ -406,10 +407,10 @@ class LayoutLoader(Loader):
                 raise LoaderException('Experiment layout GEID is required on row {}'.format(i))
             layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
-                layout = ExperimentLayout(project=project)
+                layout = ExperimentLayout(project=self.project)
                 layout.geid = row.geid
                 self.session.add(layout)
-                self.log.info('Created experiment layout {} in project {}'.format(layout.geid, project.geid))
+                self.log.info('Created experiment layout {} in project {}'.format(layout.geid, self.project.geid))
             # Cell line pool
             cell_line = None
             if self.get_value(row.cell_line_name):
@@ -422,10 +423,10 @@ class LayoutLoader(Loader):
                     raise LoaderException('Cannot have a clone without a cell line on row {}'.format(i))
                 clone = self.session.query(Clone).filter(Clone.name == row.clone_name)\
                                                  .filter(Clone.cell_pool == self.get_string(row.cell_pool))\
-                                                 .filter(Clone.project == project)\
+                                                 .filter(Clone.project == self.project)\
                                                  .first()
                 if not clone:
-                    clone = Clone(name=row.clone_name, cell_pool=self.get_string(row.cell_pool), project=project)
+                    clone = Clone(name=row.clone_name, cell_pool=self.get_string(row.cell_pool), project=self.project)
                     clone.cell_line = cell_line
                     self.session.add(clone)
                     self.log.info('Created clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line.name, clone.cell_pool))
@@ -634,7 +635,7 @@ class VariantLoader(Loader):
                    join(Well).\
                    join(ExperimentLayout).\
                    join(Project).\
-                   filter(Project.geid == project_geid).\
+                   filter(Project.geid == self.project_geid).\
                    all()
 
         for v in variants:
