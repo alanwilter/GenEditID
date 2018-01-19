@@ -29,7 +29,7 @@ def create_files(session, project, seq_dict):
 
         for a in ampliconQuery.all():
 
-            #print("Amplicon {} {} {}-{}".format(a.id, a.chromosome, a.start, a.end))
+            print("Amplicon {} {} {}-{}".format(a.id, a.chromosome, a.start, a.end))
 
             amp_out.write("chr{}\t{}\t{}\t+\t{}\n".format(a.chromosome,
                                                           a.start,
@@ -42,7 +42,7 @@ def create_files(session, project, seq_dict):
             tend = a.end - 1
 
             for p in aprimers:
-                #print("Has primer {} {}-{} {} {}".format(p.id, p.start, p.end, p.strand, p.sequence))
+                print("Has primer {} {}-{} {} {}".format(p.id, p.start, p.end, p.strand, p.sequence))
 
                 if p.strand == 'forward':
                     tstart = p.end + 1
