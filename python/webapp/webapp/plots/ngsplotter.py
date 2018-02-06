@@ -109,7 +109,7 @@ class NGSPlotter:
                     .filter(Project.geid == self.project_geid)\
                     .filter(SequencingLibraryContent.dna_source != 'gDNA')\
                     .filter(VariantResult.allele_fraction > self.allele_fraction_threshold)\
-                    .filter(MutationSummary.has_off_target is False)
+                    .filter(MutationSummary.has_off_target == False)
         results = query.all()
         if len(results) == 0:
             return None
