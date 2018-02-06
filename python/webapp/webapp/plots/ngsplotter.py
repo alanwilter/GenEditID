@@ -206,29 +206,31 @@ class NGSPlotter:
         self.ngsfigure.layout.update({'shapes': shapes, 'hovermode': 'closest'})
         self.ngsfigure.layout['annotations'].extend(annots)
 
-        # to get individual sample plots
-        fig = plotly.tools.make_subplots(rows=1, cols=2, subplot_titles=results_callers, print_grid=False)
-        colindex = 1
-        sample_xaxisrange = []
-        for d_caller in results_callers:
-            for mut in plotdict[d_caller]['GE-P4C2-C']:  # pass getsample_plot here
-                fig.append_trace(mut, 1, colindex)
-                sample_xaxisrange.append(mut.get('x'))
-            colindex += 1
+        if getsample_plot:
+            # to get individual sample plots
+            # This seems to be old code and not actually used.
+            fig = plotly.tools.make_subplots(rows=1, cols=2, subplot_titles=results_callers, print_grid=False)
+            colindex = 1
+            sample_xaxisrange = []
+            for d_caller in results_callers:
+                for mut in plotdict[d_caller][getsample_plot]:
+                    fig.append_trace(mut, 1, colindex)
+                    sample_xaxisrange.append(mut.get('x'))
+                colindex += 1
 
-        sample_xaxisranges = [i for x in sample_xaxisrange for i in x]
-
-        for i in fig.layout:
-            if i.find('xaxis') == 0:
-                fig.layout[i].update({'range': [min(sample_xaxisranges)-10, max(sample_xaxisranges)+10], 'showgrid': False})
-            elif i.find('yaxis') == 0:
-                fig.layout[i].update({'range': [0, 1.1]})
-
-        fig.layout.update({
-            'shapes': shapes,
-            'hovermode': 'closest'})
-        fig.layout['annotations'].extend(annots)
-        #plotly.offline.plot(fig)
+            sample_xaxisranges = [i for x in sample_xaxisrange for i in x]
+    
+            for i in fig.layout:
+                if i.find('xaxis') == 0:
+                    fig.layout[i].update({'range': [min(sample_xaxisranges)-10, max(sample_xaxisranges)+10], 'showgrid': False})
+                elif i.find('yaxis') == 0:
+                    fig.layout[i].update({'range': [0, 1.1]})
+    
+            fig.layout.update({
+                'shapes': shapes,
+                'hovermode': 'closest'})
+            fig.layout['annotations'].extend(annots)
+            #plotly.offline.plot(fig)
 
     def typeofmutation_plot(self, row_index, column_index, anchor):
         """Type of mutation plot.
@@ -475,7 +477,7 @@ def main():
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
     session = DBSession()
     try:
-        plotter = NGSPlotter(session, 'GEP00001')
+        plotter = NGSPlotter(session, 'GEP00004')
         plotter.include_js = True
         plotter.combined_ngs_plot("ngs.html")
 
