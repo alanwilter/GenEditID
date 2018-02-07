@@ -113,28 +113,28 @@ class ProjectViews(object):
                 guide_row.append(guide.exon)
                 guide_row.append(guide.nuclease)
                 guide_rows.append(guide_row)
-                mismatch_dict = {}
-                mismatch_dict['genome region'] = "{} coding".format(guide.name)
+                mismatch_counts = [0] * 4
+                mismatch_counts[0] = "{} coding".format(guide.name)
                 for mismatch in guide.guide_mismatches:
                     if mismatch.is_off_target_coding_region:
                         if mismatch.number_of_mismatches == 1:
-                            mismatch_dict['1'] = mismatch.number_of_off_targets
+                            mismatch_counts[1] = mismatch.number_of_off_targets
                         elif mismatch.number_of_mismatches == 2:
-                            mismatch_dict['2'] = mismatch.number_of_off_targets
+                            mismatch_counts[2] = mismatch.number_of_off_targets
                         elif mismatch.number_of_mismatches == 3:
-                            mismatch_dict['3'] = mismatch.number_of_off_targets
-                guide_mismatch_rows.append(mismatch_dict.values())
-                mismatch_dict = {}
-                mismatch_dict['genome region'] = "{} non-coding".format(guide.name)
+                            mismatch_counts[3] = mismatch.number_of_off_targets
+                guide_mismatch_rows.append(mismatch_counts)
+                mismatch_counts = [0] * 4
+                mismatch_counts[0] = "{} non-coding".format(guide.name)
                 for mismatch in guide.guide_mismatches:
                     if not mismatch.is_off_target_coding_region:
                         if mismatch.number_of_mismatches == 1:
-                            mismatch_dict['1'] = mismatch.number_of_off_targets
+                            mismatch_counts[1] = mismatch.number_of_off_targets
                         elif mismatch.number_of_mismatches == 2:
-                            mismatch_dict['2'] = mismatch.number_of_off_targets
+                            mismatch_counts[2] = mismatch.number_of_off_targets
                         elif mismatch.number_of_mismatches == 3:
-                            mismatch_dict['3'] = mismatch.number_of_off_targets
-                guide_mismatch_rows.append(mismatch_dict.values())
+                            mismatch_counts[3] = mismatch.number_of_off_targets
+                guide_mismatch_rows.append(mismatch_counts)
         # Guide table
         guide_headers = [
             "target name",
