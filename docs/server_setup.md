@@ -71,3 +71,53 @@ install.packages(c('shiny', 'reshape2', 'ggplot2', 'grofit', 'plotly', 'svglite'
 source("http://bioconductor.org/biocLite.R")
 biocLite("ggbio")
 ```
+
+# Data Directory
+
+The `bioinf-ge001` server is a small VM with not a lot of storage. Its data directory has therefore
+been put onto `bioinf-nfs001` and NFS mounted (with _autofs_).
+
+#### bioinf-nfs001
+
+Create a user matching the "ge" user on bioinf-ge001:
+
+```
+useradd -c "Genome Editing" -d /data/ge -m -u 1002 -g sec_bioinf-nfs001-data_rw -G users -N  ge
+chmod 775 /data/ge
+passwd ge
+```
+
+Add the `/data/ge` directory to the NFS exports by adding this to `/etc/exports`:
+
+```
+/data/ge     bioinf-ge001(rw,fsid=0,no_subtree_check)
+```
+
+Can then export without restart with:
+
+```
+exportfs -ra
+```
+
+#### bioinf-ge001
+
+Set up _autofs_ to mount `/data/ge` when required over NFS:
+
+```
+yum install autofs
+```
+
+Then in `/etc/auto.master.d` create two files:
+
+##### nfs.autofs
+
+```
+/data /etc/auto.master.d/autofs.nfs
+```
+
+##### autofs.nfs
+
+```
+ge -fstype=nfs,nosuid bioinf-nfs001.cri.camres.org:/data/ge
+
+```
