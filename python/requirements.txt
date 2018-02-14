@@ -13,5 +13,8 @@ pandas
 plotly
 colorlover
 
+# count amplicons tool
+biopython
+
 # dnascissors module, installing it from local src
 -e python/.
