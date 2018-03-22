@@ -41,6 +41,7 @@ fprimer_seq = 'GCAAGATGAGACCTCAGCCA'
 fastq_dir = '/Users/pajon01/mnt/scratchb/genome-editing/GEP00007/fastq/'
 
 fastq_extension = '.r_1.fq.gz'  # logic need to change for r_2
+quality_threshold = 10
 frequency_threshold = 5
 
 # ------------------------------------------------------------------------------
@@ -64,25 +65,47 @@ for record in SeqIO.parse(handle, "gb"):
 # ------------------------------------------------------------------------------
 # Occurences of sequences between primers in FASTQ files
 # ------------------------------------------------------------------------------
-print("slxid, barcode, read_count, read_frequency, seq_type, sequence")
+print('--------')
+print('FastQ files: {}'.format(fastq_dir))
+print('Quality Threshold: {}'.format(quality_threshold))
+print('Frequency Threshold: {}'.format(frequency_threshold))
+print('Counting reads which have both primers in their sequence, and with a minimum base quality score above the threshold within the amplicon sequence.')
+print('Reporting only sequences with read counts which are above the threshold.')
+print('--------')
+print("slxid, barcode, total_reads, total_filtered_reads, read_count, read_frequency, seq_type, sequence")
 for filename in os.listdir(fastq_dir):
     if filename.endswith(fastq_extension):
         splited_filename = filename.split('.')
         slxid, barcode = splited_filename[0], splited_filename[1]
         occurrences_dict = {}
+        total_reads = 0
         reads = 0
+        # filtering reads based on quality
         with gzip.open(os.path.join(fastq_dir, filename), "rt") as handle:
-            for title, seq, qual in FastqGeneralIterator(handle):
-                # for a large FASTQ file, better not use the high-level SeqIO interface
-                # for record in SeqIO.parse(handle, "fastq") but work directly with strings
-                # to work with quality score converted to integers: record.letter_annotations["phred_quality"]
-                fprimer_pos = seq.find(fprimer_seq)
-                rprimer_pos = seq.find(rprimer_seq) + len(rprimer_seq)
-                amplicon_seq = str(seq)[fprimer_pos:rprimer_pos]
-                # find wt sequence
-                if amplicon_seq:
-                    occurrences_dict[amplicon_seq] = occurrences_dict.get(amplicon_seq, 0) + 1
-                reads += 1
+            for rec in SeqIO.parse(handle, "fastq"):
+                total_reads += 1
+                fprimer_pos = str(rec.seq).find(fprimer_seq)
+                rprimer_pos = str(rec.seq).find(rprimer_seq)
+                # check both primers found
+                if not fprimer_pos == -1 and not rprimer_pos == -1:
+                    rprimer_pos = rprimer_pos + len(rprimer_seq)
+                    amplicon_seq = str(rec.seq)[fprimer_pos:rprimer_pos]
+                    # check min base quality is above 10
+                    if min(rec.letter_annotations["phred_quality"][fprimer_pos:rprimer_pos]) >= quality_threshold:
+                        occurrences_dict[amplicon_seq] = occurrences_dict.get(amplicon_seq, 0) + 1
+                        reads += 1
+        # raw reads
+        # with gzip.open(os.path.join(fastq_dir, filename), "rt") as handle:
+        #     for title, seq, qual in FastqGeneralIterator(handle):
+        #         # for a large FASTQ file, better not use the high-level SeqIO interface
+        #         # for record in SeqIO.parse(handle, "fastq") but work directly with strings
+        #         # to work with quality score converted to integers: record.letter_annotations["phred_quality"]
+        #         fprimer_pos = seq.find(fprimer_seq)
+        #         rprimer_pos = seq.find(rprimer_seq) + len(rprimer_seq)
+        #         amplicon_seq = str(seq)[fprimer_pos:rprimer_pos]
+        #         if amplicon_seq:
+        #             occurrences_dict[amplicon_seq] = occurrences_dict.get(amplicon_seq, 0) + 1
+        #         reads += 1
 
         occurrences_items = [(((occ / reads) * 100), occ, seq) for seq, occ in occurrences_dict.items() if ((occ / reads) * 100) > frequency_threshold]
         occurrences_items.sort()
@@ -92,4 +115,4 @@ for filename in os.listdir(fastq_dir):
             seq_type = 'ge'
             if i[2] == wt_amplicon_seq:
                 seq_type = 'wt'
-            print("{}, {}, {}, {:.2f}, {}, {}".format(slxid, barcode, i[0], i[1], seq_type, i[2]))
+            print("{}, {}, {}, {}, {}, {:.2f}, {}, {}".format(slxid, barcode, total_reads, reads, i[0], i[1], seq_type, i[2]))

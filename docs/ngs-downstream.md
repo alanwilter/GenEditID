@@ -1,5 +1,31 @@
 # NGS Downstream processing and plotting
 
+## Variant categories and scoring system
+
+We select only INDEL variants that have an allele_fraction above 0.1, and only select the ones which are within the amplicon range. If other variants are found, they will not be consider to categorise the mutation, these will be set as 'warn' for warning.
+- if only one variant, and allele_fraction > 0.85 then zygosity is set to 'homo' for homozygous
+- if only one variant, and 0.35 < allele_fraction < 0.85 then zygosity is set to 'smut' for one single mutation on only one chromosome, none on the other (het)
+- if only one variant, and allele_fraction outside these above ranges then zygosity is set to 'iffy' for cases that are uncertain
+- if two variants, and both 0.35 < allele_fraction < 0.85 then zygosity is set to 'dmut' for different mutation on each chromosome
+- if two variants, and allele_fraction outside the above range then zygosity is set to 'iffy'
+- if more than two variants, then zygosity is set to 'iffy'
+
+We do also characterise if the above zygosity has been set only for one caller, or for both.
+- if the same zygosity has been set for both VarDict and HaplotypeCaller, set to 'VH'
+- if only found in VarDict, set to 'V-'
+- if only found in HaplotypeCaller, set to '-H'
+- otherwise set to 'V?'
+
+Then a weighted score is calculated, 70% for has_off_target, 10% for consequence, and 10% for zygosity (10% for protein 800/100 ratio - not implemented yet).
+- if the zygosity is set to 'warn', the score is zero
+- if variant is off target, 70*100 is added to the score
+- if the consequence of the variation is a frameshift, 10*100 is added to the score
+- if the zygosity is 'dmut', 10*80 is added to the score
+- if the zygosity is 'homo', 10*15 is added to the score
+- if the zygosity is 'smut', 10*5 is added to the score
+
+For more details, see code in `python/dnascissors/loader.py` which is located in three methods called `_characterise_mutations_`, `_characterise_variant_caller_presence` and `_get_score_`.
+
 ## Result table, one per sample
 
 - Protein data as main score
@@ -23,7 +49,7 @@ This may need to be adapted for cases with >2 alleles.
 
 in the range of the amplicon, calculated per caller:
 - 'homo' = allele_fraction > 0.85        & nb_row == 1 same mutation on both chromosomes
-- 'smut' = 0.35 < allele_fraction < 0.85 & nb_row == 1 single mutation: mutation on only one chromosome, none on the other
+- 'smut' = 0.35 < allele_fraction < 0.85 & nb_row == 1 single mutation: mutation on only one chromosome, none on the other (het)
 - 'dmut' = 0.35 < allele_fraction < 0.85 & nb_row == 2 double mutations: different mutation on each chromosome
 - 'iffy' = full of uncertainty, for all others cases that are uncertain
 

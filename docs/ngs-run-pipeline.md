@@ -1,5 +1,10 @@
 # Run the Amplicon Sequencing Pipeline
 
+## Pipeline repository
+
+It is located under the Bioinformatics Core subversion repository in 
+svn-bioinformatics.cruk.cam.ac.uk/data/mib-cri/SVNREP/pipelines/ampliconseq/trunk
+
 ## Dependencies
 
 The following software needs to be installed:
