@@ -255,12 +255,12 @@
         <!-- the path to the Ensembl Variant Effect Predictor script (default
              setting assumes that the script is on the path)
         -->
-        <variantEffectPredictorScript>vep</variantEffectPredictorScript>
+        <variantEffectPredictorScript>${softwareDir}/ensembl-vep-release-91.1/vep</variantEffectPredictorScript>
 
         <!-- the offline cache directory used by Ensembl Variant Effect
              Predictor
         -->
-        <variantEffectPredictorCacheDirectory>~/.vep</variantEffectPredictorCacheDirectory>
+        <variantEffectPredictorCacheDirectory>/scratchb/bioinformatics/reference_data/ensembl/vep</variantEffectPredictorCacheDirectory>
 
         <!-- the species annotation data to be used by Ensembl Variant Effect
              Predictor

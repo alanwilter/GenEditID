@@ -2,10 +2,12 @@
 
 ## Pipeline repository
 
-It is located under the Bioinformatics Core subversion repository in 
-svn-bioinformatics.cruk.cam.ac.uk/data/mib-cri/SVNREP/pipelines/ampliconseq/trunk
+It is located under the Bioinformatics Core subversion repository in
+`svn+ssh://svn-bioinformatics.cruk.cam.ac.uk/data/mib-cri/SVNREP/pipelines/ampliconseq/trunk`
 
 ## Dependencies
+
+Dependencies have been install for the CRUK-CI cluster, and detailed information can be found in the `docs/INSTALL.md` pipeline repository. These are located into `/home/bioinformatics/pipelinesoftware/ampliconseq/el7/`
 
 The following software needs to be installed:
 
@@ -22,7 +24,7 @@ The following software needs to be installed:
 - FreeBayes (optional)
 - [x] VarDict (Java version only, optional) [version 1.5.1], set `<vardictExecutable>` to
   ```
-  /home/bioinformatics/software/vardict/VarDict-1.5.1/bin/VarDict
+  /home/bioinformatics/pipelinesoftware/ampliconseq/el7/VarDict-1.5.1/bin/VarDict
   ```
 - [x] R including the packages Nozzle.R1, base64, scales, forcats, readr, tidyr, dplyr, ggplot2, fitdistrplus
   ```
@@ -30,22 +32,30 @@ The following software needs to be installed:
   ```
 - R packages shiny, DT and highcharter for R/Shiny visualization tool (optional)
 - [x] Perl
-  ```
-  cd ~
-  wget -O - https://install.perlbrew.pl | bash
-  perl5/perlbrew/bin/perlbrew install perl-5.16.0
-  perl5/perlbrew/bin/perlbrew use perl-5.16.0
-  curl -L https://cpanmin.us | perl - App::cpanminus
-  mkdir tmp
-  ```
-  add these lines to your `.bashrc` file
-  ```
-  export PERLBREW_ROOT=${HOME}/perl5/perlbrew
-  export PERLBREW_HOME=${HOME}/tmp/.perlbrew
-  source ${PERLBREW_ROOT}/etc/bashrc
-  ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0
-  ```
-- [ ] [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
+  - if you wish to install your own:
+    ```
+    cd ~
+    wget -O - https://install.perlbrew.pl | bash
+    perl5/perlbrew/bin/perlbrew install perl-5.16.0
+    perl5/perlbrew/bin/perlbrew use perl-5.16.0
+    curl -L https://cpanmin.us | perl - App::cpanminus
+    mkdir tmp
+    ```
+    add these lines to your `.bashrc` file
+    ```
+    export PERLBREW_ROOT=${HOME}/perl5/perlbrew
+    export PERLBREW_HOME=${HOME}/tmp/.perlbrew
+    source ${PERLBREW_ROOT}/etc/bashrc
+    ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0
+    ```
+  - or use the one already installed, and add these lines to your `.bashrc` file
+    ```
+    export SOFTWARE_ROOT=/home/bioinformatics/pipelinesoftware/ampliconseq/el7
+    export PERLBREW_ROOT=${SOFTWARE_ROOT}/perlbrew
+    source ${PERLBREW_ROOT}/etc/bashrc
+    ${PERLBREW_ROOT}/bin/perlbrew use perl-5.16.0  
+    ```
+- [x] [Ensembl Variant Effect Predictor, release 89](http://www.ensembl.org/info/docs/tools/vep/script/vep_download.html) and dependent Perl packages (File::Copy::Recursive, Archive::Zip, DBI)
   ```
   perl5/perlbrew/bin/perlbrew use perl-5.16.0
   cpanm Archive::Zip
@@ -67,12 +77,32 @@ The following software needs to be installed:
   ```
   and add `vep` to your path `ln -s /home/pajon01/ensembl-vep-release-89/vep ~/bin/.`
 
+In summary, if using the CRUKCI infrastructure, you only need to add these lines to your `.bashrc`:
+```
+### AmpliconSeq pipeline dependencies
+
+export AMPLICONSEQ_SOFT_ROOT=/home/bioinformatics/pipelinesoftware/ampliconseq/el7
+
+# java
+export JAVA_HOME=/home/bioinformatics/software/java/latest
+export PATH=${JAVA_HOME}/bin:${PATH}
+
+# perl
+export PATH=${AMPLICONSEQ_SOFT_ROOT}/perl-5.16.0/bin:${PATH}
+
+# ensembl vep
+export VEP_CACHE=/mnt/scratchb/bioinformatics/reference_data/ensembl/vep
+export PATH=${AMPLICONSEQ_SOFT_ROOT}/ensembl-vep-release-91.1/htslib:${PATH}
+export PATH=${AMPLICONSEQ_SOFT_ROOT}/ensembl-vep-release-91.1/:${PATH}
+```
+
 ## Reference genome
 
 Use `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
 
+## Steps to run the pipeline in semi-automated way
 
-## Copy scripts and config files onto cluster in project folder
+### Step1: Copy scripts and config files onto cluster in project folder
 
 - Create GE project folder on cluster
 ```
@@ -86,7 +116,7 @@ mkdir GEPID
 scp shell/ngs/* clust1-headnode:/path/to/scratch/space/GEPID/.
 ```
 
-## Fetch fastq files using kickstart
+### Step2: Fetch fastq files using kickstart
 
 See [Kickstart documentation](https://intranet.cri.camres.org/core-facilities/bioinformatics/sequencing/kickstart)
 It is intended to help with setting up a consistent working directory structure and to fetch and prepare files for downstream analysis work which generates a meta data file to use with the alignment pipeline to align FASTQ data.
@@ -96,7 +126,7 @@ sbatch job_kickstart.sh SLX-ID
 ```
 
 
-## Align
+### Step3: Align
 
 - Edit `realignment-meta.xml` by adding `<markDuplicates>false</markDuplicates>` into the list of `<variables>`.
 
@@ -105,19 +135,19 @@ sbatch job_alignment.sh
 ```
 
 
-## Run Amplicon sequencing pipeline
+### Step4: Run Amplicon sequencing pipeline
 
-### Configure
+#### 4.1 Configure
 
 Create directories for analysis, replace GEPID in config file by current one, and make the BAMs match the ids:
 ```
 ./configure_amplicon.sh GEPID
 ```
 
-### Create targets, amplicons and samples files from GE database
+#### 4.2 Create targets, amplicons and samples files from GE database
 
 Get dict file from the reference genome:
-`/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
+`/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
 
 Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
@@ -125,7 +155,7 @@ python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/
 ```
 And copy these three files into your project directory.
 
-### Run the amplicon pipelines
+#### 4.3 Run the amplicon pipelines
 
 ```
 sbatch job_amplicon_vardict.sh

@@ -178,7 +178,7 @@
         <!-- the VarDict executable, by default assumes the VarDict executable
              from the Java version of VarDict is available on the path
         -->
-        <vardictExecutable>/home/bioinformatics/software/vardict/VarDict-1.5.1/bin/VarDict</vardictExecutable>
+        <vardictExecutable>${softwareDir}/VarDict-1.5.1/bin/VarDict</vardictExecutable>
 
         <!-- the VarDict strand bias script -->
         <vardictStrandBiasScript>${install}/scripts/vardict/teststrandbias.R</vardictStrandBiasScript>
@@ -271,12 +271,12 @@
         <!-- the path to the Ensembl Variant Effect Predictor script (default
              setting assumes that the script is on the path)
         -->
-        <variantEffectPredictorScript>vep</variantEffectPredictorScript>
+        <variantEffectPredictorScript>${softwareDir}/ensembl-vep-release-91.1/vep</variantEffectPredictorScript>
 
         <!-- the offline cache directory used by Ensembl Variant Effect
              Predictor
         -->
-        <variantEffectPredictorCacheDirectory>~/.vep</variantEffectPredictorCacheDirectory>
+        <variantEffectPredictorCacheDirectory>/scratchb/bioinformatics/reference_data/ensembl/vep</variantEffectPredictorCacheDirectory>
 
         <!-- the species annotation data to be used by Ensembl Variant Effect
              Predictor
