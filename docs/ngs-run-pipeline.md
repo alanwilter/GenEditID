@@ -98,7 +98,7 @@ export PATH=${AMPLICONSEQ_SOFT_ROOT}/ensembl-vep-release-91.1/:${PATH}
 
 ## Reference genome
 
-Use `/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
+Use `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
 
 ## Steps to run the pipeline in semi-automated way
 
