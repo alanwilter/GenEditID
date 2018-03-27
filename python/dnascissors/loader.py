@@ -212,7 +212,7 @@ class LayoutLoader(Loader):
         sheet = self.xls.parse('Project')
         if len(sheet) > 1:
             raise LoaderException('More than one Project in the submission form')
-        for row in sheet.itertuples():
+        for i, row in enumerate(sheet.itertuples(), 1):
             if not row.geid:
                 raise LoaderException('Project identifier is required on row {}'.format(i))
             project = self.session.query(Project).filter(Project.geid == row.geid).first()
@@ -887,7 +887,6 @@ class MutationLoader(Loader):
 
     def load(self):
         results = self.session.query(SequencingLibraryContent)\
-                              .join(SequencingLibraryContent.variant_results)\
                               .join(SequencingLibraryContent.well)\
                               .join(Well.well_content)\
                               .join(Well.experiment_layout)\
