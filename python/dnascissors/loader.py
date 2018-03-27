@@ -3,6 +3,8 @@ from datetime import datetime
 import csv
 import pandas
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from dnascissors.model import Project
 from dnascissors.model import Genome
 from dnascissors.model import Target
@@ -273,22 +275,40 @@ class LayoutLoader(Loader):
                 raise LoaderException('Target "{}" does not exist (row {})'.format(row.target_name, i))
             if not row.name:
                 raise LoaderException('Guide name is required on row {}'.format(i))
-            guide = Guide(target=target, genome=self.genome)
-            guide.name = row.name
-            guide.guide_sequence = row.guide_sequence
-            guide.pam_sequence = row.pam_sequence
-            guide.activity = int(row.activity)
-            guide.exon = int(row.exon)
-            guide.nuclease = row.nuclease
-            self.session.add(guide)
-            self.log.info('Created guide {}'.format(guide.name))
+            
+            try:
+                self.session.query(Guide).\
+                             join(Target).\
+                             join(Project).\
+                             filter(Project.geid == self.project.geid).\
+                             filter(Guide.name == row.name).\
+                             one()
+                raise LoaderException('Have more than one guide called "{}" in project {}.'.format(row.name, self.project.geid))
+            except NoResultFound:
+                guide = Guide(target=target, genome=self.genome)
+                guide.name = row.name
+                guide.guide_sequence = row.guide_sequence
+                guide.pam_sequence = row.pam_sequence
+                guide.activity = int(row.activity)
+                guide.exon = int(row.exon)
+                guide.nuclease = row.nuclease
+                self.session.add(guide)
+                self.log.info('Created guide {}'.format(guide.name))
 
     def load_guide_mismatches(self):
         sheet = self.xls.parse('GuideMismatches')
         for i, row in enumerate(sheet.itertuples(), 1):
             if not row.guide_name:
                 raise LoaderException('Guide name is required on row {}'.format(i))
-            guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
+            try:
+                guide = self.session.query(Guide).\
+                                     join(Target).\
+                                     join(Project).\
+                                     filter(Project.geid == self.project.geid).\
+                                     filter(Guide.name == row.guide_name).\
+                                     one()
+            except NoResultFound:
+                raise LoaderException('Guide "{}" does not exist (row {})'.format(row.guide_name, i))
             guide_mismatch = GuideMismatch(guide=guide)
             guide_mismatch.is_off_target_coding_region = bool(row.is_off_target_coding_region)
             guide_mismatch.number_of_mismatches = int(row.number_of_mismatches)
@@ -303,9 +323,16 @@ class LayoutLoader(Loader):
             # Need the guide first.
             if not row.guide_name:
                 raise LoaderException('Guide name is required on row {}'.format(i))
-            guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
-            if not guide:
+            try:
+                guide = self.session.query(Guide).\
+                                     join(Target).\
+                                     join(Project).\
+                                     filter(Project.geid == self.project.geid).\
+                                     filter(Guide.name == row.guide_name).\
+                                     one()
+            except NoResultFound:
                 raise LoaderException('Guide "{}" does not exist (row {})'.format(row.guide_name, i))
+
             # Find or create the amplicon
             amplicon = self.session.query(Amplicon).filter(Amplicon.genome == self.genome)\
                                                    .filter(Amplicon.chromosome == str(row.chromosome))\
@@ -399,9 +426,15 @@ class LayoutLoader(Loader):
             content = None
             # May also need to find a guide.
             if self.get_value(row.guide_name):
-                guide = self.session.query(Guide).filter(Guide.name == row.guide_name).first()
-                if not guide:
-                    raise LoaderException("There is no guide with the name {}".format(str(row.guide_name)))
+                try:
+                    guide = self.session.query(Guide).\
+                                         join(Target).\
+                                         join(Project).\
+                                         filter(Project.geid == self.project.geid).\
+                                         filter(Guide.name == row.guide_name).\
+                                         one()
+                except NoResultFound:
+                    raise LoaderException('Guide "{}" does not exist (row {})'.format(row.guide_name, i))
             # Find or create experiment layout
             if not row.geid:
                 raise LoaderException('Experiment layout GEID is required on row {}'.format(i))
