@@ -29,11 +29,18 @@ def create_files(session, project, seq_dict):
 
         for a in ampliconQuery.all():
 
-            print("Amplicon {} {} {}-{}".format(a.id, a.chromosome, a.start, a.end))
+            # Add strand information from guide, will not work of multiple guides!
+            strand = '+'
+            for amp_selection in a.amplicon_selections:
+                if amp_selection.guide_strand == 'reverse':
+                    strand = '-'
 
-            amp_out.write("chr{}\t{}\t{}\t+\t{}\n".format(a.chromosome,
+            print("Amplicon {} {} {}-{} {}".format(a.id, a.chromosome, a.start, a.end, strand))
+
+            amp_out.write("chr{}\t{}\t{}\t{}\t{}\n".format(a.chromosome,
                                                           a.start,
                                                           a.end,
+                                                          strand,
                                                           "{}_chr{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
 
             aprimers = [p for p in primers if a in p.amplicons]
@@ -49,9 +56,10 @@ def create_files(session, project, seq_dict):
                 if p.strand == 'reverse':
                     tend = p.start - 1
 
-            tar_out.write("chr{}\t{}\t{}\t+\t{}\n".format(a.chromosome,
+            tar_out.write("chr{}\t{}\t{}\t{}\t{}\n".format(a.chromosome,
                                                           tstart,
                                                           tend,
+                                                          strand,
                                                           "{}_chr{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
 
 
