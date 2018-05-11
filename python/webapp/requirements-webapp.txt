@@ -3,3 +3,7 @@
 
 # dnascissors-webapp, installing them from local src
 -e ../.
+
+# Python Clarity Client API
+-e git+https://github.com/crukci-bioinformatics/claritypy-client.git@migration2py3#egg=claritypy-glsclient
+
