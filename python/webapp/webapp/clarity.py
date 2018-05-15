@@ -70,26 +70,6 @@ class ClaritySubmitter(object):
                        'lab':results['lname'] }
             result_map[id] = values
         return result_map
-        '''
-        cache = dict()
-        results = dict()
-        for project in self.api.list('project'):
-            infomap = { 'id':project.limsid, 'name':project.name }
-            results[project.limsid] = infomap
-            if project.researcher.uri in cache:
-                researcher = cache[project.researcher.uri]
-            else:
-                researcher = self.glsclient.load_by_uri('researcher', project.researcher.uri)
-                cache[project.researcher.uri] = researcher
-            infomap['researcher'] = "{} {}".format(researcher.firstname, researcher.lastname)
-            if researcher.lab.uri in cache:
-                lab = cache[researcher.lab.uri]
-            else:
-                lab = self.glsclient.load_by_uri('lab', researcher.lab.uri)
-                cache[researcher.lab.uri] = lab
-            infomap['lab'] = lab.name
-        return results
-        '''
 
     def get_researchers(self):
         result_map = dict()
@@ -116,16 +96,13 @@ class ClaritySubmitter(object):
         new_project.name = project_name
         new_project.open_date = '2018-05-09'
         new_project.researcher = glsapi.project.researcher(uri = self.api.load('researcher', researcher_id).uri)
-        new_project.field.append(glsapi.userdefined.field('5352', name = 'Redmine Issue'))
-        #udf = glsapi.userdefined.field('5352')
-        #udf.name = 'Redmine Issue'
-        #new_project.field.append(udf)
+        # new_project.field.append(glsapi.userdefined.field('5352', name = 'Redmine Issue'))
         new_project = self.api.create('project', new_project)
         return new_project
     
     def submit_samples(self, project_id, plate, override_slx_id = None):
         
-        pool_size = 0
+        pool_wells = []
         slx_id = None
         
         for well in plate.experiment_layout.wells:
@@ -134,12 +111,12 @@ class ClaritySubmitter(object):
             if content and content.content_type != 'empty':
                 for sl_content in well.sequencing_library_contents:
                     sl_lib = sl_content.sequencing_library
-                    pool_size = pool_size + 1
                     if slx_id:
                         if slx_id != sl_lib.slxid:
                             raise Exception("Have a mix of SLX ids in the submission. There must be one only.")
                     else:
                         slx_id = sl_lib.slxid
+                    pool_wells.append(well)
         
         if not slx_id:
             raise Exception("Have no SLX id available.")
@@ -167,54 +144,46 @@ class ClaritySubmitter(object):
         artifacts = []
         
         try:
-            for well in plate.experiment_layout.wells:
-                content = well.well_content
+            for well in pool_wells:
+                for sl_content in well.sequencing_library_contents:
+                    sl_lib = sl_content.sequencing_library
                 
-                if content and content.content_type != 'empty':
-                    for sl_content in well.sequencing_library_contents:
-                        sl_lib = sl_content.sequencing_library
+                    sample = glsapi.sample.samplecreation()
+                    sample.location = glsapi.ri.location(container = glsapi.ri.container(uri = container.uri), value_ = "{}:{}".format(well.row, well.column))
+                    sample.project = glsapi.sample.project(uri = project.uri)
+                    sample.name = sl_content.sequencing_sample_name
+                    sample.field.append(glsapi.userdefined.field('DNA', name = 'Sample Type'))
+                    sample.field.append(glsapi.userdefined.field('Cell Line', name = 'Sample Source'))
+                    sample.field.append(glsapi.userdefined.field('Amplicon Low-Diversity', name = 'Library Type'))
+                    sample.field.append(glsapi.userdefined.field('Homo sapiens [GRCh38_hs38d1]', name = 'Reference Genome'))
+                    sample.field.append(glsapi.userdefined.field(slx_id, name = 'SLX Identifier'))
+                    sample.field.append(glsapi.userdefined.field('MiSeq', name = 'Workflow'))
+                    sample.field.append(glsapi.userdefined.field('Paired End', name = 'Sequencing Type'))
+                    sample.field.append(glsapi.userdefined.field('300', name = 'Read Length'))
+                    sample.field.append(glsapi.userdefined.field(sl_lib.library_type, name = 'Index Type'))
+                    sample.field.append(glsapi.userdefined.field('1', name = 'Number of Lanes'))
+                    sample.field.append(glsapi.userdefined.field('Cell Line', name = 'Sample Source'))
+                    sample.field.append(glsapi.userdefined.field('323', name = 'Average Library Length'))
+                    sample.field.append(glsapi.userdefined.field('SWAG/076', name = 'Billing Information'))
+                    sample.field.append(glsapi.userdefined.field('Standard', name = 'Priority Status'))
+                    sample.field.append(glsapi.userdefined.field('Add 20% PhiX please', name = 'Submission Comments'))
+                    sample.field.append(glsapi.userdefined.field('SLX Version 44', name = 'Version Number'))
+                    sample.field.append(glsapi.userdefined.field(well.row, name = 'Row'))
+                    sample.field.append(glsapi.userdefined.field(well.column, name = 'Column'))
+                    sample.field.append(glsapi.userdefined.field('-1', name = 'Concentration'))
+                    sample.field.append(glsapi.userdefined.field('-1', name = 'Volume'))
+                    sample.field.append(glsapi.userdefined.field('Not Assigned', name = 'Sequencer'))
+                    sample.field.append(glsapi.userdefined.field(len(pool_wells), name = 'Pool Size'))
+                    sample = self.api.create('sample', sample)
+                    samples.append(sample)
+                    print("New sample id = {}".format(sample.limsid))
                     
-                        sample = glsapi.sample.samplecreation()
-                        sample.location = glsapi.ri.location(container = glsapi.ri.container(uri = container.uri), value_ = "{}:{}".format(well.row, well.column))
-                        sample.project = glsapi.sample.project(uri = project.uri)
-                        sample.name = sl_content.sequencing_sample_name
-                        sample.field.append(glsapi.userdefined.field('DNA', name = 'Sample Type'))
-                        sample.field.append(glsapi.userdefined.field('Cell Line', name = 'Sample Source'))
-                        sample.field.append(glsapi.userdefined.field('Amplicon Low-Diversity', name = 'Library Type'))
-                        sample.field.append(glsapi.userdefined.field('Homo sapiens [GRCh38_hs38d1]', name = 'Reference Genome'))
-                        sample.field.append(glsapi.userdefined.field(slx_id, name = 'SLX Identifier'))
-                        sample.field.append(glsapi.userdefined.field('MiSeq', name = 'Workflow'))
-                        sample.field.append(glsapi.userdefined.field('Paired End', name = 'Sequencing Type'))
-                        sample.field.append(glsapi.userdefined.field('300', name = 'Read Length'))
-                        sample.field.append(glsapi.userdefined.field(sl_lib.library_type, name = 'Index Type'))
-                        sample.field.append(glsapi.userdefined.field('1', name = 'Number of Lanes'))
-                        sample.field.append(glsapi.userdefined.field('Cell Line', name = 'Sample Source'))
-                        sample.field.append(glsapi.userdefined.field('323', name = 'Average Library Length'))
-                        sample.field.append(glsapi.userdefined.field('SWAG/076', name = 'Billing Information'))
-                        sample.field.append(glsapi.userdefined.field('Standard', name = 'Priority Status'))
-                        sample.field.append(glsapi.userdefined.field('Add 20% PhiX please', name = 'Submission Comments'))
-                        sample.field.append(glsapi.userdefined.field('SLX Version 44', name = 'Version Number'))
-                        sample.field.append(glsapi.userdefined.field(well.row, name = 'Row'))
-                        sample.field.append(glsapi.userdefined.field(well.column, name = 'Column'))
-                        sample.field.append(glsapi.userdefined.field('-1', name = 'Concentration'))
-                        sample.field.append(glsapi.userdefined.field('-1', name = 'Volume'))
-                        sample.field.append(glsapi.userdefined.field('Not Assigned', name = 'Sequencer'))
-                        sample.field.append(glsapi.userdefined.field(pool_size, name = 'Pool Size'))
-                        sample = self.api.create('sample', sample)
-                        samples.append(sample)
-                        print("New sample id = {}".format(sample.limsid))
-                        
-                        artifact = self.api.load_by_uri('artifact', sample.artifact.uri)
-                        artifact.reagent_label.append(glsapi.artifact.reagent_label(name = sl_content.sequencing_barcode))
-                        artifact = self.api.update(artifact)
-                        artifacts.append(artifact)
-                        print("Sample {} barcode set to {}".format(sample.limsid, artifact.reagent_label[0].name))
+                    artifact = self.api.load_by_uri('artifact', sample.artifact.uri)
+                    artifact.reagent_label.append(glsapi.artifact.reagent_label(name = sl_content.sequencing_barcode))
+                    artifact = self.api.update(artifact)
+                    artifacts.append(artifact)
+                    print("Sample {} barcode set to {}".format(sample.limsid, artifact.reagent_label[0].name))
 
-            #create_links = self.api.create('samples/batch/create', details)
-            #retrieve_links = ri.links()
-            #retrieve_links.link = lambda s: ri.link({'uri':s.uri, 'rel':'samples' }), retrieve_links
-            #samples = self.api.load('samples/batch/retrieve', retrieve_links).detail
-                
         except Exception as e:
             self.log.error("Creating samples has failed. Need to remove existing container {}.".format(container.limsid))
             self.api.delete(container)
@@ -272,7 +241,7 @@ def tests(session, clarity):
     plate = session.query(Plate).filter(Plate.geid == plate_id).first()
     #print("{} {} {}".format(plate.id, plate.geid, plate.barcode))
     
-    clarity.submit_samples(project_id, plate, 'SLX-20002')
+    clarity.submit_samples(project_id, plate, 'SLX-20003')
 
 def main():
     logging.basicConfig(level=logging.DEBUG,
