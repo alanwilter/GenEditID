@@ -1,0 +1,57 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+
+<div metal:use-macro="load: ../layout.pt">
+  <div metal:fill-slot="content">
+    <div class="content">
+      <div class="container-fluid">
+        <h1>Genome Editing Core</h1>
+        <h2>Submit for Sequencing: ${geproject.geid}</h2>
+        <hr />
+        <p>
+            <a href="${request.route_url('home')}">Back to projects list</a> |
+            <a href="${request.route_url('project_view', projectid=geproject.id)}">Back to view project ${geproject.geid}</a>
+        </p>
+        <hr />
+
+        <form id="submit_researcher_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
+            <p>
+                Who is the submission for?
+                <select id="researcher_select" name="researcher_id">
+                    <tal:block tal:repeat="r researchers">
+                        <option tal:condition="python: str(r.id) != researcher_id"
+                                tal:attributes="value r.id">${r.researcher} in ${r.lab}</option>
+                        <option tal:condition="python: str(r.id) == researcher_id"
+                                tal:attributes="value r.id"
+                                selected>${r.researcher} in ${r.lab}</option>
+                    </tal:block>
+                </select>            
+                <input tal:condition="researcher_id == None" type="submit" name="submit_researcher" value="Next"></input>
+            </p>
+        </form>
+        <div tal:condition="researcher_id != None">
+            <form id="submit_project_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
+                <input type="hidden" name="researcher_id"></input>
+                Which project to submit to?
+                <select id="project_select" name="project_id">
+                    <tal:block tal:repeat="p projects">
+                        <option tal:attributes="value p.id">${p.name}</option>
+                    </tal:block>
+                </select>            
+                <input type="submit" name="submit_project" value="Next"></input>
+            </form>
+        </div>
+        <hr />
+        <p>
+            <a href="${request.route_url('home')}">Back to projects list</a> |
+            <a href="${request.route_url('project_view', projectid=geproject.id)}">Back to view project ${geproject.geid}</a>
+        </p>
+        <hr />
+
+      </div>
+    </div>
+  </div>
+</div>

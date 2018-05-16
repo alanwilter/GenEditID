@@ -26,12 +26,17 @@ select p.projectid, p.name as pname, r.firstname, r.lastname, l.name as lname
 from project p
 inner join researcher r on p.researcherid=r.researcherid
 inner join lab l on r.labid=l.labid
+where p.closedate is null
+and l.labid <> 1
 '''
 
 LOAD_USERS_QUERY = '''
-select r.researcherid, r.firstname, r.lastname, l.name as lname
+select distinct r.researcherid, r.firstname, r.lastname, l.name as lname
 from researcher r
 inner join lab l on r.labid=l.labid
+inner join principals p on r.researcherid=p.researcherid
+where p.accountlocked = 'f'
+and l.labid <> 1
 '''
 
 LOAD_PROJECTS_FOR_USER_QUERY = '''
@@ -82,7 +87,7 @@ class ClaritySubmitter(object):
             result_map[id] = values
         return result_map
 
-    def get_projects_for_researchers(self, researcher_id):
+    def get_projects_for_researcher(self, researcher_id):
         result_map = dict()
         self.db.execute(LOAD_PROJECTS_FOR_USER_QUERY.format(researcher_id))
         for results in self.db.fetchall():
@@ -220,9 +225,10 @@ def tests(session, clarity):
     print("My projects")
 
     rich_id = 153
+    claire_id = 80
 
     # Get projects for me (Rich).
-    for infomap in clarity.get_projects_for_researchers(rich_id).values():
+    for infomap in clarity.get_projects_for_researcher(rich_id).values():
         print("{} {}".format(infomap['id'], infomap['name']))
 
     #print("")

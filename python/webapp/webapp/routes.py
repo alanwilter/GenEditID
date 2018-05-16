@@ -9,3 +9,4 @@ def includeme(config):
     # individual project page: view (overvire, results & samples), add comments and load data
     config.add_route('project_view', '/project/{projectid}')
     config.add_route('project_edit', '/project/{projectid}/edit')
+    config.add_route('project_sequence', '/project/{projectid}/sequence')

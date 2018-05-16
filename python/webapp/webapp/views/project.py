@@ -20,6 +20,7 @@ from dnascissors.loader import CellGrowthLoader
 
 from webapp.plots.plotter import Plotter
 from webapp.plots.ngsplotter import NGSPlotter
+from webapp.clarity import ClaritySubmitter
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -36,6 +37,7 @@ class ProjectViews(object):
         self.logger = logging.getLogger(__name__)
         self.request = request
         self.dbsession = request.dbsession
+        self.clarity = ClaritySubmitter()
 
     def projects_form(self, buttonTitle):
         schema = ProjectContent().bind(request=self.request)
@@ -303,6 +305,32 @@ class ProjectViews(object):
                     platetypes=['abundance (icw)', 'growth (incu)'],
                     clash=upload_clash,
                     error=upload_error)
+
+    @view_config(route_name="project_sequence", renderer="../templates/project/sequenceproject.pt")
+    def sequence_project(self):
+        id = self.request.matchdict['projectid']
+        geproject = self.dbsession.query(Project).filter(Project.id == id).one()
+        researcher_map = self.clarity.get_researchers()
+        researchers = list(researcher_map.values())
+        researchers.sort(key=lambda r: r['researcher'])
+        researcher_id = None
+        projects = []
+        project_id = None
+        
+        if 'submit_researcher' in self.request.params:
+            researcher_id = self.request.params['researcher_id']
+            
+            projects_map = self.clarity.get_projects_for_researcher(researcher_id)
+            projects = list(projects_map.values())
+            projects.sort(key=lambda p: p['name'])
+
+        return dict(title="Genome Editing Core",
+                    subtitle="Submit Project {} to Genomics".format(geproject.geid),
+                    geproject=geproject,
+                    researchers=researchers,
+                    researcher_id=researcher_id,
+                    projects=projects,
+                    project_id=project_id)
 
     def _upload(self, property):
         filename = self.request.POST[property].filename
