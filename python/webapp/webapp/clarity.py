@@ -22,21 +22,26 @@ from dnascissors.config import cfg
 
 
 LOAD_PROJECTS_QUERY = '''
-select p.projectid, p.name as pname, r.firstname, r.lastname, l.name as lname
+select p.projectid, p.name, r.researcherid, r.labid
 from project p
-inner join researcher r on p.researcherid=r.researcherid
-inner join lab l on r.labid=l.labid
+inner join researcher r on r.researcherid=p.researcherid
+inner join principals on r.researcherid=principals.researcherid
 where p.closedate is null
-and l.labid <> 1
+and principals.accountlocked = 'f'
+and r.labid <> 1
 '''
 
-LOAD_USERS_QUERY = '''
-select distinct r.researcherid, r.firstname, r.lastname, l.name as lname
+LOAD_RESEARCHERS_QUERY = '''
+select distinct r.researcherid, r.firstname, r.lastname, r.labid
 from researcher r
-inner join lab l on r.labid=l.labid
 inner join principals p on r.researcherid=p.researcherid
 where p.accountlocked = 'f'
-and l.labid <> 1
+and r.labid <> 1
+'''
+
+LOAD_LABS_QUERY = '''
+select l.labid, l.name as lname from lab l
+where l.labid <> 1
 '''
 
 LOAD_PROJECTS_FOR_USER_QUERY = '''
@@ -95,6 +100,35 @@ class ClaritySubmitter(object):
             values = { 'id':id, 'name':results['pname'] }
             result_map[id] = values
         return result_map
+    
+    def get_lab_researcher_project_map(self):
+        map = dict()
+        self.db.execute(LOAD_LABS_QUERY)
+        for results in self.db.fetchall():
+            labid = results['labid']
+            values = { 'id':labid, 'name':results['lname'], 'researchers':dict() }
+            map[labid] = values
+        self.db.execute(LOAD_RESEARCHERS_QUERY)
+        for results in self.db.fetchall():
+            labid = results['labid']
+            researcherid = results['researcherid']
+            values = { 'id':researcherid, 'projects':dict(),
+                       'name':"{} {}".format(results['firstname'], results['lastname']) }
+            lab = map[labid]
+            if lab:
+                lab['researchers'][researcherid] = values
+        self.db.execute(LOAD_PROJECTS_QUERY)
+        for results in self.db.fetchall():
+            labid = results['labid']
+            researcherid = results['researcherid']
+            projectid = results['projectid']
+            values = { 'id':projectid, 'name':results['name'] }
+            lab = map[labid]
+            if lab:
+                researcher = lab['researchers'][researcherid]
+                if researcher:
+                    researcher['projects'][projectid] = values
+        return map
     
     def create_project(self, researcher_id, project_name):
         new_project = glsapi.project.project()

@@ -11,6 +11,8 @@ from collections import OrderedDict
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
+from json import JSONEncoder
+
 from dnascissors.loader import ExistingEntityException
 from dnascissors.model import Project
 from dnascissors.model import ExperimentLayout
@@ -310,7 +312,16 @@ class ProjectViews(object):
     def sequence_project(self):
         id = self.request.matchdict['projectid']
         geproject = self.dbsession.query(Project).filter(Project.id == id).one()
-        researcher_map = self.clarity.get_researchers()
+        map = self.clarity.get_lab_researcher_project_map()
+        
+        json = JSONEncoder().encode(map)
+
+        return dict(title="Genome Editing Core",
+                    subtitle="Submit Project {} to Genomics".format(geproject.geid),
+                    geproject=geproject,
+                    jsonmap=json)
+
+        '''
         researchers = list(researcher_map.values())
         researchers.sort(key=lambda r: r['researcher'])
         researcher_id = None
@@ -323,6 +334,11 @@ class ProjectViews(object):
             projects_map = self.clarity.get_projects_for_researcher(researcher_id)
             projects = list(projects_map.values())
             projects.sort(key=lambda p: p['name'])
+        else
+            
+
+        json = JSONEncoder().encode(researchers)
+        print(json)
 
         return dict(title="Genome Editing Core",
                     subtitle="Submit Project {} to Genomics".format(geproject.geid),
@@ -330,7 +346,9 @@ class ProjectViews(object):
                     researchers=researchers,
                     researcher_id=researcher_id,
                     projects=projects,
-                    project_id=project_id)
+                    project_id=project_id,
+                    jsonmap=json)
+        '''
 
     def _upload(self, property):
         filename = self.request.POST[property].filename
