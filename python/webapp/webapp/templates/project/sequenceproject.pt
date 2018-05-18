@@ -3,6 +3,20 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
+<style>
+div#data
+{
+    display: none;
+}
+</style>
+
+<div id="data">
+    <span id="labidspan" tal:content="lab_id"></span>
+    <span id="researcheridspan" tal:content="researcher_id"></span>
+    <span id="projectidspan" tal:content="project_id"></span>
+    <span id="jsonmap" tal:content="jsonmap"></span>
+</div>
+
 <div metal:use-macro="load: ../layout.pt">
   <div metal:fill-slot="content">
     <div class="content">
@@ -16,25 +30,23 @@
         </p>
         <hr />
 
-        <span id="jsonmap" tal:content="jsonmap" style="display:none;"></span>
-
         <form id="submit_sequencing_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
             <p>
                 Who is the submission for?
             </p>
             <p>
                 Lab/group:
-                <select id="lab_select" name="lab_id"></select> 
+                <select id="lab_select" name="lab_id"></select>
             </p>
             <p>
                 Researcher:
-                <select id="researcher_select" name="researcher_id"></select> 
+                <select id="researcher_select" name="researcher_id"></select>
             </p>
             <p>
                 Submit to project:
-                <select id="project_select" name="researcher_id"></select> 
+                <select id="project_select" name="project_id"></select>
             </p>
-            <input id="submitbutton" type="submit" name="submit_researcher" value="Submit to Clarity" disabled="disabled"></input>
+            <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
         </form>
         <hr />
         <p>
@@ -59,12 +71,12 @@ labselected = function()
     researcherselect.empty();
     projectselect.empty();
     $('#submitbutton').prop('disabled', true);
-    
+
     var labid = labselect.find(":selected").val();
     if (!!labid)
     {
         var lab = infomap[labid];
-        
+
         for (property in lab.researchers)
         {
             var researcher = lab.researchers[property];
@@ -78,17 +90,17 @@ researcherselected = function()
     var labselect = $('#lab_select');
     var researcherselect = $('#researcher_select');
     var projectselect = $('#project_select');
-    
+
     projectselect.empty();
     $('#submitbutton').prop('disabled', true);
-    
+
     var labid = labselect.find(":selected").val();
     var researcherid = researcherselect.find(":selected").val();
     if (!!labid && !!researcherid)
     {
-    	var lab = infomap[labid];
-    	var researcher = lab.researchers[researcherid];
-    
+        var lab = infomap[labid];
+        var researcher = lab.researchers[researcherid];
+
         for (property in researcher.projects)
         {
             var project = researcher.projects[property];
@@ -102,19 +114,19 @@ projectselected = function()
     var projectselect = $('#project_select');
 
     var projectid = projectselect.find(":selected").val();
-    
+
     $('#submitbutton').prop('disabled', !projectid);
 }
 
 submitting = function()
 {
     alert("Submitting.");
-    return false;
+    return true;
 }
 
 $(document).ready(function() {
     infomap = JSON.parse($('#jsonmap').text());
-    
+
     var labselect = $('#lab_select');
     var researcherselect = $('#researcher_select');
     var projectselect = $('#project_select');
@@ -127,10 +139,28 @@ $(document).ready(function() {
             labselect.append($("<option/>").val(lab.id).text(lab.name));
         }
     }
-    
+
     labselect.change(labselected);
     researcherselect.change(researcherselected);
     projectselect.change(projectselected);
     $('#submit_sequencing_form').submit(submitting);
+
+    var selectedlab = $('#labidspan').text();
+    if (!!selectedlab)
+    {
+        labselect.val(selectedlab).prop('selected', true).change();
+
+        var selectedresearcher = $('#researcheridspan').text();
+        if (!!selectedresearcher)
+        {
+            researcherselect.val(selectedresearcher).prop('selected', true).change();
+
+            var selectedproject = $('#projectidspan').text();
+            if (!!selectedresearcher)
+            {
+                projectselect.val(selectedproject).prop('selected', true).change();
+            }
+        }
+    }
 });
 </script>

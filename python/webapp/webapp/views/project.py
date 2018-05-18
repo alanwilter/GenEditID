@@ -314,12 +314,29 @@ class ProjectViews(object):
         geproject = self.dbsession.query(Project).filter(Project.id == id).one()
         map = self.clarity.get_lab_researcher_project_map()
         
+        lab_id = None
+        researcher_id = None
+        project_id = None
+        
+        try:
+            lab_id=self.request.params['lab_id']
+            researcher_id=self.request.params['researcher_id']
+            project_id=self.request.params['project_id']
+        except KeyError:
+            pass
+        
+        # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
+        
         json = JSONEncoder().encode(map)
 
         return dict(title="Genome Editing Core",
                     subtitle="Submit Project {} to Genomics".format(geproject.geid),
                     geproject=geproject,
-                    jsonmap=json)
+                    jsonmap=json,
+                    lab_id=lab_id,
+                    researcher_id=researcher_id,
+                    project_id=project_id)
+
 
         '''
         researchers = list(researcher_map.values())
@@ -328,7 +345,7 @@ class ProjectViews(object):
         projects = []
         project_id = None
         
-        if 'submit_researcher' in self.request.params:
+        if 'go_sequence' in self.request.params:
             researcher_id = self.request.params['researcher_id']
             
             projects_map = self.clarity.get_projects_for_researcher(researcher_id)
