@@ -327,7 +327,7 @@ class ProjectViews(object):
         
         # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
         
-        json = JSONEncoder().encode(map)
+        json = JSONEncoder(separators=(',', ':')).encode(map)
 
         return dict(title="Genome Editing Core",
                     subtitle="Submit Project {} to Genomics".format(geproject.geid),
@@ -336,36 +336,6 @@ class ProjectViews(object):
                     lab_id=lab_id,
                     researcher_id=researcher_id,
                     project_id=project_id)
-
-
-        '''
-        researchers = list(researcher_map.values())
-        researchers.sort(key=lambda r: r['researcher'])
-        researcher_id = None
-        projects = []
-        project_id = None
-        
-        if 'go_sequence' in self.request.params:
-            researcher_id = self.request.params['researcher_id']
-            
-            projects_map = self.clarity.get_projects_for_researcher(researcher_id)
-            projects = list(projects_map.values())
-            projects.sort(key=lambda p: p['name'])
-        else
-            
-
-        json = JSONEncoder().encode(researchers)
-        print(json)
-
-        return dict(title="Genome Editing Core",
-                    subtitle="Submit Project {} to Genomics".format(geproject.geid),
-                    geproject=geproject,
-                    researchers=researchers,
-                    researcher_id=researcher_id,
-                    projects=projects,
-                    project_id=project_id,
-                    jsonmap=json)
-        '''
 
     def _upload(self, property):
         filename = self.request.POST[property].filename
