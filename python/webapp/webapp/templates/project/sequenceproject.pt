@@ -40,11 +40,11 @@ div#data
             </p>
             <p>
                 Researcher:
-                <select id="researcher_select" name="researcher_id"></select>
+                <select id="researcher_select" name="researcher_id" disabled="disabled"></select>
             </p>
             <p>
                 Submit to project:
-                <select id="project_select" name="project_id"></select>
+                <select id="project_select" name="project_id" disabled="disabled"></select>
             </p>
             <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
         </form>
@@ -77,12 +77,21 @@ labselected = function()
     {
         var lab = infomap[labid];
 
-        for (property in lab.researchers)
+        var researcherarray = $.map(lab.researchers, function(v) { return v; });
+        researcherarray.sort(
+            function(a, b) {
+                return a.name.localeCompare(b.name);
+            });
+        
+        for (var l = 0; l < researcherarray.length; l++)
         {
-            var researcher = lab.researchers[property];
+            var researcher = researcherarray[l];
             researcherselect.append($("<option/>").val(researcher.id).text(researcher.name));
         }
     }
+    
+    researcherselect.prop('disabled', false);
+    projectselect.prop('disabled', 'disabled');
 }
 
 researcherselected = function()
@@ -101,12 +110,20 @@ researcherselected = function()
         var lab = infomap[labid];
         var researcher = lab.researchers[researcherid];
 
-        for (property in researcher.projects)
+        var projectarray = $.map(researcher.projects, function(v) { return v; });
+        projectarray.sort(
+            function(a, b) {
+                return a.name.localeCompare(b.name);
+            });
+        
+        for (var l = 0; l < projectarray.length; l++)
         {
-            var project = researcher.projects[property];
+            var project = projectarray[l];
             projectselect.append($("<option/>").val(project.id).text(project.name));
         }
     }
+    
+    projectselect.prop('disabled', false);
 }
 
 projectselected = function()
@@ -115,7 +132,8 @@ projectselected = function()
 
     var projectid = projectselect.find(":selected").val();
 
-    $('#submitbutton').prop('disabled', !projectid);
+    var prop = !!projectid ? false : 'disabled';
+    $('#submitbutton').prop('disabled', prop);
 }
 
 submitting = function()
@@ -131,13 +149,16 @@ $(document).ready(function() {
     var researcherselect = $('#researcher_select');
     var projectselect = $('#project_select');
 
-    for (property in infomap)
+    var labarray = $.map(infomap, function(v) { return v; });
+    labarray.sort(
+        function(a, b) {
+            return a.name.localeCompare(b.name);
+        });
+    
+    for (var l = 0; l < labarray.length; l++)
     {
-        if (infomap.hasOwnProperty(property))
-        {
-            var lab = infomap[property];
-            labselect.append($("<option/>").val(lab.id).text(lab.name));
-        }
+        var lab = labarray[l];
+        labselect.append($("<option/>").val(lab.id).text(lab.name));
     }
 
     labselect.change(labselected);
