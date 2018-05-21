@@ -208,6 +208,7 @@ class ProjectViews(object):
         return dict(project=project,
                     title="Genome Editing Core",
                     subtitle="Project: {}".format(project.geid),
+                    can_sequence=not self.does_pool_exist_in_clarity(project),
                     cellgrowthplot=plotter.growth_plot(),
                     proteinabundanceplot=plotter.abundance_plot(),
                     ngsplot=ngsplotter.combined_ngs_plot(),
@@ -319,7 +320,9 @@ class ProjectViews(object):
         view_map = dict(title="Genome Editing Core",
                         subtitle="Submit Project {} to Genomics".format(geproject.geid),
                         geproject=geproject,
-                        can_sequence=False)
+                        can_sequence=False,
+                        error=None,
+                        submisson_complete=False)
         
         slx = self.get_sequencing_id(geproject)
         if not slx:
@@ -328,31 +331,93 @@ class ProjectViews(object):
             return view_map
 
         if self.clarity.does_slx_exist(slx):
-            view_map['error'] = 'There is already a pool in Clarity for {}.'.format(slx)
+            view_map['error'] = 'There are already samples in Clarity for {}.'.format(slx)
             return view_map
         
+        view_map['can_sequence'] = True
+
+        plate_id = self.request.params.get('plate_id')
         lab_id = self.request.params.get('lab_id')
         researcher_id = self.request.params.get('researcher_id')
         project_source = self.request.params.get('project_source')
         project_id = self.request.params.get('project_id')
         new_project_name = self.request.params.get('new_project_name')
         
+        project_map = self.clarity.get_lab_researcher_project_map()
+        json = JSONEncoder(separators=(',', ':')).encode(project_map)
+
+        plates = self.dbsession\
+                     .query(Plate)\
+                     .join(Plate.experiment_layout)\
+                     .join(ExperimentLayout.project)\
+                     .filter(Project.id == geproject.id)\
+                     .order_by(Plate.geid)\
+                     .all()
+        
+        sample_count = self.dbsession\
+                           .query(SequencingLibraryContent)\
+                           .join(SequencingLibraryContent.well)\
+                           .join(Well.experiment_layout)\
+                           .join(ExperimentLayout.project)\
+                           .filter(Project.id == geproject.id)\
+                           .count()
+        
         # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
         
         if 'go_sequence' in self.request.params:
             print("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}".format(lab_id, researcher_id, project_source, project_id, new_project_name))
-        
-        project_map = self.clarity.get_lab_researcher_project_map()
-        json = JSONEncoder(separators=(',', ':')).encode(project_map)
 
+            if not plate_id:
+                view_map['error'] = "There is plate given to submit from. Go back and select a plate."
+                return view_map
+
+            plate = self.dbsession.query(Plate).get(plate_id)
+            
+            if not plate:
+                view_map['error'] = "There is no such plate in the database. It can only have been removed since the page was loaded."
+                return view_map
+
+            if project_source == 'new':
+                if not new_project_name:
+                    view_map['error'] = "There is no name given for the new project. Go back and supply a project name."
+                    return view_map
+                if self.clarity.does_project_exist(new_project_name):
+                    view_map['error'] = "There is already a project called '{}' in Clarity. Go back and give a different project name."
+                    return view_map
+
+                try:
+                    clarity_project = self.clarity.create_project(researcher_id, new_project_name)
+                    project_id = clarity_project.limsid
+                    self.logger.info("Created new project '{}' in Clarity. LIMS id is {}.".format(new_project_name, project_id))
+                    project_source = 'existing'
+                    new_project_name = None
+                except Exception as e:
+                    self.logger.error("Error creating new project in Clarity: {}".format(e))
+                    view_map['error'] = "There has been a failure creating the new project. {}".format(str(e))
+                    return view_map
+            
+            self.logger.info("Submitting {} samples into project {} as {} from plate {}.".format(sample_count, project_id, slx, plate.geid))
+            
+            try:
+                self.clarity.submit_samples(project_id, plate)
+                view_map['submisson_complete'] = True
+                self.logger.info("Submission complete.")
+            except Exception as e:
+                self.logger.error("Error submitting samples to Clarity: {}".format(e))
+                view_map['error'] = "There has been a failure submitting the samples. {}".format(str(e))
+                return view_map
+        
         view_map['jsonmap'] = json
+        view_map['plates'] = plates
+        view_map['plate_id'] = plate_id
         view_map['lab_id'] = lab_id
         view_map['researcher_id'] = researcher_id
         view_map['project_source'] = project_source
         view_map['project_id'] = project_id
         view_map['new_project_name'] = new_project_name
-        view_map['can_sequence'] = True
         view_map['slx'] = slx
+        view_map['sample_count'] = sample_count
+        view_map['submit_time'] = sample_count / 2
         return view_map
     
     def get_sequencing_id(self, geproject):
@@ -366,6 +431,10 @@ class ProjectViews(object):
         if sequencing_content:
             return sequencing_content.sequencing_library.slxid
         return None
+    
+    def does_pool_exist_in_clarity(self, geproject):
+        slx = self.get_sequencing_id(geproject)
+        return self.clarity.does_slx_exist(slx)
 
     def _upload(self, property):
         filename = self.request.POST[property].filename

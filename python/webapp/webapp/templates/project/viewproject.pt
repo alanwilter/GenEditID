@@ -13,6 +13,9 @@
       <p>
           <a href="${request.route_url('home')}">Back to projects list</a>
           | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
+          <tal:block tal:condition="can_sequence">
+              | <a href="${request.route_url('project_sequence', projectid=project.id)}">Submit ${project.geid} for sequencing</a>
+          </tal:block>
       </p>
       <hr />
 
@@ -112,6 +115,9 @@
       <p>
           <a href="${request.route_url('home')}">Back to projects list</a>
           | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
+          <tal:block tal:condition="can_sequence">
+              | <a href="${request.route_url('project_sequence', projectid=project.id)}">Submit ${project.geid} for sequencing</a>
+          </tal:block>
       </p>
       <hr />
     </div>

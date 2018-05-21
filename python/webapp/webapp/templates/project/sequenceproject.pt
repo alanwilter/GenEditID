@@ -18,51 +18,81 @@
         </p>
         <hr />
         
-        <tal:block tal:switch="can_sequence">
-            <div tal:case="False">
+        <tal:block tal:switch="submisson_complete">
+            <div tal:case="True">
                 <p>
-                    This project is cannot be submitted for sequencing. ${error}
+                    The project has been submitted to Genomics for sequencing as ${slx}.
+                </p>
+                <p>
+                    <a href="${request.route_url('project_view', projectid=geproject.id)}">Please return to the project's main page.</a>
                 </p>
             </div>
-            <div tal:case="True">
-                <div id="data" style="display:none;">
-                    <span id="labidspan" tal:content="lab_id"></span>
-                    <span id="researcheridspan" tal:content="researcher_id"></span>
-                    <span id="projectsourcespan" tal:content="project_source"></span>
-                    <span id="projectidspan" tal:content="project_id"></span>
-                    <span id="newprojectspan" tal:content="new_project_name"></span>
-                    <span id="jsonmap" tal:content="jsonmap"></span>
-                </div>
-                
-                <p>
-                    This project will be submitted as ${slx}.
-                <p>
-                
-                <form id="submit_sequencing_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
-                    <p>
-                        Who is the submission for?
+            <tal:block tal:case="False">
+                <tal:block tal:switch="can_sequence">
+                    <p tal:case="False">
+                        This project is cannot be submitted for sequencing. ${error}
                     </p>
-                    <p>
-                        Lab/group:
-                        <select id="lab_select" name="lab_id"></select>
-                    </p>
-                    <p>
-                        Researcher:
-                        <select id="researcher_select" name="researcher_id" disabled="disabled"></select>
-                    </p>
-                    <p>
-                        <input id="existingradio" type="radio" name="project_source" value="existing" class="projectsourceradio"></input>
-                        <label for="existingradio">Existing project:</label>
-                        <select id="project_select" name="project_id" disabled="disabled"></select>
-                    </p>
-                    <p>
-                        <input id="newradio" type="radio" name="project_source" value="new" class="projectsourceradio"></input>
-                        <label for="newradio">New project:</label>
-                        <input id="newprojecttext" type="text" name="new_project_name" maxlength="128" width="30"></input>
-                    </p>
-                    <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
-                </form>
-            </div>
+                    <div tal:case="True">
+                        <div id="data" style="display:none;">
+                            <span id="plateidspan" tal:content="plate_id"></span>
+                            <span id="labidspan" tal:content="lab_id"></span>
+                            <span id="researcheridspan" tal:content="researcher_id"></span>
+                            <span id="projectsourcespan" tal:content="project_source"></span>
+                            <span id="projectidspan" tal:content="project_id"></span>
+                            <span id="newprojectspan" tal:content="new_project_name"></span>
+                            <span id="jsonmap" tal:content="jsonmap"></span>
+                        </div>
+        
+                        <p tal:condition="error">
+                            There was a problem with the submission. ${error} Please try again if possible.
+                        </p>
+                        
+                        <p>
+                            This project will be submitted as ${slx}, a pool of ${sample_count} samples.
+                        </p>
+                        
+                        <form id="submit_sequencing_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
+                            <p>
+                                Which plate contains the samples for submission?
+                            </p>
+                            <p>
+                                <select id="plate_select" name="plate_id">
+                                    <option tal:repeat="plate plates" value="${plate.id}">${plate.geid}</option>
+                                </select>
+                            </p>
+                            
+                            <p>
+                                Who is the submission for?
+                            </p>
+                            <p>
+                                Lab/group:
+                                <select id="lab_select" name="lab_id"></select>
+                            </p>
+                            <p>
+                                Researcher:
+                                <select id="researcher_select" name="researcher_id" disabled="disabled"></select>
+                            </p>
+                            <p>
+                                <input id="existingradio" type="radio" name="project_source" value="existing" class="projectsourceradio"></input>
+                                <label for="existingradio">Existing project:</label>
+                                <select id="project_select" name="project_id" disabled="disabled"></select>
+                            </p>
+                            <p>
+                                <input id="newradio" type="radio" name="project_source" value="new" class="projectsourceradio"></input>
+                                <label for="newradio">New project:</label>
+                                <input id="newprojecttext" type="text" name="new_project_name" maxlength="128" width="30"></input>
+                            </p>                    
+                            <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
+                        </form>
+                        
+                        <p>
+                            Clarity submission takes approximately 0.5 seconds per sample, so this pool of ${sample_count}
+                            samples will take about ${submit_time} seconds. Do not navigate away from the page while this
+                            is in progress.
+                        </p>
+                    </div>
+                </tal:block>
+            </tal:block>
         </tal:block>
         <hr />
         <p>

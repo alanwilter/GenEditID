@@ -65,11 +65,11 @@ researcherSelected = function()
             }
             
             setEnabled($("#existingradio"), true);
-            $("#existingradio").prop("checked", true);
+            $("#existingradio").prop("checked", true).change();
         }
         else
         {
-            $("#newradio").prop("checked", true);
+            $("#newradio").prop("checked", true).change();
             setEnabled($("#existingradio"), false);
         }
         $("#newprojecttext").val('');
@@ -139,7 +139,13 @@ sequenceProjectReady = function()
 
     setEnabled($("#newprojecttext"), false);
     setEnabled($('.projectsourceradio'), false);
-    
+
+    var selectedplate = $('#plateidspan').text();
+    if (!!selectedplate)
+    {
+        $('#plate_select').val(selectedplate).prop('selected', true);
+    }
+
     var selectedlab = $('#labidspan').text();
     if (!!selectedlab)
     {

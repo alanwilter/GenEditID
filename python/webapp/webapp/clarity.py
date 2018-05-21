@@ -22,7 +22,7 @@ from dnascissors.config import cfg
 
 
 LOAD_PROJECTS_QUERY = '''
-select p.projectid, p.name, r.researcherid, r.labid
+select p.projectid, p.name, p.luid, r.researcherid, r.labid
 from project p
 inner join researcher r on r.researcherid=p.researcherid
 inner join principals on r.researcherid=principals.researcherid
@@ -45,7 +45,7 @@ where l.labid <> 1
 '''
 
 LOAD_PROJECTS_FOR_USER_QUERY = '''
-select p.projectid, p.name as pname
+select p.projectid, p.name as pname, p.luid
 from project p
 where p.researcherid = {}
 '''
@@ -71,7 +71,10 @@ class ClaritySubmitter(object):
         self.files_db_connection.close()
 
     def does_slx_exist(self, slx):
-        return len(self.api.list_filter_by_name('artifact', slx).artifact) > 0
+        return len(self.api.list_filter('sample', 'udf.SLX Identifier', slx).sample) > 0
+    
+    def does_project_exist(self, name):
+        return len(self.api.list_filter_by_name('project', name).project) > 0
     
     def get_lab_researcher_project_map(self):
         map = dict()
@@ -93,7 +96,7 @@ class ClaritySubmitter(object):
         for results in self.db.fetchall():
             labid = results['labid']
             researcherid = results['researcherid']
-            projectid = results['projectid']
+            projectid = results['luid']
             values = { 'id':projectid, 'name':results['name'] }
             lab = map[labid]
             if lab:
@@ -187,13 +190,13 @@ class ClaritySubmitter(object):
                     sample.field.append(glsapi.userdefined.field(len(pool_wells), name = 'Pool Size'))
                     sample = self.api.create('sample', sample)
                     samples.append(sample)
-                    print("New sample id = {}".format(sample.limsid))
+                    self.log.debug("New sample id = {}".format(sample.limsid))
                     
                     artifact = self.api.load_by_uri('artifact', sample.artifact.uri)
                     artifact.reagent_label.append(glsapi.artifact.reagent_label(name = sl_content.sequencing_barcode))
                     artifact = self.api.update(artifact)
                     artifacts.append(artifact)
-                    print("Sample {} barcode set to {}".format(sample.limsid, artifact.reagent_label[0].name))
+                    self.log.debug("Sample {} barcode set to {}".format(sample.limsid, artifact.reagent_label[0].name))
 
         except Exception as e:
             self.log.error("Creating samples has failed. Need to remove existing container {}.".format(container.limsid))
@@ -210,7 +213,7 @@ class ClaritySubmitter(object):
         
         self.api.create('routing', routing)
         
-        print("Samples routed into {}".format(routing.assign[0].workflow_uri))
+        self.log.info("Samples routed into {}".format(routing.assign[0].workflow_uri))
 
 def tests(session, clarity):
     print("")
