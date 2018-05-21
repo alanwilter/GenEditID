@@ -43,6 +43,7 @@ researcherSelected = function()
 
     projectselect.empty();
     $('#submitbutton').prop('disabled', true);
+    setEnabled($('.projectsourceradio'), true);
 
     var labid = labselect.find(":selected").val();
     var researcherid = researcherselect.find(":selected").val();
@@ -95,7 +96,7 @@ projectSelected = function()
 
 projectNameChange = function()
 {
-    var newProjectName =  $("#newprojecttext").val();
+    var newProjectName = $("#newprojecttext").val();
     var hasName = newProjectName.length > 0;
     
     setEnabled($('#submitbutton'), hasName);
@@ -103,7 +104,6 @@ projectNameChange = function()
 
 submitForSequencing = function()
 {
-    alert("Submitting.");
     return true;
 }
 
@@ -137,6 +137,9 @@ sequenceProjectReady = function()
     $('#submit_sequencing_form').submit(submitForSequencing);
     $('#newprojecttext').bind("change paste keyup", projectNameChange);
 
+    setEnabled($("#newprojecttext"), false);
+    setEnabled($('.projectsourceradio'), false);
+    
     var selectedlab = $('#labidspan').text();
     if (!!selectedlab)
     {
@@ -147,10 +150,25 @@ sequenceProjectReady = function()
         {
             researcherselect.val(selectedresearcher).prop('selected', true).change();
 
-            var selectedproject = $('#projectidspan').text();
-            if (!!selectedresearcher)
+            var projectsource = $('#projectsourcespan').text();
+            
+            if (projectsource == 'new')
             {
-                projectselect.val(selectedproject).prop('selected', true).change();
+                $("#newradio").prop("checked", true);
+                $('#newprojecttext').val($('#newprojectspan').text());
+                projectSourceChange();
+                projectNameChange();
+            }
+            else
+            {
+                $("#existingradio").prop("checked", true);
+                
+                var selectedproject = $('#projectidspan').text();
+                if (!!selectedproject)
+                {
+                    projectselect.val(selectedproject).prop('selected', true).change();
+                }
+                projectSourceChange();
             }
         }
     }

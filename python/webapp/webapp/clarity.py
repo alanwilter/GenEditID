@@ -70,36 +70,8 @@ class ClaritySubmitter(object):
         self.files_db.close()
         self.files_db_connection.close()
 
-    def get_projects(self):
-        result_map = dict()
-        self.db.execute(LOAD_PROJECTS_QUERY)
-        for results in self.db.fetchall():
-            id = results['projectid']
-            values = { 'id':id, 'name':results['pname'],
-                       'researcher':"{} {}".format(results['firstname'], results['lastname']),
-                       'lab':results['lname'] }
-            result_map[id] = values
-        return result_map
-
-    def get_researchers(self):
-        result_map = dict()
-        self.db.execute(LOAD_USERS_QUERY)
-        for results in self.db.fetchall():
-            id = results['researcherid']
-            values = { 'id':id,
-                       'researcher':"{} {}".format(results['firstname'], results['lastname']),
-                       'lab':results['lname'] }
-            result_map[id] = values
-        return result_map
-
-    def get_projects_for_researcher(self, researcher_id):
-        result_map = dict()
-        self.db.execute(LOAD_PROJECTS_FOR_USER_QUERY.format(researcher_id))
-        for results in self.db.fetchall():
-            id = results['projectid']
-            values = { 'id':id, 'name':results['pname'] }
-            result_map[id] = values
-        return result_map
+    def does_slx_exist(self, slx):
+        return len(self.api.list_filter_by_name('artifact', slx).artifact) > 0
     
     def get_lab_researcher_project_map(self):
         map = dict()

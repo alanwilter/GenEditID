@@ -13,10 +13,13 @@ from pyramid.view import view_config
 
 from json import JSONEncoder
 
-from dnascissors.loader import ExistingEntityException
+from dnascissors.model import Plate
 from dnascissors.model import Project
 from dnascissors.model import ExperimentLayout
-from dnascissors.model import Plate
+from dnascissors.model import SequencingLibrary
+from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import Well
+from dnascissors.loader import ExistingEntityException
 from dnascissors.loader import ProteinAbundanceLoader
 from dnascissors.loader import CellGrowthLoader
 
@@ -312,30 +315,57 @@ class ProjectViews(object):
     def sequence_project(self):
         id = self.request.matchdict['projectid']
         geproject = self.dbsession.query(Project).filter(Project.id == id).one()
-        map = self.clarity.get_lab_researcher_project_map()
+
+        view_map = dict(title="Genome Editing Core",
+                        subtitle="Submit Project {} to Genomics".format(geproject.geid),
+                        geproject=geproject,
+                        can_sequence=False)
+        
+        slx = self.get_sequencing_id(geproject)
+        if not slx:
+            view_map['error'] = 'There is no sequencing information for the project.'\
+                                'This needs to have been defined in the initial submission.'
+            return view_map
+
+        if self.clarity.does_slx_exist(slx):
+            view_map['error'] = 'There is already a pool in Clarity for {}.'.format(slx)
+            return view_map
         
         lab_id = self.request.params.get('lab_id')
         researcher_id = self.request.params.get('researcher_id')
-        project_source = self.request.params.get('projectsource')
+        project_source = self.request.params.get('project_source')
         project_id = self.request.params.get('project_id')
-        new_project_name = self.request.params.get('newprojectname')
+        new_project_name = self.request.params.get('new_project_name')
         
         # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
         
         if 'go_sequence' in self.request.params:
             print("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}".format(lab_id, researcher_id, project_source, project_id, new_project_name))
         
-        json = JSONEncoder(separators=(',', ':')).encode(map)
+        project_map = self.clarity.get_lab_researcher_project_map()
+        json = JSONEncoder(separators=(',', ':')).encode(project_map)
 
-        return dict(title="Genome Editing Core",
-                    subtitle="Submit Project {} to Genomics".format(geproject.geid),
-                    geproject=geproject,
-                    jsonmap=json,
-                    lab_id=lab_id,
-                    researcher_id=researcher_id,
-                    projectsource=project_source,
-                    project_id=project_id,
-                    newprojectname=new_project_name)
+        view_map['jsonmap'] = json
+        view_map['lab_id'] = lab_id
+        view_map['researcher_id'] = researcher_id
+        view_map['project_source'] = project_source
+        view_map['project_id'] = project_id
+        view_map['new_project_name'] = new_project_name
+        view_map['can_sequence'] = True
+        view_map['slx'] = slx
+        return view_map
+    
+    def get_sequencing_id(self, geproject):
+        sequencing_content = self.dbsession\
+                                 .query(SequencingLibraryContent)\
+                                 .join(SequencingLibraryContent.well)\
+                                 .join(Well.experiment_layout)\
+                                 .join(ExperimentLayout.project)\
+                                 .filter(Project.id == geproject.id)\
+                                 .first()
+        if sequencing_content:
+            return sequencing_content.sequencing_library.slxid
+        return None
 
     def _upload(self, property):
         filename = self.request.POST[property].filename
