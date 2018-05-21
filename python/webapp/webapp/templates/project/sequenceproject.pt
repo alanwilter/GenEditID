@@ -40,8 +40,14 @@
                 <select id="researcher_select" name="researcher_id" disabled="disabled"></select>
             </p>
             <p>
-                Submit to project:
+                <input id="existingradio" type="radio" name="projectsource" value="existing" class="projectsourceradio"></input>
+                <label for="existingradio">Existing project:</label>
                 <select id="project_select" name="project_id" disabled="disabled"></select>
+            </p>
+            <p>
+                <input id="newradio" type="radio" name="projectsource" value="new" class="projectsourceradio"></input>
+                <label for="newradio">New project:</label>
+                <input id="newprojecttext" type="text" name="newprojectname" maxlength="128" width="30"></input>
             </p>
             <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
         </form>
@@ -57,5 +63,5 @@
   </div>
 </div>
 <script>
-$(document).ready(sequenceprojectready);
+$(document).ready(sequenceProjectReady);
 </script>

@@ -314,18 +314,16 @@ class ProjectViews(object):
         geproject = self.dbsession.query(Project).filter(Project.id == id).one()
         map = self.clarity.get_lab_researcher_project_map()
         
-        lab_id = None
-        researcher_id = None
-        project_id = None
-        
-        try:
-            lab_id=self.request.params['lab_id']
-            researcher_id=self.request.params['researcher_id']
-            project_id=self.request.params['project_id']
-        except KeyError:
-            pass
+        lab_id = self.request.params.get('lab_id')
+        researcher_id = self.request.params.get('researcher_id')
+        project_source = self.request.params.get('projectsource')
+        project_id = self.request.params.get('project_id')
+        new_project_name = self.request.params.get('newprojectname')
         
         # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
+        
+        if 'go_sequence' in self.request.params:
+            print("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}".format(lab_id, researcher_id, project_source, project_id, new_project_name))
         
         json = JSONEncoder(separators=(',', ':')).encode(map)
 
@@ -335,7 +333,9 @@ class ProjectViews(object):
                     jsonmap=json,
                     lab_id=lab_id,
                     researcher_id=researcher_id,
-                    project_id=project_id)
+                    projectsource=project_source,
+                    project_id=project_id,
+                    newprojectname=new_project_name)
 
     def _upload(self, property):
         filename = self.request.POST[property].filename

@@ -5,7 +5,7 @@ sortByName = function(a, b)
     return a.name.localeCompare(b.name);
 }
 
-labselected = function()
+labSelected = function()
 {
     var labselect = $('#lab_select');
     var researcherselect = $('#researcher_select');
@@ -32,9 +32,10 @@ labselected = function()
     
     researcherselect.prop('disabled', false);
     projectselect.prop('disabled', 'disabled');
+    $("#newprojecttext").val('');
 }
 
-researcherselected = function()
+researcherSelected = function()
 {
     var labselect = $('#lab_select');
     var researcherselect = $('#researcher_select');
@@ -51,35 +52,68 @@ researcherselected = function()
         var researcher = lab.researchers[researcherid];
 
         var projectarray = $.map(researcher.projects, function(v) { return v; });
-        projectarray.sort(sortByName);
         
-        for (var l = 0; l < projectarray.length; l++)
+        if (projectarray.length > 0)
         {
-            var project = projectarray[l];
-            projectselect.append($("<option/>").val(project.id).text(project.name));
+            projectarray.sort(sortByName);
+            
+            for (var l = 0; l < projectarray.length; l++)
+            {
+                var project = projectarray[l];
+                projectselect.append($("<option/>").val(project.id).text(project.name));
+            }
+            
+            setEnabled($("#existingradio"), true);
+            $("#existingradio").prop("checked", true);
         }
+        else
+        {
+            $("#newradio").prop("checked", true);
+            setEnabled($("#existingradio"), false);
+        }
+        $("#newprojecttext").val('');
+        projectSourceChange();
     }
-    
-    projectselect.prop('disabled', false);
 }
 
-projectselected = function()
+projectSourceChange = function()
+{
+    var useExisting = $('#existingradio').is(":checked")
+    
+    setEnabled($('#project_select'), useExisting);
+    setEnabled($('#newprojecttext'), !useExisting);
+}
+
+projectSelected = function()
 {
     var projectselect = $('#project_select');
 
-    var projectid = projectselect.find(":selected").val();
+    var projectId = projectselect.find(":selected").val();
 
-    var prop = !!projectid ? false : 'disabled';
-    $('#submitbutton').prop('disabled', prop);
+    setEnabled($('#submitbutton'), !!projectId);
 }
 
-submitting = function()
+projectNameChange = function()
+{
+    var newProjectName =  $("#newprojecttext").val();
+    var hasName = newProjectName.length > 0;
+    
+    setEnabled($('#submitbutton'), hasName);
+}
+
+submitForSequencing = function()
 {
     alert("Submitting.");
     return true;
 }
 
-sequenceprojectready = function()
+setEnabled = function(element, enabled)
+{
+    var prop = enabled ? false : 'disabled';
+    element.prop('disabled', prop);
+}
+
+sequenceProjectReady = function()
 {
     infomap = JSON.parse($('#jsonmap').text());
 
@@ -96,10 +130,12 @@ sequenceprojectready = function()
         labselect.append($("<option/>").val(lab.id).text(lab.name));
     }
 
-    labselect.change(labselected);
-    researcherselect.change(researcherselected);
-    projectselect.change(projectselected);
-    $('#submit_sequencing_form').submit(submitting);
+    labselect.change(labSelected);
+    researcherselect.change(researcherSelected);
+    projectselect.change(projectSelected);
+    $('.projectsourceradio').change(projectSourceChange);
+    $('#submit_sequencing_form').submit(submitForSequencing);
+    $('#newprojecttext').bind("change paste keyup", projectNameChange);
 
     var selectedlab = $('#labidspan').text();
     if (!!selectedlab)
