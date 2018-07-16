@@ -9,15 +9,18 @@
   <div metal:fill-slot="content">
     <div class="content">
       <div class="container-fluid">
-        <h1>Genome Editing Core</h1>
-        <h2>Submit for Sequencing: ${geproject.geid}</h2>
-        <hr />
+        <h1>${title} <small>Project Tracking</small></h1>
         <p>
-            <a href="${request.route_url('home')}">Back to projects list</a> |
-            <a href="${request.route_url('project_view', projectid=geproject.id)}">Back to view project ${geproject.geid}</a>
+          <ol class="breadcrumb">
+            <li><a href="${request.route_url('home')}">Home</a></li>
+            <li class="active">${geproject.geid}</li>
+            <li><a href="${request.route_url('project_view', projectid=geproject.id)}">view</a></li>
+            <li><a href="${request.route_url('project_edit', projectid=geproject.id)}">edit</a></li>
+            <li class="active">sequence</li>
+            <li class="active"></li>
+          </ol>
         </p>
-        <hr />
-        
+        <h2>Submit for Sequencing: ${geproject.geid}</h2>
         <tal:block tal:switch="submisson_complete">
             <div tal:case="True">
                 <p>
@@ -30,7 +33,7 @@
             <tal:block tal:case="False">
                 <tal:block tal:switch="can_sequence">
                     <p tal:case="False">
-                        This project is cannot be submitted for sequencing. ${error}
+                        This project cannot be submitted for sequencing. ${error}
                     </p>
                     <div tal:case="True">
                         <div id="data" style="display:none;">
@@ -42,15 +45,15 @@
                             <span id="newprojectspan" tal:content="new_project_name"></span>
                             <span id="jsonmap" tal:content="jsonmap"></span>
                         </div>
-        
+
                         <p tal:condition="error">
                             There was a problem with the submission. ${error} Please try again if possible.
                         </p>
-                        
+
                         <p>
                             This project will be submitted as ${slx}, a pool of ${sample_count} samples.
                         </p>
-                        
+
                         <form id="submit_sequencing_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
                             <p>
                                 Which plate contains the samples for submission?
@@ -60,7 +63,7 @@
                                     <option tal:repeat="plate plates" value="${plate.id}">${plate.geid}</option>
                                 </select>
                             </p>
-                            
+
                             <p>
                                 Who is the submission for?
                             </p>
@@ -81,10 +84,10 @@
                                 <input id="newradio" type="radio" name="project_source" value="new" class="projectsourceradio"></input>
                                 <label for="newradio">New project:</label>
                                 <input id="newprojecttext" type="text" name="new_project_name" maxlength="128" width="30"></input>
-                            </p>                    
+                            </p>
                             <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
                         </form>
-                        
+
                         <p>
                             Clarity submission takes approximately 0.5 seconds per sample, so this pool of ${sample_count}
                             samples will take about ${submit_time} seconds. Do not navigate away from the page while this
@@ -94,13 +97,16 @@
                 </tal:block>
             </tal:block>
         </tal:block>
-        <hr />
         <p>
-            <a href="${request.route_url('home')}">Back to projects list</a> |
-            <a href="${request.route_url('project_view', projectid=geproject.id)}">Back to view project ${geproject.geid}</a>
+          <ol class="breadcrumb">
+            <li><a href="${request.route_url('home')}">Home</a></li>
+            <li class="active">${geproject.geid}</li>
+            <li><a href="${request.route_url('project_view', projectid=geproject.id)}">view</a></li>
+            <li><a href="${request.route_url('project_edit', projectid=geproject.id)}">edit</a></li>
+            <li class="active">sequence</li>
+            <li class="active"></li>
+          </ol>
         </p>
-        <hr />
-
       </div>
     </div>
   </div>

@@ -2,6 +2,7 @@ import os
 import uuid
 import shutil
 import logging
+import datetime
 
 from pyramid.response import Response
 from pyramid.view import view_config
@@ -10,9 +11,6 @@ from pyramid.httpexceptions import HTTPFound
 from sqlalchemy.exc import DBAPIError
 
 from dnascissors.model import Project
-from dnascissors.loader import ExistingEntityException
-from dnascissors.loader import LoaderException
-from dnascissors.loader import LayoutLoader
 
 
 class HomeViews(object):
@@ -26,36 +24,38 @@ class HomeViews(object):
         return_map = {'title': 'Genome Editing Core',
                       'clash': False,
                       'error': False,
+                      'info': False,
                       'column_headers': ["geid",
                                          "view",
                                          "edit",
+                                         "sequence",
                                          "name",
                                          "scientist",
                                          "group leader",
                                          "group",
-                                         "start date",
-                                         "end date",
+                                         "date",
                                          "description",
                                          "comments",
                                          "abundance data",
                                          "growth data",
                                          "ngs data",
                                          ]
-                     }
+                        }
         try:
             # Table of projects
             rows = []
             projects = self.dbsession.query(Project).all()
+            last_project = self.dbsession.query(Project).order_by(Project.id.desc()).first()
             for project in projects:
                 rows.append([project.geid,
                              "project/{}".format(project.id),
                              "project/{}/edit".format(project.id),
+                             "project/{}/sequence".format(project.id),
                              project.name,
                              project.scientist,
                              project.group_leader,
                              project.group,
                              project.start_date,
-                             project.end_date,
                              project.description,
                              project.comments,
                              project.is_abundance_data_available,
@@ -63,56 +63,46 @@ class HomeViews(object):
                              project.is_variant_data_available,
                              ])
             return_map['rows'] = rows
-            # Create new project
-            if 'submit' in self.request.params:
-                clean_existing = False
+            # New project creation form
+            if 'submit_project' in self.request.params:
+                fields = dict(self.request.POST.items())
                 try:
-                    clean_existing = self.request.POST['blat']
-                except KeyError:
-                    pass
-                file_path = None
-                try:
-                    file_path = self._upload("layoutfile", ".xlsx")
-                    # Now do the load, after cleaning project.
+                    next_geid = "GEP{:05d}".format(int(last_project.geid[3:]) + 1)
                     self.dbsession.begin_nested()
-                    loader = LayoutLoader(self.dbsession, file_path)
-                    loader.load_all(clean_existing)
+                    project = Project()
+                    project.geid = next_geid
+                    project.name = fields['project_name']
+                    project.project_type = fields['project_type']
+                    project.start_date = datetime.date.today()
+                    project.scientist = fields['project_scientist']
+                    project.group = fields['project_group']
+                    project.group_leader = fields['project_group_leader']
+                    project.description = fields['project_description'].strip()[:1024]
+                    self.dbsession.add(project)
                     self.dbsession.commit()
-                    url = self.request.route_url('home')
-                    return HTTPFound(url)
-                except ExistingEntityException as e:
-                    self.dbsession.rollback()
-                    return_map['clash'] = e
-                except LoaderException as e:
-                    self.dbsession.rollback()
-                    self.logger.error("Have an unexpected loader error while creating project: {}".format(e))
-                    return_map['error'] = str(e)
+                    return_map['info'] = "Project {} has been created.".format(project.geid)
+                    return HTTPFound(self.request.route_url('home'))
                 except ValueError as e:
                     self.dbsession.rollback()
-                    self.logger.error("Have an unexpected value error while creating project: {}".format(e))
+                    self.logger.error("Unexpected value error: {}".format(e))
                     return_map['error'] = str(e)
                 except DBAPIError as e:
                     self.dbsession.rollback()
-                    self.logger.error("Have an unexpected database error while creating project: {}".format(e))
+                    self.logger.error("Unexpected database error: {}".format(e))
                     return_map['error'] = str(e)
                 finally:
-                    if file_path:
-                        try:
-                            os.remove(file_path)
-                        except OSError:
-                            pass
                     rows = []
                     projects = self.dbsession.query(Project).all()
                     for project in projects:
                         rows.append([project.geid,
                                      "project/{}".format(project.id),
                                      "project/{}/edit".format(project.id),
+                                     "project/{}/sequence".format(project.id),
                                      project.name,
                                      project.scientist,
                                      project.group_leader,
                                      project.group,
                                      project.start_date,
-                                     project.end_date,
                                      project.description,
                                      project.comments,
                                      project.is_abundance_data_available,

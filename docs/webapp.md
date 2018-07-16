@@ -64,6 +64,23 @@
     ./shell/load_project_GEP00002.sh
     ./shell/load_project_GEP00003.sh
 ```
+- Setting up configuration and credentials for accessing Clarity Genomics LiMS in this file
+```bash
+wenv/src/claritypy-glsclient/gls.conf
+```
+```
+[gls]
+SERVER=genomicsequencing.cruk.cam.ac.uk
+TEST_SERVER=limsdev.cruk.cam.ac.uk
+USERNAME=your_api_user
+PASSWORD=your_api_password
+DB_NAME=clarityDB
+FILES_DB_NAME=clarityfiles
+DB_USERNAME=your_db_user
+DB_PASSWORD=your_db_password
+[logging]
+LOGFILE=glsclient.log
+```
 - Run your project.
 ```bash
     pserve development.ini --reload

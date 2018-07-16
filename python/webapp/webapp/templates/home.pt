@@ -7,8 +7,84 @@
   <div id="content" metal:fill-slot="content">
     <div class="content">
       <div class="container-fluid">
-        <h1>${title}</h1>
+        <h1>${title} <small>Project Tracking</small></h1>
 
+        <h2>Create new project</h2>
+        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-horizontal" role="form">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_name" class="col-md-4 control-label">Project name:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_name" name="project_name" placeholder="The name of the project" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_type" class="col-md-4 control-label">Project type:</label>
+                <div class="col-md-8">
+                  <select class="form-control" id="input_project_type" name="project_type" type="text">
+                    <option>knock-in</option>
+
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_description" class="col-md-4 control-label">Project description:</label>
+                <div class="col-md-8">
+                  <textarea class="form-control" rows="2" id="input_project_description" name="project_description" placeholder="A brief description of the goals of the project"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_scientist" class="col-md-4 control-label">Scientist:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_scientist" name="project_scientist" placeholder="The name of the scientist" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_group_leader" class="col-md-4 control-label">Group leader:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_group_leader" name="project_group_leader" placeholder="The name of the group leader" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_group" class="col-md-4 control-label">Group:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_group" name="project_group" placeholder="The name of the group" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                  <button type="submit" name="submit_project" value="Create" class="btn btn-default">Create project</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class='error' tal:condition="error">
+              <p>
+                  Error: ${error}
+              </p>
+          </div>
+          <div class='info' tal:condition="info">
+              <p>
+                  Info: ${info}
+              </p>
+          </div>
+        </form>
+
+        <hr/>
         <h2>Projects</h2>
         <div id="ProjectData"></div>
         <table id="project-data" class="table table-hover table-condensed">
@@ -21,39 +97,6 @@
         </table>
         <hr/>
 
-        <h2>Create new project</h2>
-        <p>
-            Load a new project and its experiment layout from an Excel file
-            using <a href='static/GEPXXXXX.xlsx'>this template</a>.
-        </p>
-        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
-          <div tal:condition="clash">
-              <p>
-                  <span class='warning'>Warning!</span> The project that you are uploading, ${clash.key}, already exists.
-              </p>
-              <p>
-                  Set this check box to remove the existing project, and all its
-                  associated experimental data, select file again and upload.
-                  <input name="blat" type="checkbox" value="true"></input>
-              </p>
-          </div>
-          <div class='error' tal:condition="error">
-              <p>
-                  Error: ${error}
-              </p>
-          </div>
-          <div class="form-group">
-            Select file:
-            <label class="btn btn-default btn-file">
-              <input type="file" id="upload" name="layoutfile" value=""></input>
-            </label>
-          </div>
-          <input class="btn btn-default" type="submit" name="submit" value="Upload"></input>
-          <p>
-              Loading data can take a few seconds. Thanks for your patience.
-          </p>
-        </form>
-        <hr/>
       </div>
     </div>
   </div>
@@ -73,6 +116,12 @@
               "data": "edit_link",
               "render": function ( data, type, full, meta ) {
                 return '<a href="'+data+'">edit</a>';
+              }
+            },
+            { "targets": 3,
+              "data": "submit_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">sequence</a>';
               }
             },
           ],

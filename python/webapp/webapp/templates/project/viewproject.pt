@@ -7,17 +7,18 @@
 <div metal:use-macro="load: ../layout.pt">
   <div metal:fill-slot="content">
     <div class="container-fluid">
-      <h1>${title}</h1>
-      <h2>${subtitle}</h2>
-      <hr />
+      <h1>${title} <small>Project Tracking</small></h1>
       <p>
-          <a href="${request.route_url('home')}">Back to projects list</a>
-          | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
-          <tal:block tal:condition="can_sequence">
-              | <a href="${request.route_url('project_sequence', projectid=project.id)}">Submit ${project.geid} for sequencing</a>
-          </tal:block>
+        <ol class="breadcrumb">
+          <li><a href="${request.route_url('home')}">Home</a></li>
+          <li class="active">${project.geid}</li>
+          <li class="active">view</li>
+          <li><a href="${request.route_url('project_edit', projectid=project.id)}">edit</a></li>
+          <li><a href="${request.route_url('project_sequence', projectid=project.id)}">sequence</a></li>
+          <li class="active"></li>
+        </ol>
       </p>
-      <hr />
+      <h2>${subtitle}</h2>
 
       <ul class="nav nav-tabs" role="tablist" id="project-tabs">
         <li role="presentation" class="active"><a role="tab" data-toggle="tab" aria-controls="overview" href="#overview">Overview</a></li>
@@ -111,15 +112,16 @@
           </table>
         </div>
       </div>
-      <hr />
       <p>
-          <a href="${request.route_url('home')}">Back to projects list</a>
-          | <a href="${request.route_url('project_edit', projectid=project.id)}">Edit project ${project.geid}</a>
-          <tal:block tal:condition="can_sequence">
-              | <a href="${request.route_url('project_sequence', projectid=project.id)}">Submit ${project.geid} for sequencing</a>
-          </tal:block>
+        <ol class="breadcrumb">
+          <li><a href="${request.route_url('home')}">Home</a></li>
+          <li class="active">${project.geid}</li>
+          <li class="active">view</li>
+          <li><a href="${request.route_url('project_edit', projectid=project.id)}">edit</a></li>
+          <li><a href="${request.route_url('project_sequence', projectid=project.id)}">sequence</a></li>
+          <li class="active"></li>
+        </ol>
       </p>
-      <hr />
     </div>
   </div>
 </div>
