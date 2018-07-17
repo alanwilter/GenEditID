@@ -166,7 +166,9 @@ class ProjectViews(object):
         ]
         # Sample analysis: data table
         layouts = project.experiment_layouts
+        sample_data_table_headers = []
         sample_data_table_rows = []
+        row_odict = OrderedDict()
         for layout in layouts:
             for well in layout.wells:
                 row_odict = OrderedDict()
@@ -206,7 +208,8 @@ class ProjectViews(object):
                     if well.abundances[0].ratio_800_700:
                         row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
                 sample_data_table_rows.append(list(row_odict.values()))
-        sample_data_table_headers = row_odict.keys()
+        if row_odict:
+            sample_data_table_headers = row_odict.keys()
 
         return dict(project=project,
                     title="Genome Editing Core",
