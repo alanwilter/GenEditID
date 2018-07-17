@@ -208,6 +208,16 @@ class LayoutLoader(Loader):
         self.load_plates()
         self.load_sequencing_libraries()
 
+    def load_project_data(self, projectid):
+        self.project = self.session.query(Project).filter(Project.id == projectid).first()
+        self.load_targets()
+        self.load_guides()
+        self.load_guide_mismatches()
+        self.load_amplicon_selection()
+        self.load_experiment_layout()
+        self.load_plates()
+        self.load_sequencing_libraries()
+
     def load_project(self, clean_if_exists=False):
         sheet = self.xls.parse('Project')
         if len(sheet) > 1:
@@ -275,7 +285,7 @@ class LayoutLoader(Loader):
                 raise LoaderException('Target "{}" does not exist (row {})'.format(row.target_name, i))
             if not row.name:
                 raise LoaderException('Guide name is required on row {}'.format(i))
-            
+
             try:
                 self.session.query(Guide).\
                              join(Target).\

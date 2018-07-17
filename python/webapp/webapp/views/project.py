@@ -233,6 +233,7 @@ class ProjectViews(object):
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):
         comments_error = False
+        upload_error_project_data = False
         upload_error = False
         upload_clash = False
         plate_headers = [
@@ -256,26 +257,31 @@ class ProjectViews(object):
             row.append(plate.plate_type)
             plate_rows.append(row)
         if 'submit_project_data' in self.request.params:
+            file_path = None
             try:
                 file_path = self._upload("layoutfile", ".xlsx")
                 self.dbsession.begin_nested()
                 loader = LayoutLoader(self.dbsession, file_path)
-                loader.load_all(True)  # TODO update method!
+                loader.load_project_data(project.id)
                 self.dbsession.commit()
-                url = self.request.route_url('project_view', projectid=project.id)
+                url = self.request.route_url('project_edit', projectid=project.id)
                 return HTTPFound(url)
             except LoaderException as e:
                 self.dbsession.rollback()
                 self.logger.error("Unexpected loader error: {}".format(e))
-                upload_error = str(e)
+                upload_error_project_data = str(e)
             except ValueError as e:
                 self.dbsession.rollback()
                 self.logger.error("Unexpected value error: {}".format(e))
-                upload_error = str(e)
+                upload_error_project_data = str(e)
             except DBAPIError as e:
                 self.dbsession.rollback()
                 self.logger.error("Unexpected database error: {}".format(e))
-                upload_error = str(e)
+                upload_error_project_data = str(e)
+            except AttributeError as e:
+                self.dbsession.rollback()
+                self.logger.error("Unexpected error: {}".format(e))
+                upload_error_project_data = 'No file selected'
             finally:
                 if file_path:
                     try:
@@ -297,11 +303,12 @@ class ProjectViews(object):
                             plate_rows=plate_rows,
                             platelayouts=[p.geid for p in plates],
                             platetypes=['abundance (icw)', 'growth (incu)'],
+                            error_project_data=upload_error_project_data,
                             clash=upload_clash,
                             error=upload_error)
             self.logger.debug("New comments = %s" % appstruct['comments'])
             project.comments = appstruct['comments']
-            url = self.request.route_url('project_view', projectid=project.id)
+            url = self.request.route_url('project_edit', projectid=project.id)
             return HTTPFound(url)
         if 'submit' in self.request.params:
             print(self.request.params)
@@ -324,8 +331,12 @@ class ProjectViews(object):
                         return HTTPFound(url)
                     except ExistingEntityException as e:
                         upload_clash = e
+            except AttributeError as e:
+                self.dbsession.rollback()
+                self.logger.error("Unexpected error: {}".format(e))
+                upload_error = 'No file selected'
             except Exception as e:
-                self.logger.error("Have an unexpected error while uploading data: {}".format(e))
+                self.logger.error("Unexpected error: {}".format(e))
                 upload_error = str(e)
             finally:
                 if file_path:
@@ -342,6 +353,7 @@ class ProjectViews(object):
                     plate_rows=plate_rows,
                     platelayouts=[p.geid for p in plates],
                     platetypes=['abundance (icw)', 'growth (incu)'],
+                    error_project_data=upload_error_project_data,
                     clash=upload_clash,
                     error=upload_error)
 
@@ -469,15 +481,17 @@ class ProjectViews(object):
         slx = self.get_sequencing_id(geproject)
         return self.clarity.does_slx_exist(slx)
 
-    def _upload(self, property):
-        filename = self.request.POST[property].filename
-        filedata = self.request.POST[property].file
-        if not filedata:
-            return None
-        self.logger.debug("Uploaded = %s" % filename)
-        file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), '.txt'))
-        temp_file_path = file_path + '~'
+    def _upload(self, property, suffix='.txt'):
         try:
+            temp_file_path = ''
+            self.logger.debug(self.request.POST[property])
+            filename = self.request.POST[property].filename
+            filedata = self.request.POST[property].file
+            if not filedata:
+                return None
+            self.logger.debug("Uploaded = %s" % filename)
+            file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), suffix))
+            temp_file_path = file_path + '~'
             filedata.seek(0)
             with open(temp_file_path, 'wb') as output_file:
                 shutil.copyfileobj(filedata, output_file)
@@ -487,6 +501,8 @@ class ProjectViews(object):
         finally:
             try:
                 os.remove(temp_file_path)
+            except TypeError as e:
+                raise(e)
             except OSError:
                 pass
         return file_path

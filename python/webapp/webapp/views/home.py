@@ -130,25 +130,3 @@ class HomeViews(object):
     After you fix the problem, please restart the Pyramid application to
     try it again.
     """
-
-    def _upload(self, property, suffix):
-        filename = self.request.POST[property].filename
-        filedata = self.request.POST[property].file
-        if not filedata:
-            return None
-        self.logger.debug("Uploaded = %s" % filename)
-        file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), suffix))
-        temp_file_path = file_path + '~'
-        try:
-            filedata.seek(0)
-            with open(temp_file_path, 'wb') as output_file:
-                shutil.copyfileobj(filedata, output_file)
-            os.rename(temp_file_path, file_path)
-            statinfo = os.stat(file_path)
-            self.logger.info("Uploaded a file of {:d} bytes".format(statinfo.st_size))
-        finally:
-            try:
-                os.remove(temp_file_path)
-            except OSError:
-                pass
-        return file_path

@@ -28,10 +28,10 @@
             and plates as well as sequencing library details from an Excel file
             using <a href="${request.route_url('home')}static/GEPXXXXX.xlsx">this template</a>.
         </p>
-        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
-          <div class='error' tal:condition="error">
+        <form action="${request.route_url('project_edit', projectid=project.id)}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
+          <div class='error' tal:condition="error_project_data">
               <p>
-                  Error: ${error}
+                  Error: ${error_project_data}
               </p>
           </div>
           <div class="form-group">
@@ -40,7 +40,7 @@
               <input type="file" id="upload" name="layoutfile" value=""></input>
             </label>
           </div>
-          <input class="btn btn-default" type="submit" name="submit_project_data" value="Upload"></input>
+          <input class="btn btn-default" type="submit" name="submit_project_data" value="UploadData"></input>
           <p>
               Loading data can take a few seconds. Thanks for your patience.
           </p>
