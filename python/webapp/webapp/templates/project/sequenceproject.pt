@@ -33,7 +33,7 @@
             <tal:block tal:case="False">
                 <tal:block tal:switch="can_sequence">
                     <p tal:case="False">
-                        This project cannot be submitted for sequencing. ${error}
+                        This project cannot be submitted for sequencing. <div class='warning'>${error}</div>
                     </p>
                     <div tal:case="True">
                         <div id="data" style="display:none;">
@@ -47,7 +47,7 @@
                         </div>
 
                         <p tal:condition="error">
-                            There was a problem with the submission. ${error} Please try again if possible.
+                            <div class='error'>There was a problem with the submission. ${error} Please try again if possible.</div>
                         </p>
 
                         <p>

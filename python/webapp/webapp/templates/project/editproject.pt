@@ -20,12 +20,37 @@
           </ol>
         </p>
         <h2>Edit Project: ${project.geid}</h2>
+
+        <!-- Project datils ************************************************** -->
+        <h4>Project Details</h4>
+        <table id="projecttable" class="table table-hover table-condensed">
+            <thead>
+                <th tal:repeat="header project_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row project_rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+
         <!-- Comments section ************************************************ -->
-        <h3>Project data and experiment layout</h3>
-        <h4>Upload</h4>
+        <h4>Add/update comments</h4>
+        <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
+          <div class='error' tal:condition="comments_error">
+              <p>
+                  Error: ${comments_error}
+              </p>
+          </div>
+          <p>
+            <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
+            <input type="submit" name="submit_comments" value="Update"></input>
+          </p>
+        </form>
+
+        <!-- Project's data and Experiment layout **************************** -->
+        <h4>Upload data and experiment layout</h4>
         <p>
-            Load project data (targets, guides and amplicons), its experiment layout
-            and plates as well as sequencing library details from an Excel file
+            Load project ${project.geid} data (targets, guides and amplicons), its experiment layout, list of
+            plates and sequencing library details from an Excel file
             using <a href="${request.route_url('home')}static/GEPXXXXX.xlsx">this template</a>.
         </p>
         <form action="${request.route_url('project_edit', projectid=project.id)}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
@@ -46,24 +71,8 @@
           </p>
         </form>
 
-        <!-- Comments section ************************************************ -->
-        <h3>Project's comments</h3>
-        <form id="edit_project_form" method="post" action="${request.route_url('project_edit', projectid=project.id)}">
-          <div class='error' tal:condition="comments_error">
-              <p>
-                  Error: ${comments_error}
-              </p>
-          </div>
-          <p>
-            <input id="comments_text_field" type="text" name="comments" size="100" value="${project.comments}"></input>
-            <input type="submit" name="submit_comments" value="Update"></input>
-          </p>
-        </form>
-        <hr/>
-
         <!-- Upload section ************************************************** -->
-        <h3>Experimental data</h3>
-        <h4>Plates</h4>
+        <h4>List of plates</h4>
         <table id="platetable" class="table table-hover table-condensed">
             <thead>
                 <th tal:repeat="header plate_headers">${header}</th>
@@ -73,7 +82,7 @@
             </tr>
         </table>
 
-        <h4>Upload</h4>
+        <h4>Upload experimental data</h4>
         <p>
             Load a new cell growth (incucyte) or protein abundance (InCell Western)
             data file for project ${project.geid}. Make sure to select the correct plate!

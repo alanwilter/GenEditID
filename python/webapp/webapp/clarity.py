@@ -1,5 +1,3 @@
-import sys
-import os
 import logging
 
 import psycopg2
@@ -17,7 +15,7 @@ import glsapi.routing
 import glsapi.sample
 import glsapi.userdefined
 
-from dnascissors.model import Base, Plate, ExperimentLayout, Well, WellContent
+from dnascissors.model import Base, Plate
 from dnascissors.config import cfg
 
 
@@ -51,7 +49,7 @@ where p.researcherid = {}
 '''
 
 class ClaritySubmitter(object):
-    
+
     # server=SERVER, username=USERNAME, password=PASSWORD, db_name=DB_NAME, db_username=DB_USERNAME, db_password=DB_PASSWORD
     def __init__(self, use_dev_lims=True):
         self.log = logging.getLogger(__name__)
@@ -72,10 +70,10 @@ class ClaritySubmitter(object):
 
     def does_slx_exist(self, slx):
         return len(self.api.list_filter('sample', 'udf.SLX Identifier', slx).sample) > 0
-    
+
     def does_project_exist(self, name):
         return len(self.api.list_filter_by_name('project', name).project) > 0
-    
+
     def get_lab_researcher_project_map(self):
         map = dict()
         self.db.execute(LOAD_LABS_QUERY)
@@ -104,7 +102,7 @@ class ClaritySubmitter(object):
                 if researcher:
                     researcher['projects'][projectid] = values
         return map
-    
+
     def create_project(self, researcher_id, project_name):
         new_project = glsapi.project.project()
         new_project.name = project_name
@@ -113,15 +111,15 @@ class ClaritySubmitter(object):
         # new_project.field.append(glsapi.userdefined.field('5352', name = 'Redmine Issue'))
         new_project = self.api.create('project', new_project)
         return new_project
-    
+
     def submit_samples(self, project_id, plate, override_slx_id = None):
-        
+
         pool_wells = []
         slx_id = None
-        
+
         for well in plate.experiment_layout.wells:
             content = well.well_content
-            
+
             if content and content.content_type != 'empty':
                 for sl_content in well.sequencing_library_contents:
                     sl_lib = sl_content.sequencing_library
@@ -131,10 +129,10 @@ class ClaritySubmitter(object):
                     else:
                         slx_id = sl_lib.slxid
                     pool_wells.append(well)
-        
+
         if not slx_id:
             raise Exception("Have no SLX id available.")
-        
+
         if override_slx_id:
             slx_id = override_slx_id
             print("Overriding database SLX id with {}", override_slx_id)
@@ -143,11 +141,11 @@ class ClaritySubmitter(object):
         if existing_pools:
             ep = existing_pools[0]
             raise Exception("Already have a pool for {}: {}".format(slx_id, ep.limsid))
-        
+
         project = self.api.load('project', project_id)
-        
+
         container_type = self.api.list_filter_by_name('container_type', '96 well plate').container_type[0]
-        
+
         container = glsapi.container.container()
         container.type = glsapi.container.container_type(uri = container_type.uri)
         container.name = plate.barcode
@@ -156,12 +154,12 @@ class ClaritySubmitter(object):
 
         samples = []
         artifacts = []
-        
+
         try:
             for well in pool_wells:
                 for sl_content in well.sequencing_library_contents:
                     sl_lib = sl_content.sequencing_library
-                
+
                     sample = glsapi.sample.samplecreation()
                     sample.location = glsapi.ri.location(container = glsapi.ri.container(uri = container.uri), value_ = "{}:{}".format(well.row, well.column))
                     sample.project = glsapi.sample.project(uri = project.uri)
@@ -191,7 +189,7 @@ class ClaritySubmitter(object):
                     sample = self.api.create('sample', sample)
                     samples.append(sample)
                     self.log.debug("New sample id = {}".format(sample.limsid))
-                    
+
                     artifact = self.api.load_by_uri('artifact', sample.artifact.uri)
                     artifact.reagent_label.append(glsapi.artifact.reagent_label(name = sl_content.sequencing_barcode))
                     artifact = self.api.update(artifact)
@@ -202,17 +200,17 @@ class ClaritySubmitter(object):
             self.log.error("Creating samples has failed. Need to remove existing container {}.".format(container.limsid))
             self.api.delete(container)
             raise e
-        
+
         # If all have been created, route them into MiSeq Express work flow
-        
+
         routing = glsapi.routing.routing()
         assignment = glsapi.routing.extArtifactAssignments(workflow_uri = "https://limsdev.cruk.cam.ac.uk/api/v2/configuration/workflows/11")
         routing.assign.append(assignment)
         for a in artifacts:
             assignment.artifact.append(glsapi.routing.artifact(uri = a.uri))
-        
+
         self.api.create('routing', routing)
-        
+
         self.log.info("Samples routed into {}".format(routing.assign[0].workflow_uri))
 
 def tests(session, clarity):
@@ -229,7 +227,7 @@ def tests(session, clarity):
     # Listing all researchers
     for infomap in clarity.get_researchers().values():
         print("{} - {} in {}".format(infomap['id'], infomap['researcher'], infomap['lab']))
-        
+
     print("")
     print("My projects")
 
@@ -242,20 +240,20 @@ def tests(session, clarity):
 
     #print("")
     #print("Create a project")
-    
+
     #new_project = clarity.create_project(rich_id, "Created through the API")
     #print(new_project)
-    
+
     print("")
     print("Submit samples to test project")
-    
+
     project_id = 'BOW13101'
     plate_id = 'GEP00007_01_NGS'
     slx_id = 'SLX-15104'
-    
+
     plate = session.query(Plate).filter(Plate.geid == plate_id).first()
     #print("{} {} {}".format(plate.id, plate.geid, plate.barcode))
-    
+
     clarity.submit_samples(project_id, plate, 'SLX-20003')
 
 def main():
@@ -263,7 +261,7 @@ def main():
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M')
     clarity = ClaritySubmitter(True)
-    
+
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
