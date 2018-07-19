@@ -52,21 +52,14 @@ class ProjectViews(object):
         submitButton = deform.form.Button(name='submit_comments', title=buttonTitle)
         return deform.Form(schema, buttons=(submitButton,))
 
-    @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
-    def view_project(self):
-        id = self.request.matchdict['projectid']
-        project = self.dbsession.query(Project).filter(Project.id == id).one()
-        plotter = Plotter(self.dbsession, project.geid)
-        ngsplotter = NGSPlotter(self.dbsession, project.geid)
-        # Project table
+    def get_project_table(self, project):
         project_headers = [
             "geid",
             "name",
+            "type",
             "scientist",
-            "group leader",
             "group",
-            "start date",
-            "end date",
+            "date",
             "description",
             "comments",
             "abundance data",
@@ -74,18 +67,26 @@ class ProjectViews(object):
             "ngs data"]
         project_rows = [[project.geid,
                         project.name,
+                        project.project_type,
                         project.scientist,
-                        project.group_leader,
                         project.group,
                         project.start_date,
-                        project.end_date,
                         project.description,
                         project.comments,
                         project.is_abundance_data_available,
                         project.is_growth_data_available,
                         project.is_variant_data_available]]
+        return project_headers, project_rows
+
+    @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
+    def view_project(self):
+        id = self.request.matchdict['projectid']
+        project = self.dbsession.query(Project).filter(Project.id == id).one()
+        plotter = Plotter(self.dbsession, project.geid)
+        ngsplotter = NGSPlotter(self.dbsession, project.geid)
+        # Project table
+        project_headers, project_rows = self.get_project_table(project)
         # Target table
-        targets = project.targets
         target_headers = [
             "name",
             "species",
@@ -97,8 +98,28 @@ class ProjectViews(object):
             "strand",
             "description"]
         target_rows = []
+        # Guide table
+        guide_headers = [
+            "target name",
+            "species",
+            "assembly",
+            "guide name",
+            "guide sequence",
+            "pam sequence",
+            "activity",
+            "exon",
+            "nuclease"
+        ]
         guide_rows = []
+        # Guide mismatch table
+        guide_mismatch_headers = [
+            "genome region",
+            "1",
+            "2",
+            "3"
+        ]
         guide_mismatch_rows = []
+        targets = project.targets
         for target in targets:
             row = []
             row.append(target.name)
@@ -145,25 +166,6 @@ class ProjectViews(object):
                         elif mismatch.number_of_mismatches == 3:
                             mismatch_counts[3] = mismatch.number_of_off_targets
                 guide_mismatch_rows.append(mismatch_counts)
-        # Guide table
-        guide_headers = [
-            "target name",
-            "species",
-            "assembly",
-            "guide name",
-            "guide sequence",
-            "pam sequence",
-            "activity",
-            "exon",
-            "nuclease"
-        ]
-        # Guide mismatch table
-        guide_mismatch_headers = [
-            "genome region",
-            "1",
-            "2",
-            "3"
-        ]
         # Sample analysis: data table
         layouts = project.experiment_layouts
         sample_data_table_headers = []
@@ -233,32 +235,10 @@ class ProjectViews(object):
     def edit_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
+        title = "Genome Editing Core"
+        subtitle = "Project: {}".format(project.geid)
         # Project table
-        project_headers = [
-            "geid",
-            "name",
-            "scientist",
-            "group leader",
-            "group",
-            "start date",
-            "end date",
-            "description",
-            "comments",
-            "abundance data",
-            "growth data",
-            "ngs data"]
-        project_rows = [[project.geid,
-                        project.name,
-                        project.scientist,
-                        project.group_leader,
-                        project.group,
-                        project.start_date,
-                        project.end_date,
-                        project.description,
-                        project.comments,
-                        project.is_abundance_data_available,
-                        project.is_growth_data_available,
-                        project.is_variant_data_available]]
+        project_headers, project_rows = self.get_project_table(project)
         comments_error = False
         upload_error_project_data = False
         upload_error = False
@@ -270,8 +250,6 @@ class ProjectViews(object):
             "description",
             "data"]
         plate_rows = []
-        title = "Genome Editing Core"
-        subtitle = "Project: {}".format(project.geid)
         plates = self.dbsession.query(Plate).join(ExperimentLayout).join(Project).filter(Project.geid == project.geid).all()
         for plate in plates:
             row = []

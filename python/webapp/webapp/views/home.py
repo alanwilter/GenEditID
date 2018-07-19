@@ -1,6 +1,3 @@
-import os
-import uuid
-import shutil
 import logging
 import datetime
 
@@ -30,8 +27,8 @@ class HomeViews(object):
                                          "edit",
                                          "sequence",
                                          "name",
+                                         "type",
                                          "scientist",
-                                         "group leader",
                                          "group",
                                          "date",
                                          "description",
@@ -52,8 +49,8 @@ class HomeViews(object):
                              "project/{}/edit".format(project.id),
                              "project/{}/sequence".format(project.id),
                              project.name,
+                             project.project_type,
                              project.scientist,
-                             project.group_leader,
                              project.group,
                              project.start_date,
                              project.description,
@@ -99,8 +96,8 @@ class HomeViews(object):
                                      "project/{}/edit".format(project.id),
                                      "project/{}/sequence".format(project.id),
                                      project.name,
+                                     project.project_type,
                                      project.scientist,
-                                     project.group_leader,
                                      project.group,
                                      project.start_date,
                                      project.description,
