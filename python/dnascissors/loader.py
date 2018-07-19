@@ -448,6 +448,8 @@ class LayoutLoader(Loader):
             # Find or create experiment layout
             if not row.geid:
                 raise LoaderException('Experiment layout GEID is required on row {}'.format(i))
+            if not row.geid.split('_')[0] == self.project.geid:
+                raise LoaderException('Experiment layout GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
             layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
                 layout = ExperimentLayout(project=self.project)
@@ -499,6 +501,8 @@ class LayoutLoader(Loader):
             experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
             if not experiment_layout:
                 raise LoaderException('Experiment layout GEID {} is required for plate GEID {}'.format(row.experiment_layout_geid, row.geid))
+            if not row.geid.split('_')[0] == self.project.geid:
+                raise LoaderException('Plate GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
             plate = Plate(experiment_layout=experiment_layout)
             plate.geid = row.geid
             plate.barcode = row.plate_barcode
