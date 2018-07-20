@@ -4,6 +4,7 @@ import shutil
 import logging
 import psycopg2
 import colander
+import requests
 import deform.widget
 
 from collections import OrderedDict
@@ -77,6 +78,54 @@ class ProjectViews(object):
                         project.is_growth_data_available,
                         project.is_variant_data_available]]
         return project_headers, project_rows
+
+    def get_variant_data_table(self, layouts, variant_caller='VarDict'):
+        variant_data_table_headers = []
+        variant_data_table_rows = []
+        vrow_odict = OrderedDict()
+        for layout in layouts:
+            for well in layout.wells:
+                for slc in well.sequencing_library_contents:
+                    if slc.variant_results:
+                        for v in slc.variant_results:
+                            if v.variant_caller == variant_caller:
+                                vrow_odict['plate'] = layout.geid
+                                vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
+                                vrow_odict['sample'] = slc.sequencing_sample_name
+                                vrow_odict['barcode'] = slc.sequencing_barcode
+                                vrow_odict['variant_caller'] = v.variant_caller
+                                vrow_odict['variant_type'] = v.variant_type
+                                vrow_odict['IGV link'] = None
+                                vrow_odict['consequence'] = v.consequence
+                                vrow_odict['gene_id'] = v.gene_id
+                                vrow_odict['gene'] = v.gene
+                                vrow_odict['cdna_effect'] = v.cdna_effect
+                                vrow_odict['protein_effect'] = v.protein_effect
+                                vrow_odict['codons'] = v.codons
+                                vrow_odict['chromosome'] = v.chromosome
+                                vrow_odict['position'] = v.position
+                                vrow_odict['ref'] = v.ref
+                                vrow_odict['alt'] = v.alt
+                                vrow_odict['allele_fraction'] = v.allele_fraction
+                                vrow_odict['depth'] = v.depth
+                                vrow_odict['quality'] = v.quality
+                                vrow_odict['amplicon'] = v.amplicon
+                                vrow_odict['exon'] = v.exon
+                                vrow_odict['intron'] = v.intron
+                                vrow_odict['existing_variation'] = v.existing_variation
+                                vrow_odict['sift'] = v.sift
+                                vrow_odict['polyphen'] = v.polyphen
+                                vrow_odict['clinical_significance'] = v.clinical_significance
+                                vrow_odict['gmaf'] = v.gmaf
+                                vrow_odict['offset_from_primer_end'] = v.offset_from_primer_end
+                                vrow_odict['indel_length'] = v.indel_length
+                                vrow_odict['forward_context'] = v.forward_context
+                                vrow_odict['alleles'] = v.alleles
+                                vrow_odict['reverse_context'] = v.reverse_context
+                                variant_data_table_rows.append(list(vrow_odict.values()))
+        if vrow_odict:
+            variant_data_table_headers = vrow_odict.keys()
+        return variant_data_table_headers, variant_data_table_rows
 
     @view_config(route_name="project_view", renderer="../templates/project/viewproject.pt")
     def view_project(self):
@@ -166,7 +215,7 @@ class ProjectViews(object):
                         elif mismatch.number_of_mismatches == 3:
                             mismatch_counts[3] = mismatch.number_of_off_targets
                 guide_mismatch_rows.append(mismatch_counts)
-        # Sample analysis: data table
+        # Scores: sample data table
         layouts = project.experiment_layouts
         sample_data_table_headers = []
         sample_data_table_rows = []
@@ -176,42 +225,43 @@ class ProjectViews(object):
                 row_odict = OrderedDict()
                 row_odict['plate'] = layout.geid
                 row_odict['well'] = "{:s}{:02}".format(well.row, well.column)
-                row_odict['type'] = 'empty-well'
-                row_odict['guides'] = 'no-guide'
-                row_odict['zygosity'] = 'empty-well'
-                row_odict['protein'] = None
-                row_odict['score'] = None
+                row_odict['type'] = None
+                row_odict['clone'] = None
+                row_odict['guides'] = None
+                row_odict['slxid'] = None
                 row_odict['sample'] = None
                 row_odict['barcode'] = None
                 row_odict['dna source'] = None
+                row_odict['protein'] = None
+                row_odict['zygosity'] = None
                 row_odict['consequence'] = None
                 row_odict['has off-target'] = None
-                row_odict['variant caller'] = None
-                row_odict['variant results'] = None
+                row_odict['variant caller presence'] = None
+                row_odict['score'] = None
                 if well.well_content:
                     row_odict['type'] = well.well_content.content_type
-                    row_odict['zygosity'] = 'wt'
+                    row_odict['clone'] = well.well_content.clone.name
                     if well.well_content.guides:
                         row_odict['guides'] = "; ".join(g.name for g in well.well_content.guides)
                 for slc in well.sequencing_library_contents:
-                    if slc.dna_source == 'fixed cells':
-                        row_odict['sample'] = slc.sequencing_sample_name
-                        row_odict['barcode'] = slc.sequencing_barcode
-                        row_odict['dna source'] = slc.dna_source
-                        if slc.mutation_summaries:
-                            row_odict['zygosity'] = slc.mutation_summaries[0].zygosity
-                            row_odict['consequence'] = slc.mutation_summaries[0].consequence
-                            row_odict['has off-target'] = slc.mutation_summaries[0].has_off_target
-                            row_odict['variant caller'] = slc.mutation_summaries[0].variant_caller_presence
-                            row_odict['score'] = slc.mutation_summaries[0].score
-                        if slc.variant_results:
-                            row_odict['variant results'] = "; ".join(vr.variant_str_summary for vr in slc.variant_results)
+                    row_odict['slxid'] = slc.sequencing_library.slxid
+                    row_odict['sample'] = slc.sequencing_sample_name
+                    row_odict['barcode'] = slc.sequencing_barcode
+                    row_odict['dna source'] = slc.dna_source
+                    if slc.mutation_summaries:
+                        row_odict['zygosity'] = slc.mutation_summaries[0].zygosity
+                        row_odict['consequence'] = slc.mutation_summaries[0].consequence
+                        row_odict['has off-target'] = slc.mutation_summaries[0].has_off_target
+                        row_odict['variant caller presence'] = slc.mutation_summaries[0].variant_caller_presence
+                        row_odict['score'] = slc.mutation_summaries[0].score
                 if well.abundances:
                     if well.abundances[0].ratio_800_700:
                         row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
                 sample_data_table_rows.append(list(row_odict.values()))
         if row_odict:
             sample_data_table_headers = row_odict.keys()
+        vvariant_data_table_headers, vvariant_data_table_rows = self.get_variant_data_table(layouts, 'VarDict')
+        hvariant_data_table_headers, hvariant_data_table_rows = self.get_variant_data_table(layouts, 'HaplotypeCaller')
 
         return dict(project=project,
                     title="Genome Editing Core",
@@ -228,6 +278,10 @@ class ProjectViews(object):
                     guide_rows=guide_rows,
                     guide_mismatch_headers=guide_mismatch_headers,
                     guide_mismatch_rows=guide_mismatch_rows,
+                    vvariant_data_table_headers=vvariant_data_table_headers,
+                    vvariant_data_table_rows=vvariant_data_table_rows,
+                    hvariant_data_table_headers=hvariant_data_table_headers,
+                    hvariant_data_table_rows=hvariant_data_table_rows,
                     sample_data_table_headers=sample_data_table_headers,
                     sample_data_table_rows=sample_data_table_rows)
 
@@ -385,7 +439,7 @@ class ProjectViews(object):
                 return view_map
 
             if self.clarity.does_slx_exist(slx):
-                view_map['error'] = 'There are already samples in Clarity Genomics LiMS for {}.'.format(slx)
+                view_map['error'] = 'There are already samples in Genomics Clarity LiMS for {}.'.format(slx)
                 return view_map
 
             view_map['can_sequence'] = True
@@ -476,6 +530,10 @@ class ProjectViews(object):
         except psycopg2.OperationalError as e:
             self.logger.error(e)
             view_map['error'] = "Cannot connect to Genomics Clarity LiMS."
+            return view_map
+        except requests.exceptions.ConnectionError as e:
+            self.logger.error(e)
+            view_map['error'] = "Failed to connect to Genomics Clarity LiMS."
             return view_map
 
     def get_sequencing_id(self, geproject):
