@@ -91,11 +91,13 @@ class ProjectViews(object):
                             if v.variant_caller == variant_caller:
                                 vrow_odict['plate'] = layout.geid
                                 vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
+                                vrow_odict['clone'] = well.well_content.clone.name if well.well_content else None
                                 vrow_odict['sample'] = slc.sequencing_sample_name
                                 vrow_odict['barcode'] = slc.sequencing_barcode
                                 vrow_odict['variant_caller'] = v.variant_caller
                                 vrow_odict['variant_type'] = v.variant_type
                                 vrow_odict['IGV link'] = None
+                                vrow_odict['BAM file'] = None
                                 vrow_odict['consequence'] = v.consequence
                                 vrow_odict['gene_id'] = v.gene_id
                                 vrow_odict['gene'] = v.gene

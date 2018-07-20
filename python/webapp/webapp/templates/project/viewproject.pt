@@ -80,7 +80,7 @@
         <div role="tabpanel" class="tab-pane" id="reads">
           <h3>Reads</h3>
           <h4>Read counts</h4>
-        
+
         </div>
 
         <!-- Variants section ********************************************** -->
@@ -214,13 +214,13 @@
         $('#guidemismatchtable').DataTable({
         } );
         $('#vvariantdatatable').DataTable({
-          "aaSorting": [[3, 'asc']],
+          "aaSorting": [[4, 'asc']],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
           "dom": "<'row'<'col-sm-4'l><'col-sm-2'B><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
           "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ]
         } );
         $('#hvariantdatatable').DataTable({
-          "aaSorting": [[3, 'asc']],
+          "aaSorting": [[4, 'asc']],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
           "dom": "<'row'<'col-sm-4'l><'col-sm-2'B><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
           "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ]
