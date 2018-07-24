@@ -155,7 +155,10 @@ class RefLoader(Loader):
                   'T47D',
                   'MESC',
                   'A549',
-                  'HUES9']
+                  'HUES9',
+                  'ZRTamR',
+                  'ZRTamS',
+                  'HEK293T']
 
     def __init__(self, session):
         self.log = logging.getLogger(__name__)
