@@ -292,7 +292,7 @@ class SequencingLibraryContent(Base):
     sequencing_library = relationship(
         SequencingLibrary,
         backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
-    dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', name='dna_source'), nullable=False)
+    dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', 'water', name='dna_source'), nullable=False)
     sequencing_barcode = Column(String(20), nullable=False)
     sequencing_sample_name = Column(String(32), nullable=True)
 
