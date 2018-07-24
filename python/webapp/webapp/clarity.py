@@ -1,4 +1,5 @@
 import logging
+import datetime
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -87,7 +88,7 @@ class ClaritySubmitter(object):
             labid = results['labid']
             researcherid = results['researcherid']
             values = {'id': researcherid, 'projects': dict(),
-                      'name':"{} {}".format(results['firstname'], results['lastname'])}
+                      'name': "{} {}".format(results['firstname'], results['lastname'])}
             lab = map[labid]
             if lab:
                 lab['researchers'][researcherid] = values
@@ -107,7 +108,7 @@ class ClaritySubmitter(object):
     def create_project(self, researcher_id, project_name):
         new_project = glsapi.project.project()
         new_project.name = project_name
-        new_project.open_date = '2018-05-09'
+        new_project.open_date = "{:%Y-%m-%d}".format(datetime.date.today())
         new_project.researcher = glsapi.project.researcher(uri=self.api.load('researcher', researcher_id).uri)
         # new_project.field.append(glsapi.userdefined.field('5352', name = 'Redmine Issue'))
         new_project = self.api.create('project', new_project)
@@ -117,11 +118,9 @@ class ClaritySubmitter(object):
 
         pool_wells = []
         slx_id = None
-
         for well in plate.experiment_layout.wells:
             content = well.well_content
-
-            if content and content.content_type != 'empty':
+            if content and (content.content_type != 'empty'):
                 for sl_content in well.sequencing_library_contents:
                     sl_lib = sl_content.sequencing_library
                     if slx_id:
@@ -130,7 +129,6 @@ class ClaritySubmitter(object):
                     else:
                         slx_id = sl_lib.slxid
                     pool_wells.append(well)
-
         if not slx_id:
             raise Exception("Have no SLX id available.")
 
@@ -160,7 +158,6 @@ class ClaritySubmitter(object):
             for well in pool_wells:
                 for sl_content in well.sequencing_library_contents:
                     sl_lib = sl_content.sequencing_library
-
                     sample = glsapi.sample.samplecreation()
                     sample.location = glsapi.ri.location(container = glsapi.ri.container(uri=container.uri), value_="{}:{}".format(well.row, well.column))
                     sample.project = glsapi.sample.project(uri=project.uri)
@@ -176,10 +173,10 @@ class ClaritySubmitter(object):
                     sample.field.append(glsapi.userdefined.field(sl_lib.library_type, name='Index Type'))
                     sample.field.append(glsapi.userdefined.field('1', name='Number of Lanes'))
                     sample.field.append(glsapi.userdefined.field('Cell Line', name='Sample Source'))
-                    sample.field.append(glsapi.userdefined.field('289', name='Average Library Length'))  # need to go to UI
-                    sample.field.append(glsapi.userdefined.field('SWAG/076', name='Billing Information'))
+                    sample.field.append(glsapi.userdefined.field('289', name='Average Library Length'))  # needs to go to UI
+                    sample.field.append(glsapi.userdefined.field('SWAG/076', name='Billing Information'))  # needs to get it from project
                     sample.field.append(glsapi.userdefined.field('Standard', name='Priority Status'))
-                    sample.field.append(glsapi.userdefined.field('Add 20% PhiX please', name='Submission Comments'))
+                    sample.field.append(glsapi.userdefined.field('Automatic submission from GE core', name='Submission Comments'))
                     sample.field.append(glsapi.userdefined.field('SLX Version 44', name='Version Number'))
                     sample.field.append(glsapi.userdefined.field(well.row, name='Row'))
                     sample.field.append(glsapi.userdefined.field(well.column, name='Column'))
@@ -192,7 +189,7 @@ class ClaritySubmitter(object):
                     self.log.debug("New sample id = {}".format(sample.limsid))
 
                     artifact = self.api.load_by_uri('artifact', sample.artifact.uri)
-                    artifact.reagent_label.append(glsapi.artifact.reagent_label(name = sl_content.sequencing_barcode))
+                    artifact.reagent_label.append(glsapi.artifact.reagent_label(name=sl_content.sequencing_barcode))
                     artifact = self.api.update(artifact)
                     artifacts.append(artifact)
                     self.log.debug("Sample {} barcode set to {}".format(sample.limsid, artifact.reagent_label[0].name))
@@ -202,17 +199,18 @@ class ClaritySubmitter(object):
             self.api.delete(container)
             raise e
 
-        # If all have been created, route them into MiSeq Express work flow
+        # If all have been created, route them into MiSeq Express Nano work flow
+        # <workflow status="ACTIVE" uri="https://limsdev.cruk.cam.ac.uk/api/v2/configuration/workflows/1452" name="SLX: Sequencing for MiSeq Express Nano v1"/>
+        # Anne: I would not route the samples, but let the automatic assigment script does it
+        # routing = glsapi.routing.routing()
+        # assignment = glsapi.routing.extArtifactAssignments(workflow_uri="https://limsdev.cruk.cam.ac.uk/api/v2/configuration/workflows/1452")
+        # routing.assign.append(assignment)
+        # for a in artifacts:
+        #     assignment.artifact.append(glsapi.routing.artifact(uri=a.uri))
+        #
+        # self.api.create('routing', routing)
+        # self.log.info("Samples routed into {}".format(routing.assign[0].workflow_uri))
 
-        routing = glsapi.routing.routing()
-        assignment = glsapi.routing.extArtifactAssignments(workflow_uri = "https://limsdev.cruk.cam.ac.uk/api/v2/configuration/workflows/11")
-        routing.assign.append(assignment)
-        for a in artifacts:
-            assignment.artifact.append(glsapi.routing.artifact(uri = a.uri))
-
-        self.api.create('routing', routing)
-
-        self.log.info("Samples routed into {}".format(routing.assign[0].workflow_uri))
 
 def tests(session, clarity):
     print("")
@@ -256,6 +254,7 @@ def tests(session, clarity):
     #print("{} {} {}".format(plate.id, plate.geid, plate.barcode))
 
     clarity.submit_samples(project_id, plate, 'SLX-20003')
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG,

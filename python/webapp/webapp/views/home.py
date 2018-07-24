@@ -63,8 +63,12 @@ class HomeViews(object):
             # New project creation form
             if 'submit_project' in self.request.params:
                 fields = dict(self.request.POST.items())
+                self.logger.debug(fields)
                 try:
-                    next_geid = "GEP{:05d}".format(int(last_project.geid[3:]) + 1)
+                    if last_project:
+                        next_geid = "GEP{:05d}".format(int(last_project.geid[3:]) + 1)
+                    else:
+                        next_geid = "GEP00001"
                     self.dbsession.begin_nested()
                     project = Project()
                     project.geid = next_geid
