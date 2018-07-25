@@ -134,7 +134,7 @@ class ClaritySubmitter(object):
 
         if override_slx_id:
             slx_id = override_slx_id
-            print("Overriding database SLX id with {}", override_slx_id)
+            self.log.warn("Overriding database SLX id with {}", override_slx_id)
 
         existing_pools = self.api.list_filter_by_name('artifact', slx_id).artifact
         if existing_pools:
@@ -145,11 +145,21 @@ class ClaritySubmitter(object):
 
         container_type = self.api.list_filter_by_name('container_type', '96 well plate').container_type[0]
 
-        container = glsapi.container.container()
-        container.type = glsapi.container.container_type(uri=container_type.uri)
-        container.name = plate.barcode
-        container.type_ = glsapi.userdefined.type(name='SLX Container')
-        container = self.api.create('container', container)
+        # Reuse an empty container with the same name if one exists.
+        container_search = { 'name':plate.barcode, 'state':'Empty', 'type':container_type.name }
+
+        empty_containers = self.api.list_filters('container', container_search)
+        
+        if empty_containers.container:
+            container = self.api.load('container', empty_containers.container[0].limsid)
+            self.log.info("Reusing empty {} {} for {}".format(container_type.name, container.limsid, plate.barcode))
+        else:
+            container = glsapi.container.container()
+            container.type = glsapi.container.container_type(uri=container_type.uri)
+            container.name = plate.barcode
+            container.type_ = glsapi.userdefined.type(name='SLX Container')
+            container = self.api.create('container', container)
+            self.log.info("Created new {} {} for {}".format(container_type.name, container.limsid, plate.barcode))
 
         samples = []
         artifacts = []
@@ -165,7 +175,7 @@ class ClaritySubmitter(object):
                     sample.field.append(glsapi.userdefined.field('DNA', name='Sample Type'))
                     sample.field.append(glsapi.userdefined.field('Cell Line', name='Sample Source'))
                     sample.field.append(glsapi.userdefined.field('Amplicon Low-Diversity', name='Library Type'))
-                    sample.field.append(glsapi.userdefined.field('Homo sapiens [GRCh38_hs38d1]', name='Reference Genome'))
+                    sample.field.append(glsapi.userdefined.field('Homo sapiens', name='Reference Genome'))
                     sample.field.append(glsapi.userdefined.field(slx_id, name='SLX Identifier'))
                     sample.field.append(glsapi.userdefined.field('MiSeq Nano', name='Workflow'))
                     sample.field.append(glsapi.userdefined.field('Paired End', name='Sequencing Type'))
@@ -176,7 +186,7 @@ class ClaritySubmitter(object):
                     sample.field.append(glsapi.userdefined.field('289', name='Average Library Length'))  # needs to go to UI
                     sample.field.append(glsapi.userdefined.field('SWAG/076', name='Billing Information'))  # needs to get it from project
                     sample.field.append(glsapi.userdefined.field('Standard', name='Priority Status'))
-                    sample.field.append(glsapi.userdefined.field('Automatic submission from GE core', name='Submission Comments'))
+                    sample.field.append(glsapi.userdefined.field('Please use 20% PhiX.', name='Submission Comments'))
                     sample.field.append(glsapi.userdefined.field('SLX Version 44', name='Version Number'))
                     sample.field.append(glsapi.userdefined.field(well.row, name='Row'))
                     sample.field.append(glsapi.userdefined.field(well.column, name='Column'))
