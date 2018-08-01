@@ -37,7 +37,7 @@
                     </p>
                     <div tal:case="True">
                         <div id="data" style="display:none;">
-                            <span id="plateidspan" tal:content="plate_id"></span>
+                            <span id="plateidspan" tal:content="submission_plates"></span>
                             <span id="labidspan" tal:content="lab_id"></span>
                             <span id="researcheridspan" tal:content="researcher_id"></span>
                             <span id="projectsourcespan" tal:content="project_source"></span>
@@ -56,13 +56,13 @@
 
                         <form id="submit_sequencing_form" method="post" action="${request.route_url('project_sequence', projectid=geproject.id)}">
                             <p>
-                                Which plate contains the samples for submission?
+                                Which plate or plates contain the samples for submission?
                             </p>
-                            <p>
-                                <select id="plate_select" name="plate_id">
-                                    <option tal:repeat="plate plates" value="${plate.id}">${plate.geid}</option>
-                                </select>
-                            </p>
+                            <ol>
+                                <li tal:repeat="plate plates">
+                                    <input id="plate_check_${plate.id}" type="checkbox" class="submissionplate" name="submission_plates" value="${plate.id}"></input>&nbsp;${plate.geid}
+                                </li>
+                            </ol>
 
                             <p>
                                 Who is the submission for?

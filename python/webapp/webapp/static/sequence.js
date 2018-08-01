@@ -83,6 +83,15 @@ projectSourceChange = function()
     
     setEnabled($('#project_select'), useExisting);
     setEnabled($('#newprojecttext'), !useExisting);
+    
+    if (useExisting)
+    {
+        projectSelected();
+    }
+    else
+    {
+        projectNameChange();
+    }
 }
 
 projectSelected = function()
@@ -140,11 +149,11 @@ sequenceProjectReady = function()
     setEnabled($("#newprojecttext"), false);
     setEnabled($('.projectsourceradio'), false);
 
-    var selectedplate = $('#plateidspan').text();
-    if (!!selectedplate)
-    {
-        $('#plate_select').val(selectedplate).prop('selected', true);
-    }
+    //var selectedplate = $('#plateidspan').text();
+    //if (!!selectedplate)
+    //{
+    //    $('#plate_select').val(selectedplate).prop('selected', true);
+    //}
 
     var selectedlab = $('#labidspan').text();
     if (!!selectedlab)

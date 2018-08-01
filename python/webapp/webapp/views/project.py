@@ -446,7 +446,7 @@ class ProjectViews(object):
 
             view_map['can_sequence'] = True
 
-            plate_id = self.request.params.get('plate_id')
+            submission_plate_ids = self.request.params.getall('submission_plates')
             lab_id = self.request.params.get('lab_id')
             researcher_id = self.request.params.get('researcher_id')
             project_source = self.request.params.get('project_source')
@@ -456,13 +456,13 @@ class ProjectViews(object):
             project_map = self.clarity.get_lab_researcher_project_map()
             json = JSONEncoder(separators=(',', ':')).encode(project_map)
 
-            plates = self.dbsession\
-                         .query(Plate)\
-                         .join(Plate.experiment_layout)\
-                         .join(ExperimentLayout.project)\
-                         .filter(Project.id == geproject.id)\
-                         .order_by(Plate.geid)\
-                         .all()
+            all_plates = self.dbsession\
+                             .query(Plate)\
+                             .join(Plate.experiment_layout)\
+                             .join(ExperimentLayout.project)\
+                             .filter(Project.id == geproject.id)\
+                             .order_by(Plate.geid)\
+                             .all()
 
             sample_count = self.dbsession\
                                .query(SequencingLibraryContent)\
@@ -473,18 +473,19 @@ class ProjectViews(object):
                                .count()
 
             # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
-
+            
             if 'go_sequence' in self.request.params:
-                print("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}".format(lab_id, researcher_id, project_source, project_id, new_project_name))
+                self.logger.debug("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}, plates = {}"\
+                                  .format(lab_id, researcher_id, project_source, project_id, new_project_name, submission_plate_ids))
 
-                if not plate_id:
-                    view_map['error'] = "There is plate given to submit from. Go back and select a plate."
+                if not submission_plate_ids:
+                    view_map['error'] = "There are no plates given to submit from. Go back and select one or more plates."
                     return view_map
 
-                plate = self.dbsession.query(Plate).get(plate_id)
+                submission_plates = self.dbsession.query(Plate).filter(Plate.id.in_(submission_plate_ids)).all()
 
-                if not plate:
-                    view_map['error'] = "There is no such plate in the database. It can only have been removed since the page was loaded."
+                if len(submission_plate_ids) != len(submission_plates):
+                    view_map['error'] = "There is at least one plate missing from the database. It can only have been removed since the page was loaded."
                     return view_map
 
                 if project_source == 'new':
@@ -506,10 +507,10 @@ class ProjectViews(object):
                         view_map['error'] = "There has been a failure creating the new project. {}".format(str(e))
                         return view_map
 
-                self.logger.info("Submitting {} samples into project {} as {} from plate {}.".format(sample_count, project_id, slx, plate.geid))
+                self.logger.info("Submitting {} samples into project {} as {} from {} plates.".format(sample_count, project_id, slx, len(submission_plates)))
 
                 try:
-                    self.clarity.submit_samples(project_id, plate)
+                    self.clarity.submit_samples(project_id, submission_plates)
                     view_map['submisson_complete'] = True
                     self.logger.info("Submission complete.")
                 except Exception as e:
@@ -518,8 +519,8 @@ class ProjectViews(object):
                     return view_map
 
             view_map['jsonmap'] = json
-            view_map['plates'] = plates
-            view_map['plate_id'] = plate_id
+            view_map['plates'] = all_plates
+            view_map['submission_plates'] = submission_plate_ids
             view_map['lab_id'] = lab_id
             view_map['researcher_id'] = researcher_id
             view_map['project_source'] = project_source
