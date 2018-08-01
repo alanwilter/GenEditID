@@ -472,7 +472,19 @@ class ProjectViews(object):
                                .filter(Project.id == geproject.id)\
                                .count()
 
-            # print("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
+            view_map['jsonmap'] = json
+            view_map['plates'] = all_plates
+            view_map['submission_plates'] = JSONEncoder(separators=(',', ':')).encode(submission_plate_ids)
+            view_map['lab_id'] = lab_id
+            view_map['researcher_id'] = researcher_id
+            view_map['project_source'] = project_source
+            view_map['project_id'] = project_id
+            view_map['new_project_name'] = new_project_name
+            view_map['slx'] = slx
+            view_map['sample_count'] = sample_count
+            view_map['submit_time'] = sample_count / 2
+            
+            # self.logger.debug("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
             
             if 'go_sequence' in self.request.params:
                 self.logger.debug("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}, plates = {}"\
@@ -518,17 +530,6 @@ class ProjectViews(object):
                     view_map['error'] = "There has been a failure submitting the samples. {}".format(str(e))
                     return view_map
 
-            view_map['jsonmap'] = json
-            view_map['plates'] = all_plates
-            view_map['submission_plates'] = submission_plate_ids
-            view_map['lab_id'] = lab_id
-            view_map['researcher_id'] = researcher_id
-            view_map['project_source'] = project_source
-            view_map['project_id'] = project_id
-            view_map['new_project_name'] = new_project_name
-            view_map['slx'] = slx
-            view_map['sample_count'] = sample_count
-            view_map['submit_time'] = sample_count / 2
             return view_map
         except psycopg2.OperationalError as e:
             self.logger.error(e)

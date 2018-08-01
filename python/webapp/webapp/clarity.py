@@ -217,9 +217,13 @@ class ClaritySubmitter(object):
 
         except Exception as e:
             self.log.error(e)
-            self.log.error("Creating samples has failed. Need to remove existing containers.")
+            self.log.error("Creating samples has failed. Need to remove any containers that were created.")
             for container in containers_by_plate.values():
-                self.api.delete(container)
+                try:
+                    self.logger.debug("Deleting container {} {} after failure.".format(container.limsid, container.name))
+                    self.api.delete(container)
+                except Exception:
+                    pass
             raise e
 
         # If all have been created, route them into MiSeq Express Nano work flow
