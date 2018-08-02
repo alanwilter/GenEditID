@@ -446,7 +446,6 @@ class ProjectViews(object):
 
             view_map['can_sequence'] = True
 
-            submission_plate_ids = [int(id) for id in self.request.params.getall('submission_plates')]
             lab_id = self.request.params.get('lab_id')
             researcher_id = self.request.params.get('researcher_id')
             project_source = self.request.params.get('project_source')
@@ -463,25 +462,17 @@ class ProjectViews(object):
             project_map = self.clarity.get_lab_researcher_project_map()
             json = JSONEncoder(separators=(',', ':')).encode(project_map)
 
-            all_plates = self.dbsession\
-                             .query(Plate)\
-                             .join(Plate.experiment_layout)\
-                             .join(ExperimentLayout.project)\
-                             .filter(Project.id == geproject.id)\
-                             .order_by(Plate.geid)\
-                             .all()
-
-            sample_count = self.dbsession\
-                               .query(SequencingLibraryContent)\
-                               .join(SequencingLibraryContent.well)\
-                               .join(Well.experiment_layout)\
-                               .join(ExperimentLayout.project)\
-                               .filter(Project.id == geproject.id)\
-                               .count()
+            samples = self.dbsession\
+                          .query(SequencingLibraryContent)\
+                          .join(SequencingLibraryContent.well)\
+                          .join(Well.experiment_layout)\
+                          .join(ExperimentLayout.project)\
+                          .filter(Project.id == geproject.id)\
+                          .all()
+            
+            sample_count = len(samples)
 
             view_map['jsonmap'] = json
-            view_map['plates'] = all_plates
-            view_map['submission_plates'] = submission_plate_ids # JSONEncoder(separators=(',', ':')).encode(submission_plate_ids)
             view_map['lab_id'] = lab_id
             view_map['researcher_id'] = researcher_id
             view_map['project_source'] = project_source
@@ -492,21 +483,9 @@ class ProjectViews(object):
             view_map['submit_time'] = sample_count / 2
             view_map['udfs'] = udfs
             
-            # self.logger.debug("lab_id = {}, researcher_id = {}, project_id = {}".format(lab_id, researcher_id, project_id))
-            
             if 'go_sequence' in self.request.params:
-                self.logger.debug("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}, plates = {}"\
-                                  .format(lab_id, researcher_id, project_source, project_id, new_project_name, submission_plate_ids))
-
-                if not submission_plate_ids:
-                    view_map['error'] = "There are no plates given to submit from. Go back and select one or more plates."
-                    return view_map
-
-                submission_plates = self.dbsession.query(Plate).filter(Plate.id.in_(submission_plate_ids)).all()
-
-                if len(submission_plate_ids) != len(submission_plates):
-                    view_map['error'] = "There is at least one plate missing from the database. It can only have been removed since the page was loaded."
-                    return view_map
+                self.logger.debug("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}"\
+                                  .format(lab_id, researcher_id, project_source, project_id, new_project_name))
 
                 if project_source == 'new':
                     if not new_project_name:
@@ -527,19 +506,16 @@ class ProjectViews(object):
                         view_map['error'] = "There has been a failure creating the new project. {}".format(str(e))
                         return view_map
 
-                self.logger.info("Submitting {} samples into project {} as {} from {} plates.".format(sample_count, project_id, slx, len(submission_plates)))
+                self.logger.info("Submitting {} samples into project {} as {}.".format(sample_count, project_id, slx))
 
                 try:
-                    self.clarity.submit_samples(project_id, submission_plates, udfs)
+                    self.clarity.submit_samples(project_id, samples, udfs)
                     view_map['submisson_complete'] = True
                     self.logger.info("Submission complete.")
                 except Exception as e:
                     self.logger.error("Error submitting samples to Clarity: {}".format(e))
                     view_map['error'] = "There has been a failure submitting the samples. {}".format(str(e))
                     return view_map
-            else:
-                view_map['submission_plates'] = [ 17, 18 ]
-                view_map['udfs'] = { 'Sample Type':'Cells', 'Sample Source':'Primary Tissue Frozen', 'Billing Information':'SWAG', 'Read Length':'150' }
 
             return view_map
         except psycopg2.OperationalError as e:

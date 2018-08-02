@@ -149,13 +149,6 @@ sequenceProjectReady = function()
     setEnabled($("#newprojecttext"), false);
     setEnabled($('.projectsourceradio'), false);
 
-    /*
-    var selectedPlateIds = JSON.parse($('#plateidspan').text());
-    $('.submissionplate')
-        .filter(function() { return selectedPlateIds.includes(this.value) })
-        .attr('checked','checked');
-    */
-
     var selectedlab = $('#labidspan').text();
     if (!!selectedlab)
     {
