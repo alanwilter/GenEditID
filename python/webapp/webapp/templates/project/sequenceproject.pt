@@ -60,7 +60,9 @@
                             </p>
                             <ol>
                                 <li tal:repeat="plate plates">
-                                    <input id="plate_check_${plate.id}" type="checkbox" class="submissionplate" name="submission_plates" value="${plate.id}"></input>&nbsp;${plate.geid}
+                                    <input id="plate_check_${plate.id}" type="checkbox" class="submissionplate" name="submission_plates"
+                                           value="${plate.id}" tal:attributes="checked plate.id in submission_plates"></input>
+                                    <label for="plate_check_${plate.id}">${plate.geid}</label>
                                 </li>
                             </ol>
 
@@ -83,8 +85,88 @@
                             <p>
                                 <input id="newradio" type="radio" name="project_source" value="new" class="projectsourceradio"></input>
                                 <label for="newradio">New project:</label>
-                                <input id="newprojecttext" type="text" name="new_project_name" maxlength="128" width="30"></input>
+                                <input id="newprojecttext" type="text" name="new_project_name" maxlength="128" width="30" tal:attributes="value new_project_name"></input>
                             </p>
+                            
+                            <h5>Required Information for Submission</h5>
+                            
+                            <table id="udftable">
+                                <tr>
+                                    <td>Sample Type:</td>
+                                    <td>
+                                        <select id="sampletype" name="Sample Type">
+                                            <option tal:repeat="type ('DNA', 'RNA', 'Cells')"
+                                                    tal:attributes="selected type == udfs.get('Sample Type')">${type}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Sample Source:</td>
+                                    <td>
+                                        <select id="samplesource" name="Sample Source">
+                                            <option tal:repeat="source ('Cell Line', 'Cell Line Frozen', 'Primary Tissue', 'Primary Tissue Frozen', 'Xenograft', 'FFPE')"
+                                                    tal:attributes="selected source == udfs.get('Sample Source')">${source}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Library Type</td>
+                                    <td>
+                                        <select id="librarytype" name="Library Type">
+                                            <option tal:repeat="type ('Amplicon Low-Diversity', 'Amplicon High-Diversity')"
+                                                    tal:attributes="selected type == udfs.get('Library Type')">${type}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Species:</td>
+                                    <td>
+                                        <select id="referencegenome" name="Reference Genome">
+                                            <option tal:repeat="genome ('Homo Sapiens', 'Mus Musculus')"
+                                                    tal:attributes="selected genome == udfs.get('Reference Genome')">${genome}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Sequencing Type:</td>
+                                    <td>
+                                        <select id="sequencingtype" name="Sequencing Type">
+                                            <option tal:repeat="type ('Paired End', 'Single Read')"
+                                                    tal:attributes="selected type == udfs.get('Sequencing Type')">${type}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Read Length:</td>
+                                    <td>
+                                        <select id="readlength" name="Read Length">
+                                            <option tal:repeat="length ('50', '75', '150', '250')"
+                                                    tal:attributes="selected length == udfs.get('Read Length')">${length}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Library Length:</td>
+                                    <td>
+                                        <input id="librarylength" name="Average Library Length" type="text" size="10" maxlength="10"
+                                               tal:attributes="value udfs.get('Average Library Length')"></input>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Billing Information:</td>
+                                    <td>
+                                        <input id="billinginfo" name="Billing Information" type="text" size="20" maxlength="50"
+                                               tal:attributes="value udfs.get('Billing Information')"></input>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Submission Comments:</td>
+                                    <td>
+                                        <input id="comments" name="Submission Comments" type="text" size="20" maxlength="150"
+                                               tal:attributes="value udfs.get('Submission Comments')"></input>
+                                    </td>
+                                </tr>
+                            </table>
                             <input id="submitbutton" type="submit" name="go_sequence" value="Submit to Clarity" disabled="disabled"></input>
                         </form>
 

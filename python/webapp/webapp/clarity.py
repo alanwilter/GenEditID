@@ -114,7 +114,7 @@ class ClaritySubmitter(object):
         new_project = self.api.create('project', new_project)
         return new_project
 
-    def submit_samples(self, project_id, plates, override_slx_id=None):
+    def submit_samples(self, project_id, plates, udfs=None, override_slx_id=None):
 
         # This is faulty for more than one plate. Need to discuss how
         # more than one plate is submitted.
@@ -183,28 +183,22 @@ class ClaritySubmitter(object):
                         sample.location = glsapi.ri.location(container = glsapi.ri.container(uri=container.uri), value_="{}:{}".format(well.row, well.column))
                         sample.project = glsapi.sample.project(uri=project.uri)
                         sample.name = sl_content.sequencing_sample_name
-                        sample.field.append(glsapi.userdefined.field('DNA', name='Sample Type'))
-                        sample.field.append(glsapi.userdefined.field('Cell Line', name='Sample Source'))
-                        sample.field.append(glsapi.userdefined.field('Amplicon Low-Diversity', name='Library Type'))
-                        sample.field.append(glsapi.userdefined.field('Homo sapiens', name='Reference Genome'))
                         sample.field.append(glsapi.userdefined.field(slx_id, name='SLX Identifier'))
                         sample.field.append(glsapi.userdefined.field('MiSeq Nano', name='Workflow'))
-                        sample.field.append(glsapi.userdefined.field('Paired End', name='Sequencing Type'))
-                        sample.field.append(glsapi.userdefined.field('250', name='Read Length'))
                         sample.field.append(glsapi.userdefined.field(sl_lib.library_type, name='Index Type'))
                         sample.field.append(glsapi.userdefined.field('1', name='Number of Lanes'))
-                        sample.field.append(glsapi.userdefined.field('Cell Line', name='Sample Source'))
-                        sample.field.append(glsapi.userdefined.field('289', name='Average Library Length'))  # needs to go to UI
-                        sample.field.append(glsapi.userdefined.field('SWAG/076', name='Billing Information'))  # needs to get it from project
                         sample.field.append(glsapi.userdefined.field('Standard', name='Priority Status'))
-                        sample.field.append(glsapi.userdefined.field('Please use 20% PhiX.', name='Submission Comments'))
                         sample.field.append(glsapi.userdefined.field('SLX Version 44', name='Version Number'))
                         sample.field.append(glsapi.userdefined.field(well.row, name='Row'))
                         sample.field.append(glsapi.userdefined.field(well.column, name='Column'))
                         sample.field.append(glsapi.userdefined.field('-1', name='Concentration'))
                         sample.field.append(glsapi.userdefined.field('-1', name='Volume'))
-                        sample.field.append(glsapi.userdefined.field('Not Assigned', name='Sequencer'))
+                        sample.field.append(glsapi.userdefined.field('MiSeq', name='Sequencer'))
                         sample.field.append(glsapi.userdefined.field(len(pool_wells), name='Pool Size'))
+                        
+                        for field, value in udfs.items():
+                            sample.field.append(glsapi.userdefined.field(value, name=field))
+                        
                         sample = self.api.create('sample', sample)
                         samples.append(sample)
                         self.log.debug("New sample id = {}".format(sample.limsid))
