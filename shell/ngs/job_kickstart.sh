@@ -6,7 +6,6 @@
 
 /home/bioinformatics/software/pipelines/kickstart/current/bin/kickstart \
   --aligner=bwamem \
-  --species=homo_sapiens \
-  --genome-version=GRCh38_hs38d1 \
+  --genome=GRCh38_hs38d1 \
   --library=$1 \
-  --fastq-only
+  --fastq-only --no-mark-duplicates

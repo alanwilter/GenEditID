@@ -118,7 +118,7 @@ scp shell/ngs/* clust1-headnode:/path/to/scratch/space/GEPID/.
 
 ### Step2: Fetch fastq files using kickstart
 
-See [Kickstart documentation](https://intranet.cri.camres.org/core-facilities/bioinformatics/sequencing/kickstart)
+See [Kickstart documentation](http://internal-bioinformatics.cruk.cam.ac.uk/docs/kickstart/usage.html)
 It is intended to help with setting up a consistent working directory structure and to fetch and prepare files for downstream analysis work which generates a meta data file to use with the alignment pipeline to align FASTQ data.
 
 ```
@@ -127,8 +127,6 @@ sbatch job_kickstart.sh SLX-ID
 
 
 ### Step3: Align
-
-- Edit `realignment-meta.xml` by adding `<markDuplicates>false</markDuplicates>` into the list of `<variables>`.
 
 ```
 sbatch job_alignment.sh
@@ -151,7 +149,7 @@ Get dict file from the reference genome:
 
 Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
-python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/to/hsa.GRCh38.dict --samplesheet=/path/to/samplesheet.csv
+python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/to/hsa.GRCh38.dict --filelist=/path/to/filelist.csv
 ```
 And copy these three files into your project directory.
 

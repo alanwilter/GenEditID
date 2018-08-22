@@ -63,15 +63,24 @@ def create_files(session, project, seq_dict):
                                                           "{}_chr{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
 
 
-def samplesheet_to_text(samplesheet):
-    with open(samplesheet, "r") as input, open("samples.txt", "w") as out:
+def filelist_to_text(filelist):
+    samples = dict()
+    with open(filelist, "r") as input:
         reader = csv.reader(input)
         next(reader) # Skip header line.
-        out.write("Barcode\tSample\n")
         for line in reader:
-            out.write(line[2])
+            match = samples.get(line[0])
+            if match is not None:
+                if match != line[2]:
+                    self.logger.warn("Sample {} is present with differing barcodes.".format(line[0]))
+            samples[line[0]] = line[2]
+        
+    with open("samples.txt", "w") as out:
+        out.write("Barcode\tSample\n")
+        for sample, barcode in samples.items():
+            out.write(barcode)
             out.write('\t')
-            out.write(line[0])
+            out.write(sample)
             out.write('\n')
 
 
@@ -82,7 +91,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", dest="project", action="store", help="The project id.", required=True)
     parser.add_argument("--seq-dict", dest="dict", action="store", help="The reference sequence dictionary. Needed to produce amplicons.txt and targets.txt", required=False)
-    parser.add_argument("--samplesheet", dest="sheet", action="store", help="The sample sheet CSV. Converts into samples.txt", required=False)
+    parser.add_argument("--filelist", dest="filelist", action="store", help="The file list CSV. Converts into samples.txt", required=False)
     options = parser.parse_args()
 
     log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'create_pipeline_files.log'))
@@ -95,8 +104,8 @@ def main():
     try:
         if options.dict:
             create_files(session, options.project, options.dict)
-        if options.sheet:
-            samplesheet_to_text(options.sheet)
+        if options.filelist:
+            filelist_to_text(options.filelist)
 
         session.commit()
     except Exception as e:
