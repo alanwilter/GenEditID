@@ -1,6 +1,7 @@
 import os
 import uuid
 import shutil
+import socket
 import logging
 import psycopg2
 import colander
@@ -433,7 +434,7 @@ class ProjectViews(object):
                             error=None,
                             submisson_complete=False)
 
-            self.clarity = ClaritySubmitter()
+            self.clarity = ClaritySubmitter(use_dev_lims='bioinf-ge001' not in socket.gethostname())
             slx = self.get_sequencing_id(geproject)
             if not slx:
                 view_map['error'] = 'There is no sequencing information for the project.'\
