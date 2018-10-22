@@ -469,7 +469,7 @@ class LayoutLoader(Loader):
             if self.get_value(row.clone_name):
                 if not cell_line:
                     raise LoaderException('Cannot have a clone without a cell line on row {}'.format(i))
-                clone = self.session.query(Clone).filter(Clone.name == row.clone_name)\
+                clone = self.session.query(Clone).filter(Clone.name == str(row.clone_name))\
                                                  .filter(Clone.cell_pool == self.get_string(row.cell_pool))\
                                                  .filter(Clone.project == self.project)\
                                                  .first()
