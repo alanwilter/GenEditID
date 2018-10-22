@@ -474,7 +474,7 @@ class LayoutLoader(Loader):
                                                  .filter(Clone.project == self.project)\
                                                  .first()
                 if not clone:
-                    clone = Clone(name=row.clone_name, cell_pool=self.get_string(row.cell_pool), project=self.project)
+                    clone = Clone(name=str(row.clone_name), cell_pool=self.get_string(row.cell_pool), project=self.project)
                     clone.cell_line = cell_line
                     self.session.add(clone)
                     self.log.info('Created clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line.name, clone.cell_pool))
