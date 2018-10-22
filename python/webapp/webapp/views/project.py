@@ -493,7 +493,7 @@ class ProjectViews(object):
                         view_map['error'] = "There is no name given for the new project. Go back and supply a project name."
                         return view_map
                     if self.clarity.does_project_exist(new_project_name):
-                        view_map['error'] = "There is already a project called '{}' in Clarity. Go back and give a different project name."
+                        view_map['error'] = "There is already a project called '{}' in Clarity. Go back and give a different project name.".format(new_project_name)
                         return view_map
 
                     try:
