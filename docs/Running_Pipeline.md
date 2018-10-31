@@ -5,17 +5,8 @@ Fetching data
 -------------
 
 ```
-/home/bioinformatics/software/pipelines/kickstart/kickstart-1.5.0/bin/kickstart \
---aligner=bwamem --species=homo_sapiens --genome-version=GRCh38_hs38d1 \
---library=SLX-15103 --fastq-only --combine-samples
-```
-
-Once this has finished and the `realignment-meta.xml` pipeline driver file has been
-created, the driver file must be edited to NOT mark duplicates. Add to its `<variables>`
-block:
-
-```XML
-    <markDuplicates>false</markDuplicates>
+/home/bioinformatics/software/pipelines/kickstart/current/bin/kickstart \
+--no-mark-duplicates --aligner=bwamem --genome=GRCh38_hs38d1 --library=SLX-15103
 ```
 
 Alignment
@@ -34,9 +25,7 @@ Create a script for Slurm:
 #SBATCH --open-mode truncate
 #SBATCH -o alignment.log
 
-/home/bioinformatics/software/pipelines/alignment/alignment-2.3.0/bin/run-pipeline \
---mode=slurm \
-/mnt/scratchb/bioinformatics/bowers01/CRISPR/realignment-meta.xml
+/home/bioinformatics/software/pipelines/alignment/current/bin/run-pipeline alignment-meta.xml
 ```
 
 Amplicon Pipeline
@@ -49,7 +38,7 @@ and convert the sample sheet CSV from kickstart to `samples.txt`:
 
 ```
 python scripts/create_pipeline_files.py --project="GEP00004" \
---seq-dict="/mnt/scratchb/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict" \
+--seq-dict="/mnt/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict" \
 --samplesheet="samplesheet.csv"
 ```
 
