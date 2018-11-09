@@ -159,3 +159,18 @@ And copy these three files into your project directory.
 sbatch job_amplicon_vardict.sh
 sbatch job_amplicon_gatk.sh
 ```
+
+### Step5: Load results into database
+
+#### 5.1 Load pipeline variant result files
+
+```
+python python/scripts/load_variant_results.py --file=amplicon_gatk/output/GEP00012.gatk.variants.xlsx --project_geid=GEP00012 --caller=HaplotypeCaller
+python python/scripts/load_variant_results.py --file=amplicon_vardict/output/GEP00012.vardict.variants.xlsx --project_geid=GEP00012 --caller=VarDict
+```
+
+#### 5.2 Calculate score
+
+```
+python python/scripts/load_mutation_summary.py --project_geid=GEP00012
+```

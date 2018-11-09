@@ -1,0 +1,53 @@
+# ------------------------------------------------------------------------------
+# Input data
+# search gene id on https://www.ncbi.nlm.nih.gov/nuccore/
+# ------------------------------------------------------------------------------
+
+# input data for GEP00004
+# submitted_gene_id = 'NC_000006.12'  # ref for chromosom 6!
+# submitted_fprimer_seq = 'CTTTTATGTCTTCACAGGGCAGC'  # fprimer_seq
+# submitted_rprimer_seq = 'GGTACTGCATTCCGGCCAT'  # = rprimer_seq, reverse complement
+#gene_id = 'NG_032093'
+#rprimer_seq = Seq('GGTACTGCATTCCGGCCAT', IUPAC.unambiguous_dna)
+#rprimer_seq = str(rprimer_seq.reverse_complement())
+#fprimer_seq = 'CTTTTATGTCTTCACAGGGCAGC'
+#fastq_dir = '/Users/pajon01/mnt/scratchb/genome-editing/GEP00004/fastq/'
+
+# input data for GEP00006
+# submitted_gene_id = 'NC_000020.11'  # ref for chromosom 20!
+# submitted_fprimer_seq = 'CTTGAGGTTGAAGGTGTTGC'  # = rpimer_seq, reverse complement
+# submitted_rprimer_seq = 'GAGCTGCAGAACGGGAACT'  # = fprimer_seq
+#gene_id = 'NG_007496'
+#rprimer_seq = 'GCAACACCTTCAACCTCAAG'
+#fprimer_seq = 'GAGCTGCAGAACGGGAACT'
+#fastq_dir = '/Users/pajon01/mnt/scratchb/genome-editing/GEP00006/fastq/'
+
+# input data for GEP00007
+# submitted_gene_id = 'ARID1A'
+# submitted_fprimer_seq = 'GCAAGATGAGACCTCAGCCA'  # fprimer_seq
+# submitted_rprimer_seq = 'TGGACAGCAACAAGGGTCAA'  # = rprimer_seq, reverse complement
+#gene_id = 'NG_029965'
+#rprimer_seq = Seq('TGGACAGCAACAAGGGTCAA', IUPAC.unambiguous_dna)
+#rprimer_seq = str(rprimer_seq.reverse_complement())
+#fprimer_seq = 'GCAAGATGAGACCTCAGCCA'
+#fastq_dir = '/Users/pajon01/mnt/scratchb/genome-editing/GEP00007/fastq/'
+
+# input data for GEP00011
+# submitted_gene_id = 'ETV6'
+# submitted_fprimer_seq = 'GCTTTCATTGTCTCTCTCCCC'  # fprimer_seq
+# submitted_rprimer_seq = 'GTCACGAACACTCACGCAG'  # = rprimer_seq, reverse complement
+gene_id: 'NG_011443'
+rprimer_seq: 'GTCACGAACACTCACGCAG'
+fprimer_seq: 'GCTTTCATTGTCTCTCTCCCC'
+fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00011/fastq_withwater/'
+
+# input data for GEP00012
+#gene_id: 'NM_017628'
+#rprimer_seq: 'GGAGACACCAAGTGGCACTC'
+#fprimer_seq: 'TCAACTAGAGGGCAGCCTTG'
+#fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00012/fastq/'
+
+fastq_extension: '.r_1.fq.gz'  # logic need to change for r_2
+quality_threshold: 10
+frequency_threshold: 1  # for project GEP00011, default should be 5
+#frequency_threshold: 5
