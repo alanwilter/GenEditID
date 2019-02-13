@@ -3,30 +3,23 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/genome-editing/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-## Project description
+## Project documentation
 
-See our [Project Description](docs/project_description.md)
-
-* One [database](docs/howto.md#database)
-* One [NGS analysis](docs/howto.md#ngs-analysis) to run the amplicon sequencing pipeline
-* One [Web App](docs/webapp.md)
+See our [Project Documentation](docs/README.md)
 
 ### How to...
 
-- See [How to...](docs/howto.md) install and run this project
 - Access the Genome Editing WebApp [http://bioinf-ge001.cri.camres.org:8080/](http://bioinf-ge001.cri.camres.org:8080/)
+- [Get help with Git](docs/help-git.md)
+- [Get help with Python](docs/help-python.md)
+- [Get help with SQLAlchemy](docs/help-sqlalchemy.md)
 
-### Need help with Git?
-
-See [Getting started with Git](docs/git-help.md)
-
-### Technologies used: Postgres and Python (R)
+### Technologies used: Postgres and Python
 
 * Database: [Postgresql](https://www.postgresql.org/)
 * Object Relational Mapper: [SQLAlchemy](https://www.sqlalchemy.org/)
 * Python [https://www.python.org/](https://www.python.org/)
 * Web App framework: [Pyramid](https://trypyramid.com/)
-* R [https://www.r-project.org/](https://www.r-project.org/)
 * Editors:
   - PyCharm [https://www.jetbrains.com/pycharm/](https://www.jetbrains.com/pycharm/)
   - Eclipse [http://www.eclipse.org/](http://www.eclipse.org/) with Python plugin PyDev [http://www.pydev.org/](http://www.pydev.org/)
@@ -36,7 +29,7 @@ See [Getting started with Git](docs/git-help.md)
 
 ## Planning discussion and TODO list
 
-See [planning](planning.md)
+See [planning](docs/planning.md)
 
 
 ## People involved

@@ -1,4 +1,4 @@
-# Planning - What's next? Our TODO list!
+# Genome Editing Planning - What's next? Our TODO list!
 
 ## layout data template
 file `data/templates/GEPXXXXX.xlsx` with documentation explaining each sheets and each columns.
