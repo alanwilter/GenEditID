@@ -39,3 +39,7 @@ See [planning](docs/planning.md)
 * Rich Bowers [@rich7409](https://github.com/rich7409)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
+
+## Code of conduct
+
+[Our code of conduct](CODE_OF_CONDUCT.md)
