@@ -1,6 +1,6 @@
 # Genome Editing Analysis
 
-## Run the Amplicon Sequencing Pipeline
+## Install the Amplicon Sequencing Pipeline
 
 ### Pipeline repository
 
