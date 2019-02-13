@@ -1,4 +1,4 @@
-# Documentation of the Genome Editing plots  
+# Genome Editing plots  
 
 ## Protein plot:  
 This plot shows the IncellWestern 800nm/700nm ratios, with guides and controls one column each in the x-axis. Each dot corresponds to a single well.

@@ -1,4 +1,4 @@
-# CRISPR WebApp
+# Genome Editing WebApp
 
 ## Python Web Frameworks
 

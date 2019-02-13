@@ -1,4 +1,4 @@
-# Database: Installing Postgres
+# Genome Editing Database
 
 Notes on installing Postgres on RHEL 7.
 
@@ -24,6 +24,7 @@ su - postgres
 /usr/pgsql-9.3/bin/initdb
 exit
 ```
+
 
 ## On Ubuntu
 (As root)
@@ -80,6 +81,7 @@ GRANT USAGE ON SCHEMA public TO "gene";
 ALTER USER gene WITH PASSWORD 'gene';
 ```
 
+
 ## Accessing the Database from elsewhere
 
 ```
@@ -91,6 +93,33 @@ The YAML setting for accessing this database in the code is:
 ```
 DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"
 ```
+
+
+## Python dependencies
+- [Postgresql](https://www.postgresql.org/) for production
+  - Python3 module to connect to Postgres is called [psycopg2](http://initd.org/psycopg/) and needs to be installed separately (from `requirements.txt`)
+- [SQLAlchemy - The Database Toolkit and Object Relational Mapper for Python](http://www.sqlalchemy.org/) gives access to any databases in Python and needs to be installed separately (from `requirements.txt`)
+  - [SQLAlchemy 1.1 Documentation](http://docs.sqlalchemy.org/en/rel_1_1/)
+- [Alembic](https://bitbucket.org/zzzeek/alembic) is an excellent solution for SQLAlchemy-based systems. It provides a methodical approach and supports auto-generation of migration scripts. See [article](https://www.compose.com/articles/schema-migrations-with-alembic-python-and-postgresql/).
+
+
+## Create database schema
+
+```shell
+source venv/bin/activate
+export PYTHONPATH=`pwd`/python
+python python/scripts/create_db.py
+```
+
+Access the database using [DbVisualizer](http://www.dbvis.com/).
+
+View the [database schema](db_diagram.pdf).
+
+
+## Create database schema on dedicated server
+
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Run `python/scripts/create_db.py` script to create DB schema
 
 
 ## Database migration
