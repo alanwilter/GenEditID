@@ -102,6 +102,7 @@ export PATH=${AMPLICONSEQ_SOFT_ROOT}/ensembl-vep-release-91.1/:${PATH}
 
 Use `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1`, a GATK-compatible reference genome which is the NCBI reference genome without alt sequences with the decoy and EBV. The hs38d1 part of the name reflects that this reference includes the decoy sequence that has the name hs38d1.
 
+
 ## Steps to run the analysis in semi-automated way
 
 ### Step1: Copy scripts and config files onto cluster in project folder
@@ -133,7 +134,39 @@ sbatch job_kickstart.sh SLX-ID
 sbatch job_alignment.sh
 ```
 
-### Step4: Run Amplicon sequencing pipeline
+### Step4-A: Read counts
+
+#### 4.1 Get sequencing information
+- SLXID and
+- Read length PE150 or PE300
+
+#### 4.2 Combine reads
+- Reads may need to be combined using [`fastq-join`](https://github.com/brwnj/fastq-join) when target size is bigger than read length
+```
+for f in *.s_1.r_1.fq.gz; do ~/fastq-join/fastq-join $f `echo $f | cut -d'.' -f1-4`.r_2.fq.gz -o `echo $f | cut -d'.' -f1-4`.fq; done
+for f in *.fqjoin; do gzip $f; done
+```
+- or merged using [`seqkit`](https://github.com/shenwei356/seqkit) on R2 to revert complement the sequence and `zcat` when target size is smaller than the read length
+```
+# reverse complement R2
+for f in *.s_1.r_2.fq.gz; do seqkit seq -r -p $f -o `echo $f | cut -d'.' -f1-5`.fqrc.gz; done
+# combine R1 & R2
+for f in *.s_1.r_1.fq.gz; do zcat $f `echo $f | cut -d'.' -f1-4`.r_2.fqrc.gz | gzip > `echo $f | cut -d'.' -f1-4`.fqjoin.gz; done
+```
+
+#### 4.3 Count reads
+- Search Ensembl Gene ID http://www.ensembl.org/index.html
+- Setup config file with `gene_id`, `fprimer_seq`, `rprimer_seq` and `fastq_dir` in `python/scripts/amplicons.yml`. See `python/scripts/amplicons.yml.sample` for help.
+- Count
+```
+python python/scripts/count_amplicons.py > GEPID_counts.csv
+```
+- Align
+```
+python python/scripts/align_amplicons.py GEPID_counts.csv GUIDE_SEQUENCE
+```
+
+### Step4-B: Run Amplicon sequencing pipeline
 
 #### 4.1 Configure
 

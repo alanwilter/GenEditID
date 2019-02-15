@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
 # Input data
-# search gene id on https://www.ncbi.nlm.nih.gov/nuccore/
+# Search Ensembl Gene ID http://www.ensembl.org/index.html
 # ------------------------------------------------------------------------------
 
 # input data for GEP00004
@@ -36,10 +36,10 @@
 # submitted_gene_id = 'ETV6'
 # submitted_fprimer_seq = 'GCTTTCATTGTCTCTCTCCCC'  # fprimer_seq
 # submitted_rprimer_seq = 'GTCACGAACACTCACGCAG'  # = rprimer_seq, reverse complement
-gene_id: 'NG_011443'
-rprimer_seq: 'GTCACGAACACTCACGCAG'
-fprimer_seq: 'GCTTTCATTGTCTCTCTCCCC'
-fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00011/fastq_withwater/'
+# gene_id: 'NG_011443'
+# rprimer_seq: 'GTCACGAACACTCACGCAG'
+# fprimer_seq: 'GCTTTCATTGTCTCTCTCCCC'
+# fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00011/fastq_withwater/'
 
 # input data for GEP00012
 #gene_id: 'NM_017628'
@@ -47,7 +47,39 @@ fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00011/fastq_withwater/
 #fprimer_seq: 'TCAACTAGAGGGCAGCCTTG'
 #fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00012/fastq/'
 
-fastq_extension: '.r_1.fq.gz'  # logic need to change for r_2
-quality_threshold: 10
-frequency_threshold: 1  # for project GEP00011, default should be 5
-#frequency_threshold: 5
+# input data for GEP00013
+# gene_id: 'ENST00000540759'
+# fprimer_seq: 'GGGCCCCAGAAATTCAAAGG'
+# rprimer_seq: 'AGAGCAGGAGGTCCAGTCAG'
+# fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00013/fastq/'
+
+# input data for GEP00010
+# FTO
+gene_id: 'ENSG00000140718'
+fprimer_seq: 'TCCAGGGCGAGGGATCTAC'
+rprimer_seq: 'GCCATCAAACCAAGCCCTTC'
+# LEPR
+# gene_id: 'ENSG00000116678'
+# fprimer_seq: 'TCCAGGACAGTTGCTCACAC'
+# rprimer_seq: 'TCTCTCTCCCACCCACAACT'
+# CCKAR
+# gene_id: 'ENSG00000163394'
+# fprimer_seq: 'TTCATGGCCACCTTCCCCT'
+# rprimer_seq: 'TCTCCATCAGCTCTGCTCCT'
+fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00010/fastq/'
+
+# input data for GEP00009
+# FTO
+# gene_id: 'ENSG00000140718'
+# fprimer_seq: 'TCCAGGGCGAGGGATCTAC'
+# rprimer_seq: 'GCCATCAAACCAAGCCCTTC'
+# IRX5
+# gene_id: 'ENSG00000176842'
+# fprimer_seq: 'CCATGCCCGTGTGTG'
+# rprimer_seq: 'GCTACAACTCGCACCTCCA'
+# wt_seq: 'GCCATGTCCTATCCGCAGGGCTACTTGTACCAGCCGTCCGCCTCGCTGGCGCTCTACTCGTGCCCGGCGTACAGCACCAGCGTCATTTCGGGGCCCCGCACGGATGAGCTCGGCCGCTCTTCTTCGGGCTCCGCGTTCTCGCCCTACGCTGGCTCGACTGCC'
+#fastq_dir: '/Users/pajon01/mnt/scratchb/genome-editing/GEP00009/fastq/'
+
+fastq_extension: '.fqjoin.gz'
+quality_threshold: 10  # default should be 10
+frequency_threshold: 5  # default should be 5
