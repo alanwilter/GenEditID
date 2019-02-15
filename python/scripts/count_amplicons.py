@@ -7,10 +7,11 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
+if len(sys.argv) <= 1:
+    print('Please, provide a config file GEPID.yml.')
+    sys.exit()
 
-yml_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'amplicons.yml')
-
-with open(yml_filepath, 'r') as yml_file:
+with open(sys.argv[1], 'r') as yml_file:
     amplicons = yaml.load(yml_file)
 
 # ------------------------------------------------------------------------------
