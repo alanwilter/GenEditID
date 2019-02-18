@@ -3,8 +3,6 @@
 # Search Ensembl Gene ID http://www.ensembl.org/index.html
 # ------------------------------------------------------------------------------
 
-# input data for GEP00009
-# FTO
 gene_id: 'ENSG00000140718'
 fprimer_seq: 'TCCAGGGCGAGGGATCTAC'
 rprimer_seq: 'GCCATCAAACCAAGCCCTTC'
