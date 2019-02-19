@@ -53,7 +53,8 @@ def find_primer_sequences(geid):
                           'rprimer_seq': rprimer_seq,
                           'amplicon_coord': acoord,
                           'target_coord': tcoord,
-                          'target_len': tend-tstart+1})
+                          'target_len': tend-tstart+1,
+                          'target_name': amplicon_selection.guide.target.name})
     return amplicons
 
 
@@ -88,7 +89,8 @@ def get_target_sequence(ensembl_gene_id, fprimer_seq, rprimer_seq):
 
 
 def main():
-    geid = 'GEP00013'
+    import sys
+    geid = sys.argv[1]  # add your GEPID on the command line
     for amplicon in find_primer_sequences(geid):
 
         ensembl_gene_id = amplicon['gene_id']
@@ -101,15 +103,16 @@ def main():
         print('forward primer\t{} {}'.format(fprimer_seq, fprimer_loc))
         print('reverse primer\t{} {}'.format(rprimer_seq, rprimer_loc))
         if fprimer_loc == -1 or rprimer_loc == -1:
-            print('Primers not found in Ensembl Gene ID {}!'.format(ensembl_gene_id))
+            print('>>> Primers not found in Ensembl Gene ID {}!'.format(ensembl_gene_id))
         else:
             print('target seq\t{}'.format(wt_seq))
             print('target seq len\t{}'.format(len(wt_seq)))
-            print('amplicon coord\t{}'.format(amplicon['amplicon_coord']))
-            print('target coord\t{}'.format(amplicon['target_coord']))
-            print('target len\t{}'.format(amplicon['target_len']))
-            if not len(wt_seq) == amplicon['target_len']:
-                print('Target coordinates not equal. Do run blat!')
+        print('amplicon coord\t{}'.format(amplicon['amplicon_coord']))
+        print('target coord\t{}'.format(amplicon['target_coord']))
+        print('target len\t{}'.format(amplicon['target_len']))
+        print('target name\t{}'.format(amplicon['target_name']))
+        if not len(wt_seq) == amplicon['target_len']:
+            print('>>> Target coordinates not equal. Do run blat!')
 
 
 if __name__ == '__main__':
