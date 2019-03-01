@@ -45,7 +45,7 @@ sbatch job_mergereads.sh
 tail -f mergereads.out
 ```
 
-- get 2bit file for GRCh38_hs38d1 using faToTwoBit in.fa out.2bit
+- DONE. get 2bit file for GRCh38_hs38d1 using faToTwoBit in.fa out.2bit
 
 ```
 ssh clust1-headnode
@@ -56,17 +56,10 @@ ll /scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38
 sbatch job_faToTwoBit.sh
 ```
 
-- integrate blat to find amplicon and target coordinates (use GRCh38_hs38d1 instead of GRCh38)
+- DONE. run amplicon pipeline on GEP00013
+- DONE. load incucyte data files for GEP00013
+- load incucyte 1in10 data files for GEP00013 (add plates)
 
-```
-./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &
-./gfServer status localhost 8888
-./gfServer pcr localhost 8888 GGGCCCCAGAAATTCAAAGG AGAGCAGGAGGTCCAGTCAG 300
-GRCh38_hs38d1.2bit:chr12	57600720	57600945	+
-```
-
-- run amplicon pipeline on GEP00013
-- load incucyte data files for GEP00013
 - update gene ids of all project to be Ensembl ones
 ```
 GEP00012 TET2 chr4 NM_017628 ENSG00000168769 ERR: 2 identical targets/primers
@@ -97,7 +90,20 @@ GEP00002 PTEN NC_000010.10
 GEP00002 PTEN NC_000010.10
 
 ```
-- automatise read counts to run on multiple amplicons (run projects GEP00005 / GEP00009 and GEP00010)
+
+- integrate blat to find amplicon and target coordinates (use GRCh38_hs38d1 instead of GRCh38)
+
+```
+./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &
+./gfServer status localhost 8888
+./gfServer pcr localhost 8888 GGGCCCCAGAAATTCAAAGG AGAGCAGGAGGTCCAGTCAG 300
+GRCh38_hs38d1.2bit:chr12	57600720	57600945	+
+```
+
+or integrate pyfaidx using amplicon start +/-500
+
 - find amplicon and target coordinates of projects GEP00005 / GEP00009 and GEP00010
+- automatise read counts to run on multiple amplicons (run projects GEP00005 / GEP00009 and GEP00010)
 - re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010
-- install https://github.com/lucapinello/CRISPResso
+- install https://github.com/lucapinello/CRISPResso and run on GEP00005 / GEP00009 and GEP00010
+- install http://bioconductor.org/packages/release/bioc/html/amplican.html and run on GEP00005 / GEP00009 and GEP00010
