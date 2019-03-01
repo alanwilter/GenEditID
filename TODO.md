@@ -47,8 +47,24 @@ tail -f mergereads.out
 
 - get 2bit file for GRCh38_hs38d1 using faToTwoBit in.fa out.2bit
 
+```
+ssh clust1-headnode
+cd /home/pajon01/bin
+ln -s /home/bioinformatics/software/ucsc-tools/ucsc-tools-20171107/faToTwoBit
+cd /scratchb/bioinformatics/pajon01/genome-editing/check_amplicon_coords
+ll /scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa
+sbatch job_faToTwoBit.sh
+```
 
 - integrate blat to find amplicon and target coordinates (use GRCh38_hs38d1 instead of GRCh38)
+
+```
+./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &
+./gfServer status localhost 8888
+./gfServer pcr localhost 8888 GGGCCCCAGAAATTCAAAGG AGAGCAGGAGGTCCAGTCAG 300
+GRCh38_hs38d1.2bit:chr12	57600720	57600945	+
+```
+
 - run amplicon pipeline on GEP00013
 - load incucyte data files for GEP00013
 - update gene ids of all project to be Ensembl ones
@@ -62,15 +78,17 @@ GEP00009 FTO NC_000016.10 ENSG00000140718
 GEP00009 IRX5 NC_000016.10 ENSG00000176842
 GEP00007 ARID1A NC_000001.11 ENSG00000117713 ERR: 2 identical targets/primers
 GEP00006 Jag1 NC_000020.11 ENSG00000101384 ERR: 2 identical targets/primers
+
 GEP00005 FTO NC_000016.10 ENSG00000140718
 GEP00005 RPGRIP1L NC_000016.10 ENSG00000103494
 GEP00005 PREPL NC_000002.12 ENSG00000138078
 GEP00005 IRX3 NC_000016.10 ENSG00000177508
 GEP00005 IRX5 NC_000016.10 ENSG00000176842
-GEP00005 LEPRY2 NC_000001.11 ENSG00000116678
-GEP00005 LEPRY3 NC_000001.11 ENSG00000116678
-GEP00005 LEPRY4 NC_000001.11 ENSG00000116678
-GEP00005 LEPRLF NC_000001.11 ENSG00000116678
+GEP00005 LEPRY2 NC_000001.11 ENSG00000116678 single base modification
+GEP00005 LEPRY3 NC_000001.11 ENSG00000116678 single base modification
+GEP00005 LEPRY4 NC_000001.11 ENSG00000116678 single base modification
+GEP00005 LEPRLF NC_000001.11 ENSG00000116678 single base modification
+
 GEP00004 ARID1B NC_000006.12 ENSG00000049618 ERR: 2 identical targets/primers
 GEP00003 GFP GFP ???
 GEP00002 PTEN chr10 NC_000010.10 ENSG00000171862

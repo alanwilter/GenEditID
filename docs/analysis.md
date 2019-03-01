@@ -8,6 +8,14 @@ Install:
 - [`fastq-join`](https://github.com/brwnj/fastq-join)
 - [`seqkit`](https://github.com/shenwei356/seqkit)
 
+### Find amplicon coordinates
+
+Install:
+- `faToTwoBit`
+- `gfServer` from the BLAT tool suite
+
+Investigate: https://github.com/mdshw5/pyfaidx
+
 ## Install the Amplicon Sequencing Pipeline
 
 ### Pipeline repository
@@ -227,3 +235,68 @@ python python/scripts/load_mutation_summary.py --project_geid=GEP00012
 - Backup analysis files
 - Give access to BAM files and create links in result table
 - Archive data
+
+
+### FastQC
+
+- Installation
+```
+ssh clust1-headnode
+cd bin
+ln -s /home/bioinformatics/software/fastqc/fastqc-v0.11.8/fastqc
+```
+
+- Usage
+```
+scp shell/ngs/job_fastqc.sh clust1-headnode:/scratchb/bioinformatics/pajon01/genome-editing/GEP00010/.
+ssh clust1-headnode
+cd /scratchb/bioinformatics/pajon01/genome-editing/GEP00010/
+sbatch job_fastqc.sh
+```
+
+### MultiQC
+
+https://multiqc.info/
+
+- Installation
+```
+ssh clust1-headnode
+/home/bioinformatics/software/python/python-3.4.9/bin/python3 -m venv venv-multiqc
+source venv-multiqc/bin/activate
+pip install multiqc
+```
+
+- Usage
+```
+scp shell/ngs/job_multiqc.sh clust1-headnode:/scratchb/bioinformatics/pajon01/genome-editing/GEP00010/.
+ssh clust1-headnode
+cd /scratchb/bioinformatics/pajon01/genome-editing/GEP00010/
+sbatch job_multiqc.sh
+```
+
+### CRISPResso
+
+https://github.com/lucapinello/CRISPResso
+
+- Testing
+http://crispresso.rocks/check_progress/7RO5Uo_sample_name_FLD0001
+
+- Installing
+```
+```
+
+- Usage
+```
+```
+
+### AmpliCan
+
+http://bioconductor.org/packages/release/bioc/html/amplican.html
+
+- Installation
+```
+```
+
+- Usage
+```
+```

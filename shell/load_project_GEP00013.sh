@@ -9,14 +9,14 @@ export PYTHONPATH=`pwd`/python
 PROJNAME="GEP00013"
 PROJDIR=data/${PROJNAME}
 
-echo 'Loading project' ${PROJNAME}
-python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx --geid=${PROJNAME}
+# echo 'Loading project' ${PROJNAME}
+# python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx --geid=${PROJNAME}
 
 for plateid in 01 02
 do
   echo 'Loading data for plate' ${plateid}
   python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_1in5_incu.txt
-  python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_1in10_incu.txt
+  #python python/scripts/load_cell_growth.py --plateid=${PROJNAME}_${plateid} --file=${PROJDIR}/${PROJNAME}_${plateid}_1in10_incu.txt
 done
 
 echo 'Loading sequencing variant results'
