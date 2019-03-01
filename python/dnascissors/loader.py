@@ -221,6 +221,9 @@ class LayoutLoader(Loader):
         self.load_plates()
         self.load_sequencing_libraries()
 
+    def get_projectid(self, project_geid):
+        return self.session.query(Project).filter(Project.geid == project_geid).first().id
+
     def load_project(self, clean_if_exists=False):
         sheet = self.xls.parse('Project')
         if len(sheet) > 1:
@@ -640,7 +643,7 @@ class CellGrowthLoader(Loader):
                     header = line
                 elif start:
                     time = datetime.strptime(line[0], '%d/%m/%Y %H:%M:%S')
-                    hour = int(line[1])
+                    hour = float(line[1])
                     for column in range(2, len(line)):
                         location = header[column]
                         wellrow = location[0]

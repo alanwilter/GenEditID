@@ -12,6 +12,7 @@ def main():
     import os
     parser = argparse.ArgumentParser()
     parser.add_argument("--layout", dest="file_layout", action="store", help="The file layout e.g. '20170118_GEP00001.xlsx'", required=True)
+    parser.add_argument("--geid", dest="geid", action="store", help="Project GEP ID e.g. 'GEP00001'", required=True)
     parser.add_argument("--clean", dest="clean_db", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
@@ -25,7 +26,7 @@ def main():
     loader = LayoutLoader(session, options.file_layout)
 
     try:
-        loader.load_all(options.clean_db)
+        loader.load_project_data(loader.get_projectid(options.geid))
         session.commit()
     except Exception as e:
         log.exception(e)

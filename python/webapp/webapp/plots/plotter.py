@@ -65,7 +65,7 @@ class Plotter:
                         )
                     )
                     first = False
-            colour_map_index += 1
+            colour_map_index = (colour_map_index + 1) % len(colour_map)
         layout = go.Layout(
             title="Cell Growth",
             xaxis=dict(title="Time (h)"),
