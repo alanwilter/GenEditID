@@ -1,4 +1,4 @@
 #!/bin/bash
 
-mod_wsgi-express start-server pyramid.wsgi --port 8080 --user ge --group users --server-root=/home/ge/
+mod_wsgi-express start-server pyramid.wsgi --port 8080 --user ge --group users --server-root=/home/ge/ --body-timeout=600 --socket-timeout=600 --response-buffer-size=650000 --processes=5 --threads=25 
 
