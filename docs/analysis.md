@@ -124,6 +124,8 @@ Use `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh
 
 ### Step1: Configuration
 
+- Create project in webapp, retrieve GEPID and load project layout excel file into database either using the webapp or a script e.g. `shell/load_project_GEP00013.sh`
+
 - Create Redmine project and copy id into Clarity
 
 - Create GE project folder on cluster
