@@ -225,16 +225,6 @@ sbatch job_mergereads.sh
 
 ### Step3: Read counts
 
-- Search Ensembl Gene ID http://www.ensembl.org/index.html
-- Setup config file with `gene_id`, `fprimer_seq`, `rprimer_seq` and `fastq_dir` in `python/scripts/amplicons.yml`. See `python/scripts/amplicons.yml.sample` for help.
-- Count
-```
-python python/scripts/count_amplicons.py > GEPID_counts.csv
-```
-- Align
-```
-python python/scripts/align_amplicons.py GEPID_counts.csv GUIDE_SEQUENCE
-```
 
 
 ### Step4: Align
