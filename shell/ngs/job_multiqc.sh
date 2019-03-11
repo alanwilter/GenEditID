@@ -7,7 +7,7 @@
 echo 'Running MultiQC'
 
 mkdir multiqc
-source ~/venv-multiqc/bin/activate
+source /home/bioinformatics/pipelinesoftware/genomeediting/venv-multiqc/bin/activate
 multiqc --verbose --dirs --export --outdir multiqc/ fastqc/*.fqjoin_fastqc.zip bam/*.bwamem.homo_sapiens.alignment_metrics.txt
 
 echo 'Job done'
