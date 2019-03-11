@@ -86,10 +86,20 @@ class ProjectViews(object):
         vrow_odict = OrderedDict()
         for layout in layouts:
             for well in layout.wells:
+                genome = None
+                if len(well.well_content.guides) > 0:
+                    genome = well.well_content.guides[0].genome.assembly
                 for slc in well.sequencing_library_contents:
                     if slc.variant_results:
                         for v in slc.variant_results:
                             if v.variant_caller == variant_caller:
+                                # https://software.broadinstitute.org/software/igv/ControlIGV
+                                igv_url = None
+                                bam = "http://bioinf-ge001.cri.camres.org/data/{}/idbam/{}.bam".format(layout.project.geid, slc.sequencing_barcode)
+                                if genome:
+                                    locus = "{}:{}".format(v.chromosome, v.position)
+                                    igv_url = "http://localhost:60151/load?file={}&locus={}&genome={}".format(bam, locus, genome)
+                                
                                 vrow_odict['plate'] = layout.geid
                                 vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
                                 vrow_odict['clone'] = well.well_content.clone.name if well.well_content else None
@@ -97,8 +107,8 @@ class ProjectViews(object):
                                 vrow_odict['barcode'] = slc.sequencing_barcode
                                 vrow_odict['variant_caller'] = v.variant_caller
                                 vrow_odict['variant_type'] = v.variant_type
-                                vrow_odict['IGV link'] = None
-                                vrow_odict['BAM file'] = None
+                                vrow_odict['IGV link'] = igv_url
+                                vrow_odict['BAM file'] = bam
                                 vrow_odict['consequence'] = v.consequence
                                 vrow_odict['gene_id'] = v.gene_id
                                 vrow_odict['gene'] = v.gene
