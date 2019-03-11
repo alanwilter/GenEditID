@@ -9,8 +9,8 @@ export PYTHONPATH=`pwd`/python
 PROJNAME="GEP00013"
 PROJDIR=data/${PROJNAME}
 
-# echo 'Loading project' ${PROJNAME}
-# python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx --geid=${PROJNAME}
+echo 'Loading project' ${PROJNAME}
+python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx --geid=${PROJNAME}
 
 for plateid in 01 02
 do

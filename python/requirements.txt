@@ -10,7 +10,7 @@ xlrd
 pandas
 
 # plotting
-plotly
+plotly==2.0.12
 colorlover
 
 # count amplicons tool

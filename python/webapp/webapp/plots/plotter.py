@@ -38,8 +38,8 @@ class Plotter:
             return None
         classifiers = self._classifiers_for_wells(wells)
         # base colour map with 8 colours (OK for colour blind people)
-        colour_map = ['rgb(0,0,0)', 'rgb(230,159.0)', 'rgb(86,180,233)',
-                      'rgb(0.158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
+        colour_map = ['rgb(0,0,0)', 'rgb(230,159,0)', 'rgb(86,180,233)',
+                      'rgb(0,158,115)', 'rgb(240,228,66)', 'rgb(0,114,178)',
                       'rgb(213,94,0)', 'rgb(204, 121,167)']
         for well in wells:
             well.growths.sort(key=lambda g: g.hours)
