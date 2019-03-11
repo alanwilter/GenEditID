@@ -10,6 +10,8 @@ import deform.widget
 
 from collections import OrderedDict
 
+from urllib.parse import quote
+
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
@@ -98,7 +100,7 @@ class ProjectViews(object):
                                 bam = "http://bioinf-ge001.cri.camres.org/data/{}/idbam/{}.bam".format(layout.project.geid, slc.sequencing_barcode)
                                 if genome:
                                     locus = "{}:{}".format(v.chromosome, v.position)
-                                    igv_url = "http://localhost:60151/load?file={}&locus={}&genome={}".format(bam, locus, genome)
+                                    igv_url = "http://localhost:60151/load?file={}&locus={}&genome={}&name={}".format(bam, locus, genome, quote(slc.sequencing_sample_name))
                                 
                                 vrow_odict['plate'] = layout.geid
                                 vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)

@@ -300,6 +300,14 @@ python python/scripts/load_mutation_summary.py --project_geid=GEP00012
 ### Step8: Copy and Backup
 
 - Copy data to the GE server
+
+```
+sbatch job_publish.sh <project_geid>
+``` 
+
+This copies everything from the processing directory except working (temporary)
+directories and log files or directories.
+
 - Give access to BAM files and create links in result table
 - Backup analysis files
 - Archive data

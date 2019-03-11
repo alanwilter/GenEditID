@@ -226,18 +226,32 @@
               }
             },
             { "targets": 8,
-                "data": "download_link",
-                "render": function ( data, type, full, meta ) {
-                  return '<a href="'+data+'">download</a>';
-                }
+              "data": "download_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">download</a>';
               }
+            }
           ]
         } );
         $('#hvariantdatatable').DataTable({
           "aaSorting": [[4, 'asc']],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
           "dom": "<'row'<'col-sm-4'l><'col-sm-2'B><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-          "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ]
+          "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ],
+          "columnDefs": [
+            { "targets": 7,
+              "data": "view_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">view</a>';
+              }
+            },
+            { "targets": 8,
+              "data": "download_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">download</a>';
+              }
+            }
+          ]
         } );
         $('#sampledatatable').DataTable({
           "aaSorting": [[14, 'desc']],
