@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 import csv
 import pandas
+import requests
+import json
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -141,6 +143,14 @@ class Loader:
         else:
             return 'empty'
 
+    def get_gene_id(self, gene_symbol, species='homo_sapiens'):
+        species = species.lower().replace(' ', '_')
+        url = ("https://rest.ensembl.org/xrefs/symbol/{}/{}?").format(species, gene_symbol)
+        r = requests.get(url, headers={"Content-Type": "application/json"})
+        gene = json.loads(r.text)
+        if gene:
+            return gene[0]['id']
+
 
 # --------------------------------------------------------------------------------
 # RefLoader class
@@ -272,7 +282,10 @@ class LayoutLoader(Loader):
             else:
                 target = Target(project=self.project, genome=self.genome)
                 target.name = row.name
-                target.gene_id = row.gene_id
+                target.gene_id = self.get_gene_id(row.gene_id, self.genome.species)  #row.gene_id
+                if not target.gene_id:
+                    gene_id = self.get_gene_id(row.name, self.genome.species)
+                    raise LoaderException('Gene id {} is not a valid Ensembl gene symbol. Could it be {}?'.format(row.gene_id, gene_id))
                 target.chromosome = str(row.chromosome)
                 target.start = int(row.start)
                 target.end = int(row.end)
