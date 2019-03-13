@@ -6,8 +6,9 @@ import requests
 import json
 
 
-def get_gene_id(gene_name):
-    url = ("https://rest.ensembl.org/xrefs/symbol/homo_sapiens/{}?").format(gene_name)
+def get_gene_id(gene_symbol, species='homo_sapiens'):
+    species = species.lower().replace(' ', '_')
+    url = ("https://rest.ensembl.org/xrefs/symbol/{}/{}?").format(species, gene_symbol)
     r = requests.get(url, headers={"Content-Type": "application/json"})
     gene = json.loads(r.text)
     if gene:
@@ -22,11 +23,12 @@ def main():
     targets = dbsession.query(Target).all()
     print('Update gene ids on target in {} to be Ensembl ones starting with ENSG...'.format(cfg['DATABASE_URI']))
     for target in targets:
-        if not target.gene_id.startswith('ENSG'):
-            old_gene_id = target.gene_id
-            new_gene_id = get_gene_id(target.name)
+        old_gene_id = target.gene_id
+        new_gene_id = get_gene_id(target.gene_id, target.genome.species)
+        if not old_gene_id == new_gene_id:
+            new_gene_id = get_gene_id(target.name, target.genome.species)
             if not new_gene_id and target.name.startswith('LEPR'):
-                new_gene_id = get_gene_id('LEPR')
+                new_gene_id = get_gene_id('LEPR', target.genome.species)
 
             if new_gene_id:
                 if target.description:
@@ -40,7 +42,7 @@ def main():
                 dbsession.commit()
                 print(">>>UPDATED: {}\t{}\t{}\t{}".format(target.name, old_gene_id, new_gene_id, target.description))
             else:
-                print("NO GENE ID: {}\t{}\t{}".format(target.name, target.gene_id, target.description))
+                print("!!!  NO ID: {}\t{}\t{}".format(target.name, target.gene_id, target.description))
         else:
             print("UP-TO-DATE: {}\t{}\t{}".format(target.name, target.gene_id, target.description))
     print('done')
