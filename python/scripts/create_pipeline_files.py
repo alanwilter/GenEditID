@@ -1,80 +1,42 @@
 import csv
 import sqlalchemy
-
 from dnascissors.config import cfg
-from dnascissors.model import *
+from dnascissors.model import Base
 from shutil import copyfile
-
 import log as logger
+import amplifind
 
 
 def create_files(session, project, seq_dict):
-    amp_file = "amplicons.txt"
+    amplicon_file = "amplicons.txt"
     target_file = "targets.txt"
 
-    copyfile(seq_dict, amp_file)
+    copyfile(seq_dict, amplicon_file)
     copyfile(seq_dict, target_file)
 
-    with open(amp_file, "a") as amp_out, open(target_file, "a") as tar_out:
-        ampliconQuery = session.query(Amplicon)\
-                               .join(AmpliconSelection.amplicon)\
-                               .join(AmpliconSelection.guide)\
-                               .join(Guide.target)\
-                               .join(Target.project)\
-                               .filter(Project.geid == project)\
-                               .order_by(Amplicon.chromosome.asc(), Amplicon.start.asc())
+    with open(amplicon_file, "a") as amplicon_output, open(target_file, "a") as target_output:
 
-        # Should do this as another query with IN [amplicon.in_(Primer.amplicons], but it doesn't seem to work.
-        primers = session.query(Primer).all()
-
-        for a in ampliconQuery.all():
-
-            # Add strand information from guide, will not work of multiple guides!
-            strand = '+'
-            for amp_selection in a.amplicon_selections:
-                if amp_selection.guide_strand == 'reverse':
-                    strand = '-'
-
-            print("Amplicon {} {} {}-{} {}".format(a.id, a.chromosome, a.start, a.end, strand))
-
-            amp_out.write("chr{}\t{}\t{}\t{}\t{}\n".format(a.chromosome,
-                                                          a.start,
-                                                          a.end,
-                                                          strand,
-                                                          "{}_chr{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
-
-            aprimers = [p for p in primers if a in p.amplicons]
-
-            tstart = a.start + 1
-            tend = a.end - 1
-
-            for p in aprimers:
-                print("Has primer {} {}-{} {} {}".format(p.id, p.start, p.end, p.strand, p.sequence))
-
-                if p.strand == 'forward':
-                    tstart = p.end + 1
-                if p.strand == 'reverse':
-                    tend = p.start - 1
-
-            tar_out.write("chr{}\t{}\t{}\t{}\t{}\n".format(a.chromosome,
-                                                          tstart,
-                                                          tend,
-                                                          strand,
-                                                          "{}_chr{}_{}".format(a.genome.assembly, a.chromosome, a.start)))
+        i = 0
+        for amplicon in amplifind.get_amplicons(session, project):
+            i += 1
+            amplifind_amplicon = amplifind.find_amplicon_sequence(amplicon['gene_id'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
+            amplifind.print_amplifind_report(i, amplicon, amplifind_amplicon)
+            amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
+            target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
 
 
 def filelist_to_text(filelist):
     samples = dict()
     with open(filelist, "r") as input:
         reader = csv.reader(input)
-        next(reader) # Skip header line.
+        next(reader)  # Skip header line.
         for line in reader:
             match = samples.get(line[0])
             if match is not None:
                 if match != line[2]:
-                    self.logger.warn("Sample {} is present with differing barcodes.".format(line[0]))
+                    print("Sample {} is present with differing barcodes.".format(line[0]))
             samples[line[0]] = line[2]
-        
+
     with open("samples.txt", "w") as out:
         out.write("Barcode\tSample\n")
         for sample, barcode in samples.items():

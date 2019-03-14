@@ -60,39 +60,47 @@ sbatch job_faToTwoBit.sh
 - DONE. load incucyte data files for GEP00013
 - load incucyte 1in10 data files for GEP00013 (add plates)
 
-- update gene ids of all project to be Ensembl ones
+- DONE. update gene ids of all project to be Ensembl ones
 ```
-GEP00012 TET2 chr4 NM_017628 ENSG00000168769 ERR: 2 identical targets/primers
-GEP00011 ETV6 chr12 NM_001987.4 ENSG00000139083 ERR: 2 identical targets/primers
-GEP00010 FTO NC_000016.10 ENSG00000140718
-GEP00010 LEPR NC_000001.11 ENSG00000116678
-GEP00010 CCKAR NC_000004.12 ENSG00000163394
-GEP00009 FTO NC_000016.10 ENSG00000140718
-GEP00009 IRX5 NC_000016.10 ENSG00000176842
-GEP00007 ARID1A NC_000001.11 ENSG00000117713 ERR: 2 identical targets/primers
-GEP00006 Jag1 NC_000020.11 ENSG00000101384 ERR: 2 identical targets/primers
-
-GEP00005 FTO NC_000016.10 ENSG00000140718
-GEP00005 RPGRIP1L NC_000016.10 ENSG00000103494
-GEP00005 PREPL NC_000002.12 ENSG00000138078
-GEP00005 IRX3 NC_000016.10 ENSG00000177508
-GEP00005 IRX5 NC_000016.10 ENSG00000176842
-GEP00005 LEPRY2 NC_000001.11 ENSG00000116678 single base modification
-GEP00005 LEPRY3 NC_000001.11 ENSG00000116678 single base modification
-GEP00005 LEPRY4 NC_000001.11 ENSG00000116678 single base modification
-GEP00005 LEPRLF NC_000001.11 ENSG00000116678 single base modification
-
-GEP00004 ARID1B NC_000006.12 ENSG00000049618 ERR: 2 identical targets/primers
-GEP00003 GFP GFP ???
-GEP00002 PTEN chr10 NC_000010.10 ENSG00000171862
-GEP00002 PTEN NC_000010.10
-GEP00002 PTEN NC_000010.10
-GEP00002 PTEN NC_000010.10
-
+python python/scripts/update_target_gene_ids.py
 ```
 
-- integrate blat to find amplicon and target coordinates (use GRCh38_hs38d1 instead of GRCh38)
+- DONE. amplifind: find amplicon and target coordinates using ensembl
+and modify `create_pipeline_files.py` to use amplifind
+and check amplicon and target coordinates of projects GEP00005 / GEP00009 and GEP00010
 
+```
+python python/scripts/create_pipeline_files.py --project=GEP00010 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00010/filelist.csv
+diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/targets.txt
+diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/amplicons.txt
+
+python python/scripts/create_pipeline_files.py --project=GEP00009 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00009/filelist.csv
+diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/targets.txt
+diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/amplicons.txt
+
+python python/scripts/create_pipeline_files.py --project=GEP00005 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/filelist.csv
+diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/targets.txt
+diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/amplicons.txt
+
+```
+- re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010 with new coordinates
+
+- amplicount:
+  - read distribution per amplicon:
+    - table summary: project id . barcode . total reads . amplicon1 . amplicon2 ...
+    - plot summary per amplicon: bar plot for reads per amplicon for all samples
+  - read distribution per allele per amplicon:
+    - plot bar plot per allele for all samples
+    - table: barcode . amplicon1 . edit1 . ge or wt . seq
+  - re-run read counts on projects GEP00005 / GEP00009 and GEP00010
+
+- ampliscore:
+  - read 2 csv output of amplicon pipelines
+  - read 1 csv output of amplicount
+  - calculate score
+  - plot score across all samples
+
+- primerfind: integrate blat to find primer pairs in genome
 ```
 ./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &
 ./gfServer status localhost 8888
@@ -100,10 +108,8 @@ GEP00002 PTEN NC_000010.10
 GRCh38_hs38d1.2bit:chr12	57600720	57600945	+
 ```
 
-or integrate pyfaidx using amplicon start +/-500
-
-- find amplicon and target coordinates of projects GEP00005 / GEP00009 and GEP00010
-- automatise read counts to run on multiple amplicons (run projects GEP00005 / GEP00009 and GEP00010)
-- re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010
-- install https://github.com/lucapinello/CRISPResso and run on GEP00005 / GEP00009 and GEP00010
 - install http://bioconductor.org/packages/release/bioc/html/amplican.html and run on GEP00005 / GEP00009 and GEP00010
+- install https://github.com/lucapinello/CRISPResso and run on GEP00005 / GEP00009 and GEP00010
+
+- Exploring variant annotation with VEP
+curl 'https://rest.ensembl.org/vep/human/region/9:22125502-22125503:1/C?' -H 'Content-type:application/json'

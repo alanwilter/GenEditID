@@ -266,7 +266,7 @@ Extract amplicons and targets coordinates from the database using script `create
 ```
 python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/to/hsa.GRCh38.dict --filelist=/path/to/filelist.csv
 ```
-And copy these three files into your project directory.
+And copy these three files (`targets.txt`, `amplicons.txt` and `samples.txt`) into your project directory.
 
 #### 6.3 Run the amplicon pipelines
 
@@ -303,7 +303,7 @@ python python/scripts/load_mutation_summary.py --project_geid=GEP00012
 
 ```
 sbatch job_publish.sh <project_geid>
-``` 
+```
 
 This copies everything from the processing directory except working (temporary)
 directories and log files or directories.
