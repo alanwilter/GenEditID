@@ -10,6 +10,7 @@ import requests
 import json
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
+from pyfaidx import Fasta
 
 REST_ENSEMBL_URL = "http://rest.ensembl.org"
 
@@ -42,16 +43,19 @@ def get_amplicons(dbsession, geid):
                                                 amplicon.start,
                                                 amplicon.end,
                                                 strand,
-                                                "{}_chr{}_{}".format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start))
+                                                "chr{}_{}".format(amplicon.chromosome, amplicon.start))
 
         tcoord = "chr{}\t{}\t{}\t{}\t{}".format(amplicon.chromosome,
                                                 tstart,
                                                 tend,
                                                 strand,
-                                                "{}_chr{}_{}".format(amplicon.genome.assembly, amplicon.chromosome, tstart))
+                                                "chr{}_{}".format(amplicon.chromosome, amplicon.start))
         amplicons.append({'gene_id': amplicon_selection.guide.target.gene_id,
                           'fprimer_seq': fprimer_seq,
                           'rprimer_seq': rprimer_seq,
+                          'guide_loc': amplicon_selection.guide_location,
+                          'strand': strand,
+                          'chr': amplicon.chromosome,
                           'amplicon_coord': acoord,
                           'amplicon_len': amplicon.end-amplicon.start+1,
                           'target_coord': tcoord,
@@ -75,7 +79,7 @@ def get_primer_pair(sequence, fprimer_seq, rprimer_seq):
     return fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq
 
 
-def find_amplicon_sequence(ensembl_gene_id, fprimer_seq, rprimer_seq):
+def find_amplicon_sequence_ensembl(ensembl_gene_id, fprimer_seq, rprimer_seq):
     # retrieve gene sequence
     url = "{}/sequence/id/{}?species={}".format(REST_ENSEMBL_URL, ensembl_gene_id, 'homo_sapiens')
     r = requests.get(url, headers={"Content-Type": "application/json"})
@@ -120,10 +124,49 @@ def find_amplicon_sequence(ensembl_gene_id, fprimer_seq, rprimer_seq):
     return amplicon
 
 
+def find_amplicon_sequence(refgenome, guide_loc, chr, strand, fprimer_seq, rprimer_seq):
+    # retrieve amplicon sequence +/- 1000 around guide location
+    start = guide_loc - 1000
+    sequence = Fasta(refgenome)['chr{}'.format(chr)][start:guide_loc+1000].seq
+
+    fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq = get_primer_pair(sequence, fprimer_seq, rprimer_seq)
+
+    if fprimer_loc > rprimer_loc:
+        fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq = get_primer_pair(sequence, rprimer_seq, fprimer_seq)
+
+    amplicon_seq = sequence[fprimer_loc:(rprimer_loc + len(rprimer_seq))]
+    amplicon_start = int(start) + fprimer_loc + 1
+    amplicon_end = int(start) + (rprimer_loc + len(rprimer_seq))
+    amplicon_desc = "chr{}:{}:{}:{}".format(chr, amplicon_start, amplicon_end, strand)
+    acoord = "chr{}\t{}\t{}\t{}\t{}".format(chr,
+                                            amplicon_start,
+                                            amplicon_end,
+                                            strand,
+                                            "chr{}_{}".format(chr, amplicon_start))
+
+    target_start = int(start) + (fprimer_loc + len(fprimer_seq)) + 1
+    target_end = int(start) + rprimer_loc
+    tcoord = "chr{}\t{}\t{}\t{}\t{}".format(chr,
+                                            target_start,
+                                            target_end,
+                                            strand,
+                                            "chr{}_{}".format(chr, amplicon_start))
+    amplicon = {'fprimer_loc': fprimer_loc,
+                'fprimer_seq': fprimer_seq,
+                'rprimer_loc': rprimer_loc,
+                'rprimer_seq': rprimer_seq,
+                'seq': amplicon_seq,
+                'start': amplicon_start,
+                'end': amplicon_end,
+                'desc': amplicon_desc,
+                'coord': acoord,
+                'target_coord': tcoord}
+    return amplicon
+
+
 def print_amplifind_report(i, amplicon, amplifind):
     print('--- Amplicon #{}'.format(i))
     print('Target name\t{}'.format(amplicon['target_name']))
-    print('Ensembl Gene ID\t{}'.format(amplifind['gene_id']))
     print('Forward primer\t{}'.format(amplifind['fprimer_seq']))
     print('Reverse primer\t{}'.format(amplifind['rprimer_seq']))
     print('target coord\t{}'.format(amplifind['target_coord']))
@@ -149,6 +192,7 @@ def print_amplifind_report(i, amplicon, amplifind):
 def main():
     import sys
     geid = sys.argv[1]  # add your GEPID on the command line
+    refgenome = sys.argv[2]  # add path to the hsa.GRCh38_hs38d1.fa file
     i = 0
     print('Project ID\t{}'.format(geid))
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
@@ -157,7 +201,7 @@ def main():
     dbsession = DBSession()
     for amplicon in get_amplicons(dbsession, geid):
         i += 1
-        amplifind = find_amplicon_sequence(amplicon['gene_id'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
+        amplifind = find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
         print_amplifind_report(i, amplicon, amplifind)
     dbsession.close()
 

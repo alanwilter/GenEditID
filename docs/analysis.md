@@ -264,7 +264,7 @@ Get dict file from the reference genome:
 
 Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
-python python/scripts/create_pipeline_files.py --project=GEPID --seq-dict=/path/to/hsa.GRCh38.dict --filelist=/path/to/filelist.csv
+python python/scripts/create_pipeline_files.py --project=GEPID --genome=/path/to/hsa.GRCh38_hs38d1.fa --seq-dict=/path/to/hsa.GRCh38_hs38d1.dict --filelist=/path/to/filelist.csv
 ```
 And copy these three files (`targets.txt`, `amplicons.txt` and `samples.txt`) into your project directory.
 

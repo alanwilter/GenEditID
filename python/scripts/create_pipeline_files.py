@@ -7,7 +7,7 @@ import log as logger
 import amplifind
 
 
-def create_files(session, project, seq_dict):
+def create_files(session, refgenome, project, seq_dict):
     amplicon_file = "amplicons.txt"
     target_file = "targets.txt"
 
@@ -19,7 +19,8 @@ def create_files(session, project, seq_dict):
         i = 0
         for amplicon in amplifind.get_amplicons(session, project):
             i += 1
-            amplifind_amplicon = amplifind.find_amplicon_sequence(amplicon['gene_id'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
+            #amplifind_amplicon = amplifind.find_amplicon_sequence(amplicon['gene_id'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
+            amplifind_amplicon = amplifind.find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
             amplifind.print_amplifind_report(i, amplicon, amplifind_amplicon)
             amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
             target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
@@ -52,6 +53,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", dest="project", action="store", help="The project id.", required=True)
+    parser.add_argument("--genome", dest="refgenome", action="store", help="The reference genome fasta file e.g. 'hsa.GRCh38_hs38d1.fa'", required=True)
     parser.add_argument("--seq-dict", dest="dict", action="store", help="The reference sequence dictionary. Needed to produce amplicons.txt and targets.txt", required=False)
     parser.add_argument("--filelist", dest="filelist", action="store", help="The file list CSV. Converts into samples.txt", required=False)
     options = parser.parse_args()
@@ -65,7 +67,7 @@ def main():
 
     try:
         if options.dict:
-            create_files(session, options.project, options.dict)
+            create_files(session, options.refgenome, options.project, options.dict)
         if options.filelist:
             filelist_to_text(options.filelist)
 

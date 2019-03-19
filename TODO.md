@@ -65,25 +65,26 @@ sbatch job_faToTwoBit.sh
 python python/scripts/update_target_gene_ids.py
 ```
 
-- DONE. amplifind: find amplicon and target coordinates using ensembl
+- DONE. amplifind: find amplicon and target coordinates using pyfaidx
 and modify `create_pipeline_files.py` to use amplifind
 and check amplicon and target coordinates of projects GEP00005 / GEP00009 and GEP00010
 
 ```
-python python/scripts/create_pipeline_files.py --project=GEP00010 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00010/filelist.csv
+python python/scripts/create_pipeline_files.py --project=GEP00010 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00010/filelist.csv
 diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/targets.txt
 diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/amplicons.txt
 
-python python/scripts/create_pipeline_files.py --project=GEP00009 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00009/filelist.csv
+python python/scripts/create_pipeline_files.py --project=GEP00009 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00009/filelist.csv
 diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/targets.txt
 diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/amplicons.txt
 
-python python/scripts/create_pipeline_files.py --project=GEP00005 --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/filelist.csv
+python python/scripts/create_pipeline_files.py --project=GEP00005 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/filelist.csv
 diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/targets.txt
 diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/amplicons.txt
 
 ```
-- re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010 with new coordinates
+- DONE. re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010 with new coordinates
+finally solved the issues with the coordinates by using pyfaidx against fasta reference genome and guide location +/- 1000 bases and primer pair
 
 - amplicount:
   - read distribution per amplicon:
@@ -100,6 +101,7 @@ diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/amplico
   - calculate score
   - plot score across all samples
 
+- amplifind: make it work without db only using input csv file
 - primerfind: integrate blat to find primer pairs in genome
 ```
 ./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &
