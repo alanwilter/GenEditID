@@ -94,7 +94,7 @@ finally solved the issues with the coordinates by using pyfaidx against fasta re
   - re-run read counts on projects GEP00005 / GEP00009 and GEP00010
 
 - ampliplot:
-  - plot summary per amplicon: bar plot for reads per amplicon for all samples
+  - DONE. plot summary per amplicon: bar plot for reads per amplicon for all samples
   - plot bar plot per allele for all samples
 
 - ampliscore:
