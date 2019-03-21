@@ -86,14 +86,16 @@ diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/amplico
 - DONE. re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010 with new coordinates
 finally solved the issues with the coordinates by using pyfaidx against fasta reference genome and guide location +/- 1000 bases and primer pair
 
-- amplicount:
+- DONE. amplicount:
   - read distribution per amplicon:
     - table summary: project id . barcode . total reads . amplicon1 . amplicon2 ...
-    - plot summary per amplicon: bar plot for reads per amplicon for all samples
   - read distribution per allele per amplicon:
-    - plot bar plot per allele for all samples
     - table: barcode . amplicon1 . edit1 . ge or wt . seq
   - re-run read counts on projects GEP00005 / GEP00009 and GEP00010
+
+- ampliplot:
+  - plot summary per amplicon: bar plot for reads per amplicon for all samples
+  - plot bar plot per allele for all samples
 
 - ampliscore:
   - read 2 csv output of amplicon pipelines
@@ -102,6 +104,10 @@ finally solved the issues with the coordinates by using pyfaidx against fasta re
   - plot score across all samples
 
 - amplifind: make it work without db only using input csv file
+  - refgenome fasta file
+  - config file: guide_loc,chr,strand,fprimer,rprimer
+- add read count table into db and webapp
+- simplify submission form
 - primerfind: integrate blat to find primer pairs in genome
 ```
 ./gfServer start localhost 8888 GRCh38_hs38d1.2bit -log=gfServer.log -canStop -stepSize=5 > gfServer.out &

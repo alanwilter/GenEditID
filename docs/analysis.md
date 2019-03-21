@@ -225,6 +225,23 @@ sbatch job_mergereads.sh
 
 ### Step3: Read counts
 
+- Get fasta and dict file from the reference genome:
+  - `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa`
+  - `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
+
+- Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and config file:
+  ```
+  python python/scripts/create_pipeline_files.py --project=GEPID --genome=/path/to/hsa.GRCh38_hs38d1.fa --seq-dict=/path/to/hsa.GRCh38_hs38d1.dict --filelist=/path/to/filelist.csv
+  ```
+  And copy `amplicount_config.csv` config file into your project directory.
+
+- Run amplicount script on all fasta files
+  ```
+  sbatch job_amplicount.sh
+  tail -f amplicount.out
+  ```
+
+- Check results in `amplicount_coverage.csv` and `amplicount.csv`
 
 
 ### Step4: Align
@@ -259,8 +276,9 @@ Create directories for analysis, replace GEPID in config file by current one, an
 
 #### 6.2 Create targets, amplicons and samples files from GE database
 
-Get dict file from the reference genome:
-`/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
+Get fasta and dict file from the reference genome:
+- `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa`
+- `/scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict`
 
 Extract amplicons and targets coordinates from the database using script `create_pipeline_files.py`, and generate samples file:
 ```
