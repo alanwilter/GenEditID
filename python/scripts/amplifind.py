@@ -175,7 +175,7 @@ def print_amplifind_report(i, amplicon, amplifind):
     print('amplicon seq\t{}'.format(amplifind['seq']))
     print('amplicon seq len\t{}'.format(len(amplifind['seq'])))
     if amplifind['fprimer_loc'] == -1 or amplifind['rprimer_loc'] == -1:
-        print('>>> Primers not found in Ensembl Gene ID {}!'.format(amplicon['gene_id']))
+        print('>>> Primers not found!')
     if not amplicon['amplicon_len'] == len(amplifind['seq']):
         print('>>> Amplicon length different than the one submitted. [submitted: {}, found: {}]'.format(amplicon['amplicon_len'], len(amplifind['seq'])))
     if not amplicon['fprimer_seq'] == amplifind['fprimer_seq']:

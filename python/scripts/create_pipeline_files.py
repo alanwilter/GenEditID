@@ -10,20 +10,22 @@ import amplifind
 def create_files(session, refgenome, project, seq_dict):
     amplicon_file = "amplicons.txt"
     target_file = "targets.txt"
+    amplicount_file = "amplicount_config.csv"
 
     copyfile(seq_dict, amplicon_file)
     copyfile(seq_dict, target_file)
 
-    with open(amplicon_file, "a") as amplicon_output, open(target_file, "a") as target_output:
+    with open(amplicon_file, "a") as amplicon_output, open(target_file, "a") as target_output, open(amplicount_file, "w") as amplicount_output:
+        amplicount_output.write("id,fprimer,rprimer,amplicon\n")
 
         i = 0
         for amplicon in amplifind.get_amplicons(session, project):
             i += 1
-            #amplifind_amplicon = amplifind.find_amplicon_sequence(amplicon['gene_id'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
             amplifind_amplicon = amplifind.find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
             amplifind.print_amplifind_report(i, amplicon, amplifind_amplicon)
             amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
             target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
+            amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], amplifind_amplicon['fprimer_seq'], amplifind_amplicon['rprimer_seq'], amplifind_amplicon['seq']))
 
 
 def filelist_to_text(filelist):
