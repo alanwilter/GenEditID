@@ -43,38 +43,44 @@ print(df_variants.head())
 
 for amplicon_id in amlicons_ids:
     df_barcodes = df_coverage[['barcode']]
-    #df_barcodes['value'] = 0
     print(amplicon_id)
     filter_df_variants = df_variants[(df_variants['amplicon_id'] == amplicon_id) &\
                                      (df_variants['len'] > 50)]
-
+    # get reference sequence to mark it as wild-type on plot
+    ref_sequence_df = df_variants[(df_variants['amplicon_id'] == amplicon_id) &\
+                                  (df_variants['seq_type'] == 'REF')]
+    if len(ref_sequence_df) > 0:
+        ref_sequence = ref_sequence_df.iloc[0]['sequence']
     filter_df_variants = filter_df_variants[['barcode', 'sequence', 'variant_frequency']]
-    #filter_df_variants = filter_df_variants.merge(df_barcodes, left_on='barcode', right_on='barcode', how='outer')
     print(filter_df_variants)
     pivot_df_variants = filter_df_variants.pivot(index='barcode', columns='sequence', values='variant_frequency').reset_index()
     pivot_df_variants.fillna(value=0, inplace=True)
     pivot_df_variants['other'] = 100 - pivot_df_variants.iloc[:, 1:].sum(axis=1)
     pivot_df_variants = pivot_df_variants.merge(df_barcodes, left_on='barcode', right_on='barcode', how='outer')
     pivot_df_variants.fillna(value=0, inplace=True)
+    pivot_df_variants.sort_values(by=['barcode'], inplace=True)
     print(pivot_df_variants.head())
 
     data = []
     i = 0
-    for seq in pivot_df_variants.iloc[:, 1:].columns.tolist():
-        i += 1
-        print(seq)
-        if seq == 'other':
-            name = seq
-        else:
-            name = 'variant_{}'.format(i)
-        trace = {
-            'x': pivot_df_variants[seq],
-            'y': pivot_df_variants['barcode'],
-            'name': name,
-            'type': 'bar',
-            'orientation': 'h'
-        }
-        data.append(trace)
+    for seq in pivot_df_variants.columns.tolist():
+        if not seq == 'barcode':
+            print(seq)
+            if seq == 'other':
+                name = seq
+            elif seq == ref_sequence:
+                name = 'wild-type'
+            else:
+                i += 1
+                name = 'variant_{}'.format(i)
+            trace = {
+                'x': pivot_df_variants[seq],
+                'y': pivot_df_variants['barcode'],
+                'name': name,
+                'type': 'bar',
+                'orientation': 'h'
+            }
+            data.append(trace)
     layout = {'barmode': 'stack',
               'title': 'Variant Read Coverage for Amplicon {}'.format(amplicon_id),
               'xaxis': {'title': 'frequency of reads'},
