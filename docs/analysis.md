@@ -243,6 +243,12 @@ sbatch job_mergereads.sh
 
 - Check results in `amplicount_coverage.csv` and `amplicount.csv`
 
+- Plot results from the project directory:
+  ```
+  source /home/pajon01/genome-editing/venv/bin/activate
+  python /home/pajon01/genome-editing/python/scripts/ampliplot.py
+  ```
+
 
 ### Step4: Align
 
