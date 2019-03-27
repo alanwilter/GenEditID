@@ -34,7 +34,7 @@ layout = {'barmode': 'stack',
           'xaxis': {'title': 'number of reads'},
           'yaxis': {'title': 'samples'}}
 
-py.plot({'data': data, 'layout': layout}, filename='ampliplot')
+py.plot({'data': data, 'layout': layout}, filename='ampliplot', auto_open=False)
 
 df_variants = pd.read_csv('amplicount.csv')
 df_variants['len'] = df_variants['sequence'].str.len()
@@ -85,4 +85,4 @@ for amplicon_id in amlicons_ids:
               'title': 'Variant Read Coverage for Amplicon {}'.format(amplicon_id),
               'xaxis': {'title': 'frequency of reads'},
               'yaxis': {'title': 'samples'}}
-    py.plot({'data': data, 'layout': layout}, filename='{}_ampliplot'.format(amplicon_id))
+    py.plot({'data': data, 'layout': layout}, filename='{}_ampliplot'.format(amplicon_id), auto_open=False)
