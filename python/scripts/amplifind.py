@@ -6,6 +6,9 @@ from dnascissors.model import AmpliconSelection
 from dnascissors.model import Guide
 from dnascissors.model import Target
 from dnascissors.model import Project
+from dnascissors.model import SequencingLibraryContent
+from dnascissors.model import Well
+from dnascissors.model import ExperimentLayout
 import requests
 import json
 from Bio.Seq import Seq
@@ -13,6 +16,64 @@ from Bio.Alphabet import IUPAC
 from pyfaidx import Fasta
 
 REST_ENSEMBL_URL = "http://rest.ensembl.org"
+
+
+def get_samples(dbsession, refgenome, geid):
+    results = []
+    seqlib_contents = dbsession.query(SequencingLibraryContent)\
+                               .join(SequencingLibraryContent.well)\
+                               .join(Well.well_content)\
+                               .join(Well.experiment_layout)\
+                               .join(ExperimentLayout.project)\
+                               .filter(Project.geid == geid)\
+                               .all()
+    for seqlib_content in seqlib_contents:
+        for guide in seqlib_content.well.well_content.guides:
+            for amplicon_selection in guide.amplicon_selections:
+                primers = [p for p in dbsession.query(Primer).all() if amplicon_selection.amplicon in p.amplicons]
+                for primer in primers:
+                    if primer.strand == 'forward':
+                        fprimer_seq = primer.sequence
+                    elif primer.strand == 'reverse':
+                        rprimer_seq = primer.sequence
+                direction = '0'
+                if amplicon_selection.guide_strand == 'reverse':
+                    direction = '1'
+                guide_loc = get_guide_location(geid, int(amplicon_selection.amplicon.chromosome), int(amplicon_selection.guide_location), fprimer_seq)
+                amplifind = find_amplicon_sequence(refgenome, guide_loc, amplicon_selection.amplicon.chromosome, amplicon_selection.guide_strand, fprimer_seq, rprimer_seq)
+                results.append({'name': seqlib_content.sequencing_sample_name,
+                                'barcode': seqlib_content.sequencing_barcode,
+                                'guide': guide.guide_sequence,
+                                'fprimer': amplifind['fprimer_seq'],
+                                'rprimer': amplifind['rprimer_seq'],
+                                'direction': direction,
+                                'amplicon': amplifind['seq']})
+    return results
+
+
+def get_guide_location(geid, chr, guide_loc, fprimer_seq):
+    if geid == 'GEP00001':
+        if chr == 17 and guide_loc == 40498696:
+            return 42346600
+        elif chr == 1 and guide_loc == 44880935 and fprimer_seq == 'CAGGCCCAACACAGAGATACTTT':
+            return 112448940
+        elif chr == 19 and guide_loc == 56539112:
+            return 56027650
+        elif chr == 17 and guide_loc == 40497587:
+            return 42345525
+        elif chr == 10 and guide_loc == 50174690:
+            return 48966575
+        elif chr == 15 and guide_loc == 89399516:
+            return 88856000
+        elif chr == 17 and guide_loc == 40497619:
+            return 42345525
+        elif chr == 12 and guide_loc == 125765689:
+            return 125281040
+        elif chr == 1 and guide_loc == 44880935 and fprimer_seq == 'GACGTGTGTCGGAATATTTATGGT':
+            return 44415190
+        elif chr == 17 and guide_loc == 40497633:
+            return 42345525
+    return guide_loc
 
 
 def get_amplicons(dbsession, geid):
@@ -61,27 +122,7 @@ def get_amplicons(dbsession, geid):
                            'target_coord': tcoord,
                            'target_len': tend-tstart+1,
                            'target_name': amplicon_selection.guide.target.name}
-        if geid == 'GEP00001':
-            if amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40498696:
-                amplicon_result['guide_loc'] = 42346600
-            elif amplicon_result['chr'] == 1 and amplicon_result['guide_loc'] == 44880935 and amplicon_result['fprimer_seq'] == 'CAGGCCCAACACAGAGATACTTT':
-                amplicon_result['guide_loc'] = 112448940
-            elif amplicon_result['chr'] == 19 and amplicon_result['guide_loc'] == 56539112:
-                amplicon_result['guide_loc'] = 56027650
-            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497587:
-                amplicon_result['guide_loc'] = 42345525
-            elif amplicon_result['chr'] == 10 and amplicon_result['guide_loc'] == 50174690:
-                amplicon_result['guide_loc'] = 48966575
-            elif amplicon_result['chr'] == 15 and amplicon_result['guide_loc'] == 89399516:
-                amplicon_result['guide_loc'] = 88856000
-            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497619:
-                amplicon_result['guide_loc'] = 42345525
-            elif amplicon_result['chr'] == 12 and amplicon_result['guide_loc'] == 125765689:
-                amplicon_result['guide_loc'] = 125281040
-            elif amplicon_result['chr'] == 1 and amplicon_result['guide_loc'] == 44880935 and amplicon_result['fprimer_seq'] == 'GACGTGTGTCGGAATATTTATGGT':
-                amplicon_result['guide_loc'] = 44415190
-            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497633:
-                amplicon_result['guide_loc'] = 42345525
+        amplicon_result['guide_loc'] = get_guide_location(geid, amplicon_result['chr'], amplicon_result['guide_loc'], amplicon_result['fprimer_seq'])
         amplicons.append(amplicon_result)
     return amplicons
 
