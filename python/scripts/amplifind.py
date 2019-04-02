@@ -50,17 +50,39 @@ def get_amplicons(dbsession, geid):
                                                 tend,
                                                 strand,
                                                 "chr{}_{}".format(amplicon.chromosome, amplicon.start))
-        amplicons.append({'gene_id': amplicon_selection.guide.target.gene_id,
-                          'fprimer_seq': fprimer_seq,
-                          'rprimer_seq': rprimer_seq,
-                          'guide_loc': amplicon_selection.guide_location,
-                          'strand': strand,
-                          'chr': amplicon.chromosome,
-                          'amplicon_coord': acoord,
-                          'amplicon_len': amplicon.end-amplicon.start+1,
-                          'target_coord': tcoord,
-                          'target_len': tend-tstart+1,
-                          'target_name': amplicon_selection.guide.target.name})
+        amplicon_result = {'gene_id': amplicon_selection.guide.target.gene_id,
+                           'fprimer_seq': fprimer_seq,
+                           'rprimer_seq': rprimer_seq,
+                           'guide_loc': amplicon_selection.guide_location,
+                           'strand': strand,
+                           'chr': int(amplicon.chromosome),
+                           'amplicon_coord': acoord,
+                           'amplicon_len': amplicon.end-amplicon.start+1,
+                           'target_coord': tcoord,
+                           'target_len': tend-tstart+1,
+                           'target_name': amplicon_selection.guide.target.name}
+        if geid == 'GEP00001':
+            if amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40498696:
+                amplicon_result['guide_loc'] = 42346600
+            elif amplicon_result['chr'] == 1 and amplicon_result['guide_loc'] == 44880935 and amplicon_result['fprimer_seq'] == 'CAGGCCCAACACAGAGATACTTT':
+                amplicon_result['guide_loc'] = 112448940
+            elif amplicon_result['chr'] == 19 and amplicon_result['guide_loc'] == 56539112:
+                amplicon_result['guide_loc'] = 56027650
+            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497587:
+                amplicon_result['guide_loc'] = 42345525
+            elif amplicon_result['chr'] == 10 and amplicon_result['guide_loc'] == 50174690:
+                amplicon_result['guide_loc'] = 48966575
+            elif amplicon_result['chr'] == 15 and amplicon_result['guide_loc'] == 89399516:
+                amplicon_result['guide_loc'] = 88856000
+            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497619:
+                amplicon_result['guide_loc'] = 42345525
+            elif amplicon_result['chr'] == 12 and amplicon_result['guide_loc'] == 125765689:
+                amplicon_result['guide_loc'] = 125281040
+            elif amplicon_result['chr'] == 1 and amplicon_result['guide_loc'] == 44880935 and amplicon_result['fprimer_seq'] == 'GACGTGTGTCGGAATATTTATGGT':
+                amplicon_result['guide_loc'] = 44415190
+            elif amplicon_result['chr'] == 17 and amplicon_result['guide_loc'] == 40497633:
+                amplicon_result['guide_loc'] = 42345525
+        amplicons.append(amplicon_result)
     return amplicons
 
 
@@ -137,7 +159,7 @@ def find_amplicon_sequence(refgenome, guide_loc, chr, strand, fprimer_seq, rprim
     amplicon_seq = sequence[fprimer_loc:(rprimer_loc + len(rprimer_seq))]
     amplicon_start = int(start) + fprimer_loc + 1
     amplicon_end = int(start) + (rprimer_loc + len(rprimer_seq))
-    amplicon_desc = "chr{}:{}:{}:{}".format(chr, amplicon_start, amplicon_end, strand)
+    amplicon_desc = "chr{}:{}:{}".format(chr, amplicon_start, amplicon_end)
     acoord = "chr{}\t{}\t{}\t{}\t{}".format(chr,
                                             amplicon_start,
                                             amplicon_end,
@@ -175,7 +197,7 @@ def print_amplifind_report(i, amplicon, amplifind):
     print('amplicon seq\t{}'.format(amplifind['seq']))
     print('amplicon seq len\t{}'.format(len(amplifind['seq'])))
     if amplifind['fprimer_loc'] == -1 or amplifind['rprimer_loc'] == -1:
-        print('>>> Primers not found!')
+        print('>>> Primers not found! [fprimer: {}, rprimer: {}]'.format(amplifind['fprimer_loc'], amplifind['rprimer_loc']))
     if not amplicon['amplicon_len'] == len(amplifind['seq']):
         print('>>> Amplicon length different than the one submitted. [submitted: {}, found: {}]'.format(amplicon['amplicon_len'], len(amplifind['seq'])))
     if not amplicon['fprimer_seq'] == amplifind['fprimer_seq']:

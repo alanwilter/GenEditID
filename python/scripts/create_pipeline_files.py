@@ -19,13 +19,17 @@ def create_files(session, refgenome, project, seq_dict):
         amplicount_output.write("id,fprimer,rprimer,amplicon\n")
 
         i = 0
+        amplifind_amplicon_desc_list = []
         for amplicon in amplifind.get_amplicons(session, project):
             i += 1
             amplifind_amplicon = amplifind.find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
             amplifind.print_amplifind_report(i, amplicon, amplifind_amplicon)
-            amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
-            target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
-            amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], amplifind_amplicon['fprimer_seq'], amplifind_amplicon['rprimer_seq'], amplifind_amplicon['seq']))
+            # remove duplicated amplicons
+            if not amplifind_amplicon['desc'] in amplifind_amplicon_desc_list:
+                amplifind_amplicon_desc_list.append(amplifind_amplicon['desc'])
+                amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
+                target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
+                amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], amplifind_amplicon['fprimer_seq'], amplifind_amplicon['rprimer_seq'], amplifind_amplicon['seq']))
 
 
 def filelist_to_text(filelist):
