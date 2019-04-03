@@ -18,7 +18,7 @@ def create_files(session, refgenome, project, seq_dict):
     copyfile(seq_dict, target_file)
 
     with open(amplicon_file, "a") as amplicon_output, open(target_file, "a") as target_output, open(amplicount_file, "w") as amplicount_output:
-        amplicount_output.write("id,fprimer,rprimer,amplicon\n")
+        amplicount_output.write("id,fprimer,rprimer,amplicon,coord\n")
 
         i = 0
         amplifind_amplicon_desc_list = []
@@ -39,7 +39,7 @@ def create_files(session, refgenome, project, seq_dict):
                     fprimer = str(Seq(rprimer, IUPAC.unambiguous_dna).reverse_complement())
                     rprimer = str(Seq(fprimer_ori, IUPAC.unambiguous_dna).reverse_complement())
                     seq = str(Seq(seq, IUPAC.unambiguous_dna).reverse_complement())
-                amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], fprimer, rprimer, seq))
+                amplicount_output.write("chr{}_{},{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], fprimer, rprimer, seq, amplifind_amplicon['gcoord']))
 
 
 def filelist_to_text(filelist):
