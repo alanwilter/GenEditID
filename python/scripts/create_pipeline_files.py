@@ -5,6 +5,8 @@ from dnascissors.model import Base
 from shutil import copyfile
 import log as logger
 import amplifind
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
 
 
 def create_files(session, refgenome, project, seq_dict):
@@ -29,7 +31,15 @@ def create_files(session, refgenome, project, seq_dict):
                 amplifind_amplicon_desc_list.append(amplifind_amplicon['desc'])
                 amplicon_output.write("{}\n".format(amplifind_amplicon['coord']))
                 target_output.write("{}\n".format(amplifind_amplicon['target_coord']))
-                amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], amplifind_amplicon['fprimer_seq'], amplifind_amplicon['rprimer_seq'], amplifind_amplicon['seq']))
+                fprimer = amplifind_amplicon['fprimer_seq']
+                rprimer = amplifind_amplicon['rprimer_seq']
+                seq = amplifind_amplicon['seq']
+                if (project == 'GEP00001') and (amplicon['chr'] == 17):
+                    fprimer_ori = fprimer
+                    fprimer = str(Seq(rprimer, IUPAC.unambiguous_dna).reverse_complement())
+                    rprimer = str(Seq(fprimer_ori, IUPAC.unambiguous_dna).reverse_complement())
+                    seq = str(Seq(seq, IUPAC.unambiguous_dna).reverse_complement())
+                amplicount_output.write("chr{}_{},{},{},{}\n".format(amplicon['chr'], amplifind_amplicon['start'], fprimer, rprimer, seq))
 
 
 def filelist_to_text(filelist):
