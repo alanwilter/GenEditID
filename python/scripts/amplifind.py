@@ -30,24 +30,33 @@ def get_samples(dbsession, refgenome, geid):
     for seqlib_content in seqlib_contents:
         for guide in seqlib_content.well.well_content.guides:
             for amplicon_selection in guide.amplicon_selections:
-                primers = [p for p in dbsession.query(Primer).all() if amplicon_selection.amplicon in p.amplicons]
-                for primer in primers:
-                    if primer.strand == 'forward':
-                        fprimer_seq = primer.sequence
-                    elif primer.strand == 'reverse':
-                        rprimer_seq = primer.sequence
-                direction = '0'
-                if amplicon_selection.guide_strand == 'reverse':
-                    direction = '1'
-                guide_loc = get_guide_location(geid, int(amplicon_selection.amplicon.chromosome), int(amplicon_selection.guide_location), fprimer_seq)
-                amplifind = find_amplicon_sequence(refgenome, guide_loc, amplicon_selection.amplicon.chromosome, amplicon_selection.guide_strand, fprimer_seq, rprimer_seq)
-                results.append({'name': seqlib_content.sequencing_sample_name,
-                                'barcode': seqlib_content.sequencing_barcode,
-                                'guide': guide.guide_sequence,
-                                'fprimer': amplifind['fprimer_seq'],
-                                'rprimer': amplifind['rprimer_seq'],
-                                'direction': direction,
-                                'amplicon': amplifind['seq']})
+                if amplicon_selection.is_on_target:
+                    primers = [p for p in dbsession.query(Primer).all() if amplicon_selection.amplicon in p.amplicons]
+                    for primer in primers:
+                        if primer.strand == 'forward':
+                            fprimer_seq = primer.sequence
+                        elif primer.strand == 'reverse':
+                            rprimer_seq = primer.sequence
+                    direction = '0'
+                    if amplicon_selection.guide_strand == 'reverse':
+                        direction = '1'
+                    guide_loc = get_guide_location(geid, int(amplicon_selection.amplicon.chromosome), int(amplicon_selection.guide_location), fprimer_seq)
+                    amplifind = find_amplicon_sequence(refgenome, guide_loc, amplicon_selection.amplicon.chromosome, amplicon_selection.guide_strand, fprimer_seq, rprimer_seq)
+                    fprimer = amplifind['fprimer_seq']
+                    rprimer = amplifind['rprimer_seq']
+                    seq = amplifind['seq']
+                    if (geid == 'GEP00001') and (int(amplicon_selection.amplicon.chromosome) == 17):
+                        fprimer_ori = fprimer
+                        fprimer = str(Seq(rprimer, IUPAC.unambiguous_dna).reverse_complement())
+                        rprimer = str(Seq(fprimer_ori, IUPAC.unambiguous_dna).reverse_complement())
+                        seq = str(Seq(seq, IUPAC.unambiguous_dna).reverse_complement())
+                    results.append({'name': seqlib_content.sequencing_sample_name,
+                                    'barcode': seqlib_content.sequencing_barcode,
+                                    'guide': guide.guide_sequence,
+                                    'fprimer': fprimer,
+                                    'rprimer': rprimer,
+                                    'direction': direction,
+                                    'amplicon': seq})
     return results
 
 
@@ -206,6 +215,7 @@ def find_amplicon_sequence(refgenome, guide_loc, chr, strand, fprimer_seq, rprim
                                             amplicon_end,
                                             strand,
                                             "chr{}_{}".format(chr, amplicon_start))
+    genomic_acoord = "chr{}:{}-{}".format(chr, amplicon_start, amplicon_end)
 
     target_start = int(start) + (fprimer_loc + len(fprimer_seq)) + 1
     target_end = int(start) + rprimer_loc
@@ -223,6 +233,7 @@ def find_amplicon_sequence(refgenome, guide_loc, chr, strand, fprimer_seq, rprim
                 'end': amplicon_end,
                 'desc': amplicon_desc,
                 'coord': acoord,
+                'gcoord': genomic_acoord,
                 'target_coord': tcoord}
     return amplicon
 
