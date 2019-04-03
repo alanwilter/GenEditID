@@ -39,8 +39,6 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                 variant_seq = str(rec.seq)[fprimer_pos:rprimer_pos]
                                 # check min base quality is above quality_threshold
                                 # check quality over a window instead of full sequence
-                                if (fprimer_pos > rprimer_pos):
-                                    fprimer_pos = 0
                                 if min(rec.letter_annotations["phred_quality"][fprimer_pos:rprimer_pos]) >= int(quality_threshold):
                                     variant_occurences[amplicon['id']][variant_seq] = variant_occurences[amplicon['id']].get(variant_seq, 0) + 1
                                     amplicon_filtered_reads[amplicon['id']] = amplicon_filtered_reads.get(amplicon['id'], 0) + 1
