@@ -1,8 +1,22 @@
+import os
+import sys
 import plotly.offline as py
 import plotly.graph_objs as go
 import pandas as pd
 
+# output folder name for plots and data
+folder_name = 'ampliplots'
+if not os.path.exists(folder_name):
+    os.mkdir(folder_name)
 
+if not os.path.exists('amplicount_coverage.csv')\
+    or not os.path.exists('amplicount.csv')\
+    or not os.path.exists('amplicount_config.csv'):
+    print('Input files amplicount_config.csv, amplicount_coverage.csv, or amplicount.csv not found, please run amplicount tool first.')
+    sys.exit(1)
+
+
+# Not worse using these two functions yet if there is no characterisation of the variants
 def characterise_mutations(mutations):
     if len(mutations) > 0:
         if len(mutations) == 1:
@@ -29,7 +43,7 @@ def get_score(mutation_category, consequence):
         score += 2.5
     return score
 
-
+# Amplicon Read Coverage plot
 df_coverage = pd.read_csv('amplicount_coverage.csv')
 
 amplicons_ids = [col for col in df_coverage if col.startswith('chr')]
@@ -62,10 +76,13 @@ layout = {'barmode': 'stack',
           'xaxis': {'title': 'number of reads'},
           'yaxis': {'title': 'samples'}}
 
-py.plot({'data': data, 'layout': layout}, filename='ampliplot.html', auto_open=False)
+py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'ampliplot.html'), auto_open=False)
 
+# Variant Read Coverage
 df_variants = pd.read_csv('amplicount.csv')
 df_variants['len'] = df_variants['sequence'].str.len()
+
+df_config = pd.read_csv('amplicount_config.csv')
 
 for amplicon_id in amplicons_ids:
     df_barcodes = df_coverage[['barcode']]
@@ -87,29 +104,36 @@ for amplicon_id in amplicons_ids:
 
     data = []
     i = 0
-    for seq in pivot_df_variants.columns.tolist():
-        if not seq == 'barcode':
-            if seq == 'other':
-                name = seq
-            elif seq == ref_sequence:
-                name = 'wild-type'
-            else:
-                i += 1
-                name = 'variant_{}'.format(i)
-            trace = {
-                'x': pivot_df_variants[seq],
-                'y': pivot_df_variants['barcode'],
-                'name': name,
-                'type': 'bar',
-                'orientation': 'h'
-            }
-            data.append(trace)
+    with open(os.path.join(folder_name, '{}_ampliplot.fasta'.format(amplicon_id)), 'w') as out:
+        for seq in pivot_df_variants.columns.tolist():
+
+            if not seq == 'barcode':
+                if seq == 'other':
+                    name = seq
+                elif seq == ref_sequence:
+                    name = 'wild-type'
+                    coord = df_config[(df_config['id'] == amplicon_id)].iloc[0]['coord']
+                    out.write(">{}_{}_{}\n{}\n".format(amplicon_id, name, coord, ref_sequence))
+                else:
+                    i += 1
+                    name = 'variant_{}'.format(i)
+                    out.write(">{}_{}\n{}\n".format(amplicon_id, name, seq))
+                trace = {
+                    'x': pivot_df_variants[seq],
+                    'y': pivot_df_variants['barcode'],
+                    'name': name,
+                    'type': 'bar',
+                    'orientation': 'h'
+                }
+                data.append(trace)
     layout = {'barmode': 'stack',
               'title': 'Variant Read Coverage for Amplicon {}'.format(amplicon_id),
               'xaxis': {'title': 'frequency of reads'},
               'yaxis': {'title': 'samples'}}
-    py.plot({'data': data, 'layout': layout}, filename='{}_ampliplot.html'.format(amplicon_id), auto_open=False)
+    py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, '{}_ampliplot.html'.format(amplicon_id)), auto_open=False)
 
+# Scores for Amplicons
+print('Creating Scores for Amplicons plot ampliscore.html for {}'.format(amplicons_ids))
 scores = []
 for amplicon_id in amplicons_ids:
     results = []
@@ -127,18 +151,18 @@ for amplicon_id in amplicons_ids:
     scores.append(results)
 
 data = [go.Heatmap(
-    x = amplicons_ids,
-    y = df_barcodes['barcode'].tolist(),
-    z = scores,
-    transpose = True,
-    xgap = 8,
-    ygap = 1,
-    colorscale = 'Viridis'
+    x=amplicons_ids,
+    y=df_barcodes['barcode'].tolist(),
+    z=scores,
+    transpose=True,
+    xgap=8,
+    ygap=1,
+    colorscale='Viridis'
 )]
 layout = go.Layout(
-    title = 'Scores for Amplicons',
-    xaxis = dict(
-        tickmode = 'linear'
+    title='Scores for Amplicons',
+    xaxis=dict(
+        tickmode='linear'
     )
 )
-py.plot(go.Figure(data=data, layout=layout), filename='ampliscore.html'.format(amplicon_id), auto_open=False)
+py.plot(go.Figure(data=data, layout=layout), filename=os.path.join(folder_name, 'ampliscore.html'.format(amplicon_id)), auto_open=False)
