@@ -89,7 +89,7 @@ class ProjectViews(object):
         for layout in layouts:
             for well in layout.wells:
                 genome = None
-                if len(well.well_content.guides) > 0:
+                if well.well_content and len(well.well_content.guides) > 0:
                     genome = well.well_content.guides[0].genome.assembly
                 for slc in well.sequencing_library_contents:
                     if slc.variant_results:
