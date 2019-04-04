@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--plateid", dest="plateid", action="store", help="The plate ID e.g. 'GEP00001_01'", required=True)
     parser.add_argument("--file", dest="file", action="store", help="The Incucyte file e.g. 'GEP00001_01 data/20170127_GEP00001/GEP00001_01_incu.txt'.", required=True)
+    parser.add_argument("--clean", dest="clean", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
     log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_cell_growth.log'))
@@ -25,6 +26,8 @@ def main():
     loader = CellGrowthLoader(session, options.file, options.plateid)
 
     try:
+        if options.clean:
+            loader.clean()
         loader.load()
         session.commit()
     except Exception as e:
