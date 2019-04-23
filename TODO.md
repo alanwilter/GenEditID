@@ -95,7 +95,7 @@ finally solved the issues with the coordinates by using pyfaidx against fasta re
 
 - ampliplot:
   - DONE. plot summary per amplicon: bar plot for reads per amplicon for all samples
-  - plot bar plot per allele for all samples
+  - DONE. plot bar plot per allele for all samples
 
 - ampliscore:
   - read 2 csv output of amplicon pipelines

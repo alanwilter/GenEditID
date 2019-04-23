@@ -13,9 +13,10 @@ pandas
 plotly==2.0.12
 colorlover
 
-# count amplicons tool
+# amplicount tool
 pyfaidx
 biopython
+varcode
 
 # dnascissors module, installing it from local src
 -e python/.
