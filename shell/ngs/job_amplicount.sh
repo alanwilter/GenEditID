@@ -4,5 +4,5 @@
 #SBATCH --job-name amplicount
 #SBATCH --output amplicount.out
 
-source /home/pajon01/genome-editing/venv/bin/activate
-python /home/pajon01/genome-editing/python/scripts/amplicount.py --fastqdir=fastq/
+source /home/pajon01/editid/venv/bin/activate
+python /home/pajon01/editid/python/scripts/run_ampli_count.py --fastqdir=fastq/
