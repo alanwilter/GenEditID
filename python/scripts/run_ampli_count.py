@@ -26,6 +26,9 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                 for i, amplicon in amplicons.iterrows():
                     variant_reads[amplicon['id']] = {}
                     amplicon_filtered_reads[amplicon['id']] = 0
+                    amplicon_low_quality_reads[amplicon['id']] = 0
+                    amplicon_primer_dimer_reads[amplicon['id']] = 0
+                    amplicon_low_abundance_reads[amplicon['id']] = 0
                 # classifying and filtering reads
                 with gzip.open(os.path.join(fastq_dir, filename), "rt") as handle:
                     log.info('Counting reads in file {}'.format(filename))
@@ -43,8 +46,10 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                 if len(variant_seq) > len(amplicon['fprimer']) + len(amplicon['rprimer']) + 10:
                                     # count reads with low-quality over a window of 5 bases above the quality_threshold
                                     qualities = pd.DataFrame(data={'quality': rec.letter_annotations["phred_quality"][fprimer_pos:rprimer_pos]})
-                                    rolling_quality_means = qualities.rolling(window=5).mean()
-                                    if min(rolling_quality_means) >= int(quality_threshold):
+                                    rolling_quality_means = qualities.rolling(window=5, min_periods=1, on='quality').mean()
+                                    #rolling_quality_means.dropna(inplace=True)
+                                    #log.debug(rolling_quality_means)
+                                    if min(rolling_quality_means['quality']) >= int(quality_threshold):
                                         variant_reads[amplicon['id']][variant_seq] = variant_reads[amplicon['id']].get(variant_seq, 0) + 1
                                         amplicon_filtered_reads[amplicon['id']] = amplicon_filtered_reads.get(amplicon['id'], 0) + 1
                                     else:
@@ -72,7 +77,7 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                                                                          total_reads,
                                                                                          amplicon_reads[amplicon_id],
                                                                                          amplicon_filtered_reads[amplicon_id],
-                                                                                         amplicount_low_quality_reads[amplicon_id],
+                                                                                         amplicon_low_quality_reads[amplicon_id],
                                                                                          amplicon_primer_dimer_reads[amplicon_id],
                                                                                          amplicon_low_abundance_reads[amplicon_id],
                                                                                          variant_reads[amplicon_id][seq],
