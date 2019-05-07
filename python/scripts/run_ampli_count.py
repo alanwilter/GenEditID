@@ -76,7 +76,7 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                                                                          amplicon_primer_dimer_reads[amplicon_id],
                                                                                          amplicon_low_abundance_reads[amplicon_id],
                                                                                          variant_reads[amplicon_id][seq],
-                                                                                         (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id]
+                                                                                         (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
                                                                                          seq))
 
 
