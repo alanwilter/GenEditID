@@ -1,5 +1,4 @@
 import os
-import csv
 import gzip
 import argparse
 import collections
@@ -65,24 +64,24 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                         if variant_reads[amplicon_id][seq] <= abundance_threshold:
                             amplicon_low_abundance_reads[amplicon['id']] = amplicon_low_abundance_reads.get(amplicon['id'], 0) + variant_reads[amplicon_id][seq]
 
-                # write output
-                variant_id = 0
-                for amplicon_id in variant_reads:
-                    for seq in variant_reads[amplicon_id]:
-                        if variant_reads[amplicon_id][seq] > abundance_threshold:
-                            variant_id += 1
-                            out.write("{},{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                         amplicon_id,
-                                                                                         variant_id,
-                                                                                         total_reads,
-                                                                                         amplicon_reads[amplicon_id],
-                                                                                         amplicon_filtered_reads[amplicon_id],
-                                                                                         amplicon_low_quality_reads[amplicon_id],
-                                                                                         amplicon_primer_dimer_reads[amplicon_id],
-                                                                                         amplicon_low_abundance_reads[amplicon_id],
-                                                                                         variant_reads[amplicon_id][seq],
-                                                                                         (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                         seq))
+        # write output
+        for amplicon_id in variant_reads:
+            variant_id = 0
+            for seq in variant_reads[amplicon_id]:
+                if variant_reads[amplicon_id][seq] > abundance_threshold:
+                    variant_id += 1
+                    out.write("{},{},var{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
+                                                                                    amplicon_id,
+                                                                                    variant_id,
+                                                                                    total_reads,
+                                                                                    amplicon_reads[amplicon_id],
+                                                                                    amplicon_filtered_reads[amplicon_id],
+                                                                                    amplicon_low_quality_reads[amplicon_id],
+                                                                                    amplicon_primer_dimer_reads[amplicon_id],
+                                                                                    amplicon_low_abundance_reads[amplicon_id],
+                                                                                    variant_reads[amplicon_id][seq],
+                                                                                    (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                                                                                    seq))
 
 
 def main():
