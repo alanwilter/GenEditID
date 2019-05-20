@@ -94,7 +94,7 @@ def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension
                 target_filtered_reads = collections.OrderedDict()
                 target_low_quality_reads = collections.OrderedDict()
                 for i, target in targets.iterrows():
-                    target_reads[target['id']] = {}
+                    target_reads[target['id']] = 0
                     target_filtered_reads[target['id']] = 0
                     target_low_quality_reads[target['id']] = 0
                 # classifying and filtering reads
