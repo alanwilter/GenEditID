@@ -10,7 +10,7 @@ from Bio import SeqIO
 def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold):
     filename, ext = os.path.splitext(outputfile)
     with open(outputfile, 'w') as out:
-        out.write("sample_id,amplicon_id,variant_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
+        out.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
         for filename in sorted(os.listdir(fastq_dir)):
             if filename.endswith(fastq_extension):
                 splited_filename = filename.split('.')
