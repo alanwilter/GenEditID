@@ -107,7 +107,7 @@ def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension
                             if not target_pos == -1:
                                 target_reads[target['id']] = target_reads.get(target['id'], 0) + 1
                                 # count reads with low-quality over a window of 5 bases above the quality_threshold
-                                qualities = pd.DataFrame(data={'quality': rec.letter_annotations["phred_quality"][target_pos:len(target['sequence'])]})
+                                qualities = pd.DataFrame(data={'quality': rec.letter_annotations["phred_quality"][target_pos:target_pos+len(target['sequence'])]})
                                 rolling_quality_means = qualities.rolling(window=5, min_periods=1, on='quality').mean()
                                 #rolling_quality_means.dropna(inplace=True)
                                 #log.debug(rolling_quality_means)
