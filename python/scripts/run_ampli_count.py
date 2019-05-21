@@ -58,27 +58,27 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
 
                     log.info("{},{},{}".format(sample_id, total_reads, ','.join(str(n) for n in amplicon_filtered_reads.values())))
 
-                for amplicon_id in variant_reads:
-                    for seq in variant_reads[amplicon_id]:
+                for amplicon_id in variant_reads.keys():
+                    for seq in variant_reads[amplicon_id].keys():
                         # count variant reads with low abundance
                         if variant_reads[amplicon_id][seq] <= abundance_threshold:
                             amplicon_low_abundance_reads[amplicon['id']] = amplicon_low_abundance_reads.get(amplicon['id'], 0) + variant_reads[amplicon_id][seq]
 
-            # write output
-            for amplicon_id in variant_reads:
-                for seq in variant_reads[amplicon_id]:
-                    if variant_reads[amplicon_id][seq] > abundance_threshold:
-                        out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                  amplicon_id,
-                                                                                  total_reads,
-                                                                                  amplicon_reads[amplicon_id],
-                                                                                  amplicon_filtered_reads[amplicon_id],
-                                                                                  amplicon_low_quality_reads[amplicon_id],
-                                                                                  amplicon_primer_dimer_reads[amplicon_id],
-                                                                                  amplicon_low_abundance_reads[amplicon_id],
-                                                                                  variant_reads[amplicon_id][seq],
-                                                                                  (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                  seq))
+                # write output
+                for amplicon_id in variant_reads.keys():
+                    for seq in variant_reads[amplicon_id].keys():
+                        if variant_reads[amplicon_id][seq] > abundance_threshold:
+                            out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
+                                                                                      amplicon_id,
+                                                                                      total_reads,
+                                                                                      amplicon_reads[amplicon_id],
+                                                                                      amplicon_filtered_reads[amplicon_id],
+                                                                                      amplicon_low_quality_reads[amplicon_id],
+                                                                                      amplicon_primer_dimer_reads[amplicon_id],
+                                                                                      amplicon_low_abundance_reads[amplicon_id],
+                                                                                      variant_reads[amplicon_id][seq],
+                                                                                      (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                                                                                      seq))
 
 
 def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension, targets, quality_threshold):
