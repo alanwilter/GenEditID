@@ -46,11 +46,20 @@ df_variants = pd.read_csv('amplicount.csv')
 # Filter out low-frequency variants
 df_variants = df_variants[(df_variants['variant_frequency'] > 5)]
 
+# List of samples
+samples = df_variants[['sample_id']]
+samples.drop_duplicates(inplace=True)
+samples.reset_index(inplace=True)
+
+# List of amplicons
+amplicons = df_variants[['amplicon_id']]
+amplicons.drop_duplicates(inplace=True)
+amplicons.reset_index(inplace=True)
+
 # List of variants
 variants = df_variants[['amplicon_id', 'sequence']]
 variants.drop_duplicates(inplace=True)
 variants.reset_index(inplace=True)
-
 
 # Get variant classification using https://github.com/openvax/varcode and https://github.com/openvax/pyensembl
 def get_variant_classification(contig, start, ref, alt, genome=ensembl_grch38):
@@ -146,7 +155,70 @@ with open(os.path.join(folder_name, 'variantid.out'), 'w') as out:
         df_variants.loc[((df_variants['amplicon_id'] == amplicon_id) & (df_variants['sequence'] == variant['sequence'])), 'variant_id'] = variant_id
         df_variants.loc[((df_variants['amplicon_id'] == amplicon_id) & (df_variants['sequence'] == variant['sequence'])), 'variant_type'] = '_'.join(top_effect_types)
         df_variants.loc[((df_variants['amplicon_id'] == amplicon_id) & (df_variants['sequence'] == variant['sequence'])), 'variant_consequence'] = top_effect_consequence
-        df_variants.loc[((df_variants['amplicon_id'] == amplicon_id) & (df_variants['sequence'] == variant['sequence'])), 'variant_score'] = score
+        df_variants.loc[((df_variants['amplicon_id'] == amplicon_id) & (df_variants['sequence'] == variant['sequence'])), 'variant_score'] = score*df_variants['variant_frequency']
         out.write('\n')
 
+df_variants.drop_duplicates(inplace=True)
 df_variants.to_csv(os.path.join(folder_name, 'variantid.csv'), index=False)
+
+# Amplicon Read Coverage plots
+df_amplicons = df_variants[['sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']]
+df_amplicons.drop_duplicates(inplace=True)
+
+df_total_reads = df_amplicons[['sample_id', 'total_reads']]
+df_coverage = df_amplicons.pivot(index='sample_id', columns='amplicon_id', values='amplicon_reads').reset_index()
+df_coverage.fillna(value=0, inplace=True)
+df_coverage = df_coverage.merge(df_total_reads, left_on='sample_id', right_on='sample_id', how='outer')
+df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]] = df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]].astype(int)
+df_coverage['misc'] = df_coverage['total_reads'] - df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]].sum(axis=1)
+df_coverage['misc'] = df_coverage['misc'].astype(int)
+df_coverage.sort_values(by=['sample_id'], inplace=True)
+df_coverage.to_csv(os.path.join(folder_name, 'coverage.csv'), index=False)
+print('Creating Amplicon Read Coverage plot')
+data = []
+for i, amplicon in amplicons.iterrows():
+    trace = {
+        'x': df_coverage[amplicon['amplicon_id']],
+        'y': df_coverage['sample_id'],
+        'name': amplicon['amplicon_id'],
+        'type': 'bar',
+        'orientation': 'h'
+    }
+    data.append(trace)
+misc_trace = {
+    'x': df_coverage['misc'],
+    'y': df_coverage['sample_id'],
+    'name': 'unassigned',
+    'type': 'bar',
+    'orientation': 'h',
+    'marker': {'color': 'rgb(204,204,204)'}
+}
+data.append(misc_trace)
+layout = {'barmode': 'stack',
+          'title': 'Amplicon Read Coverage',
+          'xaxis': {'title': 'number of reads', 'type': 'log'},
+          'yaxis': {'title': 'samples'}}
+py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'coverage.html'), auto_open=False)
+
+for i, amplicon in amplicons.iterrows():
+    df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']]
+    #df_coverage = df_coverage.merge(samples, left_on='sample_id', right_on='sample_id', how='outer')
+    df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
+    print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
+    data = []
+    for name in ['amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
+        trace = {
+            'x': df_coverage[name],
+            'y': df_coverage['sample_id'],
+            'name': ' '.join(name.split('_')[1:]),
+            'type': 'bar',
+            'orientation': 'h'
+        }
+        data.append(trace)
+
+    layout = {'barmode': 'stack',
+              'title': 'Amplicon {} Read Coverage'.format(amplicon['amplicon_id']),
+              'xaxis': {'title': 'number of reads', 'type': 'log'},
+              'yaxis': {'title': 'samples'}}
+
+    py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'coverage_{}.html'.format(amplicon['amplicon_id'])), auto_open=False)
