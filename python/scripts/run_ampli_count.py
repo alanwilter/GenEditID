@@ -118,17 +118,17 @@ def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension
 
                     log.info("{},{},{}".format(sample_id, total_reads, ','.join(str(n) for n in target_filtered_reads.values())))
 
-            # write output
-            for target_id in target_reads:
-                for i, target in targets.iterrows():
-                    if target_reads[target_id] > 0:
-                        out.write("{},{},{},{},{},{},{}\n".format(sample_id,
-                                                                  target_id,
-                                                                  total_reads,
-                                                                  target_reads[target_id],
-                                                                  target_filtered_reads[target_id],
-                                                                  target_low_quality_reads[target_id],
-                                                                  target['sequence']))
+                # write output
+                for target_id in target_reads.keys():
+                    for i, target in targets.iterrows():
+                        if target_reads[target_id] > 0 and target_id == target['id']:
+                            out.write("{},{},{},{},{},{},{}\n".format(sample_id,
+                                                                      target_id,
+                                                                      total_reads,
+                                                                      target_reads[target_id],
+                                                                      target_filtered_reads[target_id],
+                                                                      target_low_quality_reads[target_id],
+                                                                      target['sequence']))
 
 
 def main():
