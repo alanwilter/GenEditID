@@ -284,8 +284,9 @@ class LayoutLoader(Loader):
                 target.name = row.name
                 target.gene_id = self.get_gene_id(row.gene_id, self.genome.species)  #row.gene_id
                 if not target.gene_id:
-                    gene_id = self.get_gene_id(row.name, self.genome.species)
-                    raise LoaderException('Gene id {} is not a valid Ensembl gene symbol. Could it be {}?'.format(row.gene_id, gene_id))
+                    target.gene_id = row.gene_id
+                    #gene_id = self.get_gene_id(row.name, self.genome.species)
+                    #raise LoaderException('Gene id {} is not a valid Ensembl gene symbol. Could it be {}?'.format(row.gene_id, gene_id))
                 target.chromosome = str(row.chromosome)
                 target.start = int(row.start)
                 target.end = int(row.end)

@@ -32,7 +32,6 @@ from dnascissors.model import Well
 
 from webapp.plots.plotter import Plotter
 from webapp.plots.ngsplotter import NGSPlotter
-from webapp.clarity import ClaritySubmitter
 
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
@@ -49,7 +48,6 @@ class ProjectViews(object):
         self.logger = logging.getLogger(__name__)
         self.request = request
         self.dbsession = request.dbsession
-        self.clarity = None
 
     def projects_form(self, buttonTitle):
         schema = ProjectContent().bind(request=self.request)
@@ -101,7 +99,7 @@ class ProjectViews(object):
                                 if genome:
                                     locus = "{}:{}".format(v.chromosome, v.position)
                                     igv_url = "http://localhost:60151/load?file={}&locus={}&genome={}&name={}".format(bam, locus, genome, quote(slc.sequencing_sample_name))
-                                
+
                                 vrow_odict['plate'] = layout.geid
                                 vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
                                 vrow_odict['clone'] = well.well_content.clone.name if well.well_content else None
@@ -432,129 +430,6 @@ class ProjectViews(object):
                     error_project_data=upload_error_project_data,
                     clash=upload_clash,
                     error=upload_error)
-
-    @view_config(route_name="project_sequence", renderer="../templates/project/sequenceproject.pt")
-    def sequence_project(self):
-        try:
-            id = self.request.matchdict['projectid']
-            geproject = self.dbsession.query(Project).filter(Project.id == id).one()
-
-            view_map = dict(title="Genome Editing Core",
-                            subtitle="Submit Project {} to Genomics".format(geproject.geid),
-                            geproject=geproject,
-                            can_sequence=False,
-                            error=None,
-                            submisson_complete=False)
-
-            self.clarity = ClaritySubmitter(use_dev_lims='bioinf-ge001' not in socket.gethostname())
-            slx = self.get_sequencing_id(geproject)
-            if not slx:
-                view_map['error'] = 'There is no sequencing information for the project.'\
-                                    'This needs to have been defined in the initial submission.'
-                return view_map
-
-            if self.clarity.does_slx_exist(slx):
-                view_map['error'] = 'There are already samples in Genomics Clarity LiMS for {}.'.format(slx)
-                return view_map
-
-            view_map['can_sequence'] = True
-
-            lab_id = self.request.params.get('lab_id')
-            researcher_id = self.request.params.get('researcher_id')
-            project_source = self.request.params.get('project_source')
-            project_id = self.request.params.get('project_id')
-            new_project_name = self.request.params.get('new_project_name')
-
-            udfs = dict()
-            for key in self.request.params:
-                # Cheat with our parameters, in that all those that are simple UDF values start
-                # with an upper case letter.
-                if key[0].isupper():
-                    udfs[key] = self.request.params.get(key)
-
-            project_map = self.clarity.get_lab_researcher_project_map()
-            json = JSONEncoder(separators=(',', ':')).encode(project_map)
-
-            samples = self.dbsession\
-                          .query(SequencingLibraryContent)\
-                          .join(SequencingLibraryContent.well)\
-                          .join(Well.experiment_layout)\
-                          .join(ExperimentLayout.project)\
-                          .filter(Project.id == geproject.id)\
-                          .all()
-            
-            sample_count = len(samples)
-
-            view_map['jsonmap'] = json
-            view_map['lab_id'] = lab_id
-            view_map['researcher_id'] = researcher_id
-            view_map['project_source'] = project_source
-            view_map['project_id'] = project_id
-            view_map['new_project_name'] = new_project_name
-            view_map['slx'] = slx
-            view_map['sample_count'] = sample_count
-            view_map['submit_time'] = sample_count / 2
-            view_map['udfs'] = udfs
-            
-            if 'go_sequence' in self.request.params:
-                self.logger.debug("lab_id = {}, researcher_id = {}, submit to = {}, project_id = {}, new project = {}"\
-                                  .format(lab_id, researcher_id, project_source, project_id, new_project_name))
-
-                if project_source == 'new':
-                    if not new_project_name:
-                        view_map['error'] = "There is no name given for the new project. Go back and supply a project name."
-                        return view_map
-                    if self.clarity.does_project_exist(new_project_name):
-                        view_map['error'] = "There is already a project called '{}' in Clarity. Go back and give a different project name.".format(new_project_name)
-                        return view_map
-
-                    try:
-                        clarity_project = self.clarity.create_project(researcher_id, new_project_name)
-                        project_id = clarity_project.limsid
-                        self.logger.info("Created new project '{}' in Clarity. LIMS id is {}.".format(new_project_name, project_id))
-                        project_source = 'existing'
-                        new_project_name = None
-                    except Exception as e:
-                        self.logger.error("Error creating new project in Clarity: {}".format(e))
-                        view_map['error'] = "There has been a failure creating the new project. {}".format(str(e))
-                        return view_map
-
-                self.logger.info("Submitting {} samples into project {} as {}.".format(sample_count, project_id, slx))
-
-                try:
-                    self.clarity.submit_samples(project_id, samples, udfs)
-                    view_map['submisson_complete'] = True
-                    self.logger.info("Submission complete.")
-                except Exception as e:
-                    self.logger.error("Error submitting samples to Clarity: {}".format(e))
-                    view_map['error'] = "There has been a failure submitting the samples. {}".format(str(e))
-                    return view_map
-
-            return view_map
-        except psycopg2.OperationalError as e:
-            self.logger.error(e)
-            view_map['error'] = "Cannot connect to Genomics Clarity LiMS."
-            return view_map
-        except requests.exceptions.ConnectionError as e:
-            self.logger.error(e)
-            view_map['error'] = "Failed to connect to Genomics Clarity LiMS."
-            return view_map
-
-    def get_sequencing_id(self, geproject):
-        sequencing_content = self.dbsession\
-                                 .query(SequencingLibraryContent)\
-                                 .join(SequencingLibraryContent.well)\
-                                 .join(Well.experiment_layout)\
-                                 .join(ExperimentLayout.project)\
-                                 .filter(Project.id == geproject.id)\
-                                 .first()
-        if sequencing_content:
-            return sequencing_content.sequencing_library.slxid
-        return None
-
-    def does_pool_exist_in_clarity(self, geproject):
-        slx = self.get_sequencing_id(geproject)
-        return self.clarity.does_slx_exist(slx)
 
     def _upload(self, property, suffix='.txt'):
         try:

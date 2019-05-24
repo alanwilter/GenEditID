@@ -10,7 +10,7 @@ PROJNAME='GEP00001'
 PROJDIR=data/${PROJNAME}
 
 echo 'Loading project' ${PROJNAME}
-python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx
+python python/scripts/load_layout.py --layout=${PROJDIR}/${PROJNAME}.xlsx  --geid=${PROJNAME}
 
 for plateid in 01 02 03 04 05 06
 do

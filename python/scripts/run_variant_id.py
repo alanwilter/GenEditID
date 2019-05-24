@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import plotly.offline as py
 import plotly.graph_objs as go
 import pandas as pd
@@ -174,35 +175,18 @@ df_coverage['misc'] = df_coverage['total_reads'] - df_coverage[[amplicon['amplic
 df_coverage['misc'] = df_coverage['misc'].astype(int)
 df_coverage.sort_values(by=['sample_id'], inplace=True)
 df_coverage.to_csv(os.path.join(folder_name, 'coverage.csv'), index=False)
-print('Creating Amplicon Read Coverage plot')
-data = []
-for i, amplicon in amplicons.iterrows():
-    trace = {
-        'x': df_coverage[amplicon['amplicon_id']],
-        'y': df_coverage['sample_id'],
-        'name': amplicon['amplicon_id'],
-        'type': 'bar',
-        'orientation': 'h'
-    }
-    data.append(trace)
-misc_trace = {
-    'x': df_coverage['misc'],
-    'y': df_coverage['sample_id'],
-    'name': 'unassigned',
-    'type': 'bar',
-    'orientation': 'h',
-    'marker': {'color': 'rgb(204,204,204)'}
+
+COLORS = {
+    'amplicon_filtered_reads': 'rgb(12,100,201)',
+    'amplicon_low_quality_reads': 'rgb(204,204,204)',
+    'amplicon_primer_dimer_reads': 'rgb(170,170,170)',
+    'amplicon_low_abundance_reads': 'rgb(133,133,133)'
 }
-data.append(misc_trace)
-layout = {'barmode': 'stack',
-          'title': 'Amplicon Read Coverage',
-          'xaxis': {'title': 'number of reads', 'type': 'log'},
-          'yaxis': {'title': 'samples'}}
-py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'coverage.html'), auto_open=False)
+MAX_READS = df_amplicons.loc[df_amplicons['amplicon_reads'].idxmax()]['amplicon_reads']
+print(MAX_READS)
 
 for i, amplicon in amplicons.iterrows():
     df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']]
-    #df_coverage = df_coverage.merge(samples, left_on='sample_id', right_on='sample_id', how='outer')
     df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
     print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
     data = []
@@ -212,13 +196,16 @@ for i, amplicon in amplicons.iterrows():
             'y': df_coverage['sample_id'],
             'name': ' '.join(name.split('_')[1:]),
             'type': 'bar',
-            'orientation': 'h'
+            'orientation': 'h',
+            'marker': {
+                'color': COLORS[name]
+            }
         }
         data.append(trace)
 
     layout = {'barmode': 'stack',
-              'title': 'Amplicon {} Read Coverage'.format(amplicon['amplicon_id']),
-              'xaxis': {'title': 'number of reads', 'type': 'log'},
+              'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
+              'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
               'yaxis': {'title': 'samples'}}
 
     py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'coverage_{}.html'.format(amplicon['amplicon_id'])), auto_open=False)

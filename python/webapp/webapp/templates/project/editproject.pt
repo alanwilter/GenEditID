@@ -15,7 +15,6 @@
             <li class="active">${project.geid}</li>
             <li><a href="${request.route_url('project_view', projectid=project.id)}">view</a></li>
             <li class="active">edit</li>
-            <li><a href="${request.route_url('project_sequence', projectid=project.id)}">sequence</a></li>
             <li class="active"></li>
           </ol>
         </p>
@@ -136,7 +135,6 @@
             <li class="active">${project.geid}</li>
             <li><a href="${request.route_url('project_view', projectid=project.id)}">view</a></li>
             <li class="active">edit</li>
-            <li><a href="${request.route_url('project_sequence', projectid=project.id)}">sequence</a></li>
             <li class="active"></li>
           </ol>
         </p>
