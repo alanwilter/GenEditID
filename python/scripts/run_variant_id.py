@@ -51,6 +51,12 @@ CONSEQUENCE_CATEGORIES = {
     'WildType': 'WildType'
 }
 
+IMPACT_WEIGHTING = {
+    'HighImpact': 1,
+    'MediumImpact': .6,
+    'LowImpact': .1
+}
+
 # Output folder name for plots and data
 folder_name = 'editid_variantid'
 if not os.path.exists(folder_name):
@@ -69,17 +75,17 @@ df_variants = pd.read_csv('amplicount.csv')
 df_variants = df_variants[(df_variants['variant_frequency'] > 5)]
 
 # List of samples
-samples = df_variants[['sample_id']]
+samples = df_variants[['sample_id']].copy()
 samples.drop_duplicates(inplace=True)
 samples.reset_index(inplace=True)
 
 # List of amplicons
-amplicons = df_variants[['amplicon_id']]
+amplicons = df_variants[['amplicon_id']].copy()
 amplicons.drop_duplicates(inplace=True)
 amplicons.reset_index(inplace=True)
 
 # List of variants
-variants = df_variants[['amplicon_id', 'sequence']]
+variants = df_variants[['amplicon_id', 'sequence']].copy()
 variants.drop_duplicates(inplace=True)
 variants.reset_index(inplace=True)
 
@@ -101,6 +107,14 @@ def get_variant_classification(contig, start, ref, alt, genome=ensembl_grch38):
             return 'Insertion', consequence, weight
         else:
             return 'Mismatch', consequence, weight
+
+
+# Calculate KO score
+def calculate_score(row):
+    score = 0
+    for name in IMPACT_WEIGHTING.keys():
+        score += row[name]*IMPACT_WEIGHTING[name]
+    return score
 
 # Pairwise alignment to classify variant
 with open(os.path.join(folder_name, 'variantid.out'), 'w') as out:
@@ -185,7 +199,7 @@ df_variants.drop_duplicates(inplace=True)
 df_variants.to_csv(os.path.join(folder_name, 'variantid.csv'), index=False)
 
 # Amplicon Read Coverage plots
-df_amplicons = df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']]
+df_amplicons = df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']].copy()
 df_amplicons.drop_duplicates(inplace=True)
 
 COLORS = {
@@ -195,10 +209,9 @@ COLORS = {
     'amplicon_low_abundance_reads': 'rgb(133,133,133)'
 }
 MAX_READS = df_amplicons.loc[df_amplicons['amplicon_reads'].idxmax()]['amplicon_reads']
-print(MAX_READS)
 
 for i, amplicon in amplicons.iterrows():
-    df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']]
+    df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']].copy()
     df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
     print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
     data = []
@@ -233,19 +246,20 @@ VCOLORS = {
 for consequence in CONSEQUENCE_CATEGORIES.keys():
     df_variants.loc[(df_variants['variant_consequence'] == consequence), 'impact'] = CONSEQUENCE_CATEGORIES[consequence]
 df_variants.loc[(df_variants['variant_consequence'] != 'WildType') & (df_variants['variant_score'] == 0), 'impact'] = 'LowImpact'
-df_impacts = df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']]
+df_impacts = df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']].copy()
 grouped_impacts = df_impacts.groupby(['sample_id', 'amplicon_id', 'impact'])
 df_impacts['impact_frequency'] = grouped_impacts.transform('sum')
 df_impacts = df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
 df_impacts.drop_duplicates(inplace=True)
-df_impacts.to_csv(os.path.join(folder_name, 'koscores.csv'), index=False)
+df_impacts.to_csv(os.path.join(folder_name, 'impacts.csv'), index=False)
 for i, amplicon in amplicons.iterrows():
     data = []
     df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
     pivot_df_impacts_per_amplicon = df_impacts_per_amplicon.pivot(index='sample_id', columns='impact', values='impact_frequency').reset_index()
     pivot_df_impacts_per_amplicon.fillna(value=0, inplace=True)
     pivot_df_impacts_per_amplicon['LowFrequency'] = 100 - pivot_df_impacts_per_amplicon.iloc[:, 1:].sum(axis=1)
-    pivot_df_impacts_per_amplicon.sort_values(by=['HighImpact', 'MediumImpact', 'LowImpact'], ascending=[True, True, True], inplace=True)
+    pivot_df_impacts_per_amplicon['koscore'] = pivot_df_impacts_per_amplicon.apply(calculate_score, axis=1)
+    pivot_df_impacts_per_amplicon.sort_values(by=['koscore'], ascending=[True], inplace=True)
     pivot_df_impacts_per_amplicon.to_csv(os.path.join(folder_name, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
     for name in ['HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency']:
         trace = {
