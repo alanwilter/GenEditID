@@ -2,7 +2,6 @@ import os
 import sys
 import math
 import plotly.offline as py
-import plotly.graph_objs as go
 import pandas as pd
 from Bio import pairwise2
 from varcode import Variant
@@ -10,24 +9,46 @@ from pyensembl import ensembl_grch38   # pyensembl install --release 95 --specie
 
 # Consequence weighting
 CONSEQUENCE_WEIGHTING = {
+    'ExonLoss': 1,
+    'PrematureStop': 1,
+    'FrameShift': 1,
+    'FrameShiftTruncation': 1,
+    'ComplexFrameShift': 0.8,
     'AlternateStartCodon': 0.5,
     'ComplexSubstitution': 0.5,
-    'ExonLoss': 1,
     'ExonicSpliceSite': 0.5,
-    'FivePrimeUTR': 0.1,
-    'FrameShiftTruncation': 1,
-    'FrameShift': 1,
-    'IntronicSpliceSite': 0.1,
-    'PrematureStop': 1,
-    'Silent': 0,
+    'Complex': 0.5,
     'SpliceAcceptor': 0.2,
     'SpliceDonor': 0.2,
     'StartLoss': 0.2,
     'StopLoss': 0.2,
+    'FivePrimeUTR': 0.1,
+    'IntronicSpliceSite': 0.1,
     'Substitution': 0.1,
     'ThreePrimeUTR': 0.1,
-    'ComplexFrameShift': 0.8,
-    'Complex': 0.5
+    'Silent': 0,
+}
+
+CONSEQUENCE_CATEGORIES = {
+    'ExonLoss': 'HighImpact',
+    'PrematureStop': 'HighImpact',
+    'FrameShift': 'HighImpact',
+    'FrameShiftTruncation': 'HighImpact',
+    'ComplexFrameShift': 'MediumImpact',
+    'AlternateStartCodon': 'MediumImpact',
+    'ComplexSubstitution': 'MediumImpact',
+    'ExonicSpliceSite': 'MediumImpact',
+    'Complex': 'MediumImpact',
+    'SpliceAcceptor': 'LowImpact',
+    'SpliceDonor': 'LowImpact',
+    'StartLoss': 'LowImpact',
+    'StopLoss': 'LowImpact',
+    'FivePrimeUTR': 'LowImpact',
+    'IntronicSpliceSite': 'LowImpact',
+    'Substitution': 'LowImpact',
+    'ThreePrimeUTR': 'LowImpact',
+    'Silent': 'LowImpact',
+    'WildType': 'WildType'
 }
 
 # Output folder name for plots and data
@@ -61,6 +82,7 @@ amplicons.reset_index(inplace=True)
 variants = df_variants[['amplicon_id', 'sequence']]
 variants.drop_duplicates(inplace=True)
 variants.reset_index(inplace=True)
+
 
 # Get variant classification using https://github.com/openvax/varcode and https://github.com/openvax/pyensembl
 def get_variant_classification(contig, start, ref, alt, genome=ensembl_grch38):
@@ -163,18 +185,8 @@ df_variants.drop_duplicates(inplace=True)
 df_variants.to_csv(os.path.join(folder_name, 'variantid.csv'), index=False)
 
 # Amplicon Read Coverage plots
-df_amplicons = df_variants[['sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']]
+df_amplicons = df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']]
 df_amplicons.drop_duplicates(inplace=True)
-
-df_total_reads = df_amplicons[['sample_id', 'total_reads']]
-df_coverage = df_amplicons.pivot(index='sample_id', columns='amplicon_id', values='amplicon_reads').reset_index()
-df_coverage.fillna(value=0, inplace=True)
-df_coverage = df_coverage.merge(df_total_reads, left_on='sample_id', right_on='sample_id', how='outer')
-df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]] = df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]].astype(int)
-df_coverage['misc'] = df_coverage['total_reads'] - df_coverage[[amplicon['amplicon_id'] for i, amplicon in amplicons.iterrows()]].sum(axis=1)
-df_coverage['misc'] = df_coverage['misc'].astype(int)
-df_coverage.sort_values(by=['sample_id'], inplace=True)
-df_coverage.to_csv(os.path.join(folder_name, 'coverage.csv'), index=False)
 
 COLORS = {
     'amplicon_filtered_reads': 'rgb(12,100,201)',
@@ -209,3 +221,47 @@ for i, amplicon in amplicons.iterrows():
               'yaxis': {'title': 'samples'}}
 
     py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'coverage_{}.html'.format(amplicon['amplicon_id'])), auto_open=False)
+
+# Variant fraction plots
+VCOLORS = {
+    'HighImpact': 'rgb(174,19,36)',
+    'MediumImpact': 'rgb(206,123,18)',
+    'LowImpact': 'rgb(233,185,28)',
+    'WildType': 'rgb(250,253,225)',
+    'LowFrequency': 'rgb(238,238,238)'
+}
+for consequence in CONSEQUENCE_CATEGORIES.keys():
+    df_variants.loc[(df_variants['variant_consequence'] == consequence), 'impact'] = CONSEQUENCE_CATEGORIES[consequence]
+df_variants.loc[(df_variants['variant_consequence'] != 'WildType') & (df_variants['variant_score'] == 0), 'impact'] = 'LowImpact'
+df_impacts = df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']]
+grouped_impacts = df_impacts.groupby(['sample_id', 'amplicon_id', 'impact'])
+df_impacts['impact_frequency'] = grouped_impacts.transform('sum')
+df_impacts = df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
+df_impacts.drop_duplicates(inplace=True)
+df_impacts.to_csv(os.path.join(folder_name, 'koscores.csv'), index=False)
+for i, amplicon in amplicons.iterrows():
+    data = []
+    df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
+    pivot_df_impacts_per_amplicon = df_impacts_per_amplicon.pivot(index='sample_id', columns='impact', values='impact_frequency').reset_index()
+    pivot_df_impacts_per_amplicon.fillna(value=0, inplace=True)
+    pivot_df_impacts_per_amplicon['LowFrequency'] = 100 - pivot_df_impacts_per_amplicon.iloc[:, 1:].sum(axis=1)
+    pivot_df_impacts_per_amplicon.sort_values(by=['HighImpact', 'MediumImpact', 'LowImpact'], ascending=[True, True, True], inplace=True)
+    pivot_df_impacts_per_amplicon.to_csv(os.path.join(folder_name, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
+    for name in ['HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency']:
+        trace = {
+            'x': pivot_df_impacts_per_amplicon[name],
+            'y': pivot_df_impacts_per_amplicon['sample_id'],
+            'name': name,
+            'type': 'bar',
+            'orientation': 'h',
+            'marker': {
+                'color': VCOLORS[name]
+            }
+        }
+        data.append(trace)
+    layout = {'barmode': 'stack',
+              'title': 'Variant Impact Frequency for {}'.format(amplicon['amplicon_id']),
+              'xaxis': {'title': 'frequency'},
+              'yaxis': {'title': 'samples'}}
+
+    py.plot({'data': data, 'layout': layout}, filename=os.path.join(folder_name, 'koscores_{}.html'.format(amplicon['amplicon_id'])), auto_open=False)

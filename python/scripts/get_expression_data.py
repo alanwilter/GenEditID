@@ -12,12 +12,12 @@ from dnascissors.model import Well
 class DataExtractor:
 
     def __init__(self, dbsession, project_geid):
-        self.include_js = False
         self.dbsession = dbsession
         self.project_geid = project_geid
 
     def get_data(self, data_file):
         results = self.dbsession.query(Well)\
+                      .join(Well.well_content)\
                       .join(Well.experiment_layout)\
                       .join(ExperimentLayout.project)\
                       .filter(Project.geid == self.project_geid)\
@@ -81,6 +81,8 @@ class DataExtractor:
             df = pandas.DataFrame(barcodes)
             column_names = ['plate_id', 'well', 'sequencing_barcode']
             df = df.rename(columns=dict(enumerate(column_names)))
+            if self.project_geid == 'GEP00005':
+                df = df[df['plate_id'] == 'GEP00005_02']
             df.to_csv('barcodes.csv', index=False)
 
 
