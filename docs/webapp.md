@@ -31,53 +31,55 @@
 ## Getting started
 
 - Change directory into your newly created project.
-```bash
-    cd python/webapp
-```
+  ```
+  git clone https://github.com/GenEditID/editID.git
+  cd editID/python/webapp
+  ```
 - Create a Python virtual environment.
-```bash
-    python3 -m venv wenv
-```
+  ```
+  python3 -m venv wenv
+  ```
 - Activate the virtual environment for the webapp
-```bash
-    source wenv/bin/activate
-```
+  ```
+      source wenv/bin/activate
+  ```
 - Upgrade packaging tools.
-```bash
-    pip install --upgrade pip setuptools
-```
+  ```
+      pip install --upgrade pip
+  ```
 - Install dependencies
-```bash
-    pip install -r requirements-webapp.txt
-```
+  ```
+      pip install -r requirements-webapp.txt
+  ```
 - Setting up a local postgres database
-```bash
-    createdb geneediting
-    createuser gene
-    psql geneediting
-    geneediting=# GRANT CREATE ON SCHEMA public TO "gene";
-    geneediting=# GRANT USAGE ON SCHEMA public TO "gene";
-    geneediting=# ALTER USER gene WITH PASSWORD 'gene';
-    # edit `crispr.yml` to set DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"
-    python python/scripts/create_db.py
-    ./shell/load_project_GEP00001.sh
-    ./shell/load_project_GEP00002.sh
-    ./shell/load_project_GEP00003.sh
-```
-- Run your project.
-```bash
-    pserve development.ini --reload
-```
-
-Go to http://localhost:8080
+  ```
+  createdb geneediting
+  createuser gene
+  psql geneediting
+  geneediting=# GRANT CREATE ON SCHEMA public TO "gene";
+  geneediting=# GRANT USAGE ON SCHEMA public TO "gene";
+  geneediting=# ALTER USER gene WITH PASSWORD 'gene';
+  # edit `crispr.yml` to set DATABASE_URI: "postgresql://gene:gene@localhost/geneediting"
+  python python/scripts/create_db.py
+  ```
+- Run your webapp
+  ```
+  pserve development.ini --reload
+  ```
+  Go to http://localhost:8080
+- Create a new project
+- Load project data
+  ```
+  ./shell/load_project_GEP00001.sh
+  ```
 
 
 ## Running the WebApp after first setup
 
 Edit `python/webapp/development.ini` to check you are pointing to the right database
 
-```bash
-cd python/webapp
+```
+cd editID/python/webapp
 source wenv/bin/activate
 pserve development.ini --reload
 ```

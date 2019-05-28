@@ -9,7 +9,6 @@ See our [Project Documentation](docs/README.md)
 
 ### How to...
 
-- Access the Genome Editing WebApp [http://bioinf-ge001.cri.camres.org:8080/](http://bioinf-ge001.cri.camres.org:8080/)
 - [Get help with Git](docs/help-git.md)
 - [Get help with Python](docs/help-python.md)
 - [Get help with SQLAlchemy](docs/help-sqlalchemy.md)
@@ -23,14 +22,18 @@ See our [Project Documentation](docs/README.md)
 * Editors:
   - PyCharm [https://www.jetbrains.com/pycharm/](https://www.jetbrains.com/pycharm/)
   - Eclipse [http://www.eclipse.org/](http://www.eclipse.org/) with Python plugin PyDev [http://www.pydev.org/](http://www.pydev.org/)
-  - RStudio [https://www.rstudio.com/](https://www.rstudio.com/)
   - Atom [https://atom.io/](https://atom.io/) or any others you like!
 
 
-## Planning discussion and TODO list
+## Documentation
 
-See [planning](docs/planning.md)
+- [Database documentation](docs/database.md)
+- [WebApp documentation](docs/webapp.md)
+- Data upload
+- [Analysis documentation](docs/analysis.md)
+- [Plots documentation](docs/plots.md)
 
+See [planning](docs/planning.md) and [to-do list](TODO.md)
 
 ## People involved
 

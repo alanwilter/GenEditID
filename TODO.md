@@ -56,54 +56,27 @@ ll /scratcha/bioinformatics/reference_data/reference_genomes/homo_sapiens/GRCh38
 sbatch job_faToTwoBit.sh
 ```
 
-- DONE. run amplicon pipeline on GEP00013
-- DONE. load incucyte data files for GEP00013
-- load incucyte 1in10 data files for GEP00013 (add plates)
-
 - DONE. update gene ids of all project to be Ensembl ones
 ```
 python python/scripts/update_target_gene_ids.py
 ```
 
-- DONE. amplifind: find amplicon and target coordinates using pyfaidx
-and modify `create_pipeline_files.py` to use amplifind
-and check amplicon and target coordinates of projects GEP00005 / GEP00009 and GEP00010
-
-```
-python python/scripts/create_pipeline_files.py --project=GEP00010 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00010/filelist.csv
-diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/targets.txt
-diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00010/amplicons.txt
-
-python python/scripts/create_pipeline_files.py --project=GEP00009 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00009/filelist.csv
-diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/targets.txt
-diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00009/amplicons.txt
-
-python python/scripts/create_pipeline_files.py --project=GEP00005 --genome=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.fa --seq-dict=/Users/pajon01/mnt/refdata/reference_genomes/homo_sapiens/GRCh38_hs38d1/fasta/hsa.GRCh38_hs38d1.dict --filelist=/Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/filelist.csv
-diff targets.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/targets.txt
-diff amplicons.txt /Users/pajon01/mnt/scratchb/genome-editing/GEP00005v1/amplicons.txt
-
-```
-- DONE. re-run amplicon pipeline for projects GEP00005 / GEP00009 and GEP00010 with new coordinates
-finally solved the issues with the coordinates by using pyfaidx against fasta reference genome and guide location +/- 1000 bases and primer pair
-
-- DONE. amplicount:
+- DONE. run_ampli_count:
   - read distribution per amplicon:
     - table summary: project id . barcode . total reads . amplicon1 . amplicon2 ...
   - read distribution per allele per amplicon:
     - table: barcode . amplicon1 . edit1 . ge or wt . seq
   - re-run read counts on projects GEP00005 / GEP00009 and GEP00010
 
-- ampliplot:
+- run_variant_id:
   - DONE. plot summary per amplicon: bar plot for reads per amplicon for all samples
   - DONE. plot bar plot per allele for all samples
 
-- ampliscore:
-  - read 2 csv output of amplicon pipelines
-  - read 1 csv output of amplicount
-  - calculate score
-  - plot score across all samples
+- run_variant_id:
+  - DONE. calculate score
+  - DONE. plot score across all samples
 
-- amplifind: make it work without db only using input csv file
+- run_ampli_find: make it work without db only using input csv file
   - refgenome fasta file
   - config file: guide_loc,chr,strand,fprimer,rprimer
 - add read count table into db and webapp
@@ -115,9 +88,3 @@ finally solved the issues with the coordinates by using pyfaidx against fasta re
 ./gfServer pcr localhost 8888 GGGCCCCAGAAATTCAAAGG AGAGCAGGAGGTCCAGTCAG 300
 GRCh38_hs38d1.2bit:chr12	57600720	57600945	+
 ```
-
-- install http://bioconductor.org/packages/release/bioc/html/amplican.html and run on GEP00005 / GEP00009 and GEP00010
-- install https://github.com/lucapinello/CRISPResso and run on GEP00005 / GEP00009 and GEP00010
-
-- Exploring variant annotation with VEP
-curl 'https://rest.ensembl.org/vep/human/region/9:22125502-22125503:1/C?' -H 'Content-type:application/json'

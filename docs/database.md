@@ -105,9 +105,13 @@ DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"
 
 ## Create database schema
 
-```shell
+```
+git clone https://github.com/GenEditID/editID.git
+cd editID/
+python3 -m venv venv
 source venv/bin/activate
-export PYTHONPATH=`pwd`/python
+pip install -r python/requirements.txt
+
 python python/scripts/create_db.py
 ```
 
@@ -120,23 +124,3 @@ View the [database schema](db_diagram.pdf).
 
 - Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
 - Run `python/scripts/create_db.py` script to create DB schema
-
-
-## Database migration
-
-Using alembic http://alembic.zzzcomputing.com/en/latest/index.html
-
-* Creating an environment
-  ```bash
-  source venv/bin/activate
-  pip install alambic
-  cd python
-  alembic init dbmigration
-  ```
-* Creating and running a migration script automatically
-  ```bash
-  # modify model.py and automatically generate the changes
-  alembic revision --autogenerate -m 'add columns to project'
-
-  alembic upgrade head
-  ```

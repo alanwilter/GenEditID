@@ -1,0 +1,207 @@
+dnascissors              INFO    : >>> Getting list of amplicons...
+dnascissors              INFO    : Amplicon: chr16_54931181
+dnascissors              INFO    : Forward primer: 15 CCATGCCCGTGTGTG
+dnascissors              INFO    : Reverse primer: 19 GCTACAACTCGCACCTCCA
+dnascissors              INFO    : Ref amplicon seq: 215 CCATGCCCGTGTGTGGCCATGTCCTATCCGCAGGGCTACTTGTACCAGCCGTCCGCCTCGCTGGCGCTCTACTCGTGCCCGGCGTACAGCACCAGCGTCATTTCGGGGCCCCGCACGGATGAGCTCGGCCGCTCTTCTTCGGGCTCCGCGTTCTCGCCCTACGCTGGCTCGACTGCCTTCACGGCGCCCTCGCCGGGCTACAACTCGCACCTCCA
+dnascissors              INFO    : ----------
+dnascissors              INFO    : >>> Counting reads per variant per amplicon...
+dnascissors              INFO    : FastQ file directory: fastq_irx5/
+dnascissors              INFO    : FastQ extension: .fqjoin.gz
+dnascissors              INFO    : Read quality Threshold: 10
+dnascissors              INFO    : Read abundance Threshold: 60
+dnascissors              INFO    : Count reads with a minimum base quality score above the read quality threshold within the amplicon.
+dnascissors              INFO    : Report only variants with amplicon read counts which are above the read count threshold for this amplicon.
+dnascissors              INFO    : and report only variants with variant read counts which are above the frequency threshold for this amplicon.
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0001.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0001,127404,65738
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0002.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0002,256192,83502
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0003.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0003,184284,60429
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0004.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0004,250746,86032
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0005.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0005,167722,79427
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0006.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0006,240298,81405
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0007.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0007,299084,97922
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0008.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0008,280560,96479
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0009.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0009,265678,91879
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0010.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0010,257640,70289
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0011.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0011,218424,70261
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0012.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0012,271140,92926
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0013.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0013,347262,112919
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0014.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0014,366738,121439
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0015.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0015,379648,126758
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0016.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0016,376482,129281
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0017.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0017,198744,72507
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0018.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0018,255430,96494
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0019.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0019,197674,67761
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0020.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0020,38192,107
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0021.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0021,52686,153
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0022.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0022,300650,86295
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0023.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0023,320808,85542
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0024.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0024,402102,190074
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0025.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0025,45418,16880
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0026.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0026,41212,137
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0027.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0027,34364,109
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0028.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0028,219400,83682
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0029.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0029,45012,138
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0030.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0030,419336,147412
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0031.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0031,393198,135777
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0032.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0032,53986,148
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0033.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0033,308702,101506
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0034.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0034,327274,112949
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0035.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0035,35210,241
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0036.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0036,288578,161938
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0037.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0037,52096,228
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0038.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0038,278794,81529
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0039.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0039,368734,114007
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0040.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0040,57654,173
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0041.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0041,112296,76284
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0042.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0042,316974,111100
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0043.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0043,228828,70787
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0044.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0044,250838,71208
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0045.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0045,348106,126902
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0046.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0046,366226,118951
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0047.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0047,366506,107365
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0048.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0048,373016,160521
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0049.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0049,319672,92023
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0050.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0050,338016,106756
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0051.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0051,193334,70277
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0052.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0052,211766,64084
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0053.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0053,51670,169
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0054.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0054,323722,83684
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0055.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0055,54154,201
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0056.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0056,324200,158850
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0057.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0057,255652,71090
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0058.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0058,423260,135107
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0059.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0059,239848,57300
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0060.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0060,313702,104464
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0061.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0061,319974,104595
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0062.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0062,340998,109360
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0063.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0063,327588,115345
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0064.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0064,260980,165612
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0065.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0065,373548,130126
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0066.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0066,295398,90415
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0067.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0067,201898,73635
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0068.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0068,294066,79359
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0069.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0069,206294,61778
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0070.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0070,268446,94410
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0071.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0071,353446,115383
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0072.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0072,40062,328
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0073.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0073,312878,107471
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0074.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0074,287406,101235
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0075.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0075,232556,78377
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0076.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0076,256568,93601
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0077.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0077,53624,457
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0078.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0078,330482,108289
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0079.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0079,308740,94698
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0080.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0080,56816,157
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0081.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0081,252886,87741
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0082.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0082,42606,490
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0083.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0083,235890,81922
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0084.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0084,297206,99835
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0085.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0085,47436,206
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0086.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0086,319612,124716
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0087.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0087,45190,515
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0088.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0088,168128,46144
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0089.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0089,237298,74333
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0090.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0090,150488,119690
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0091.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0091,343164,127235
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0092.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0092,352788,180272
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0093.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0093,329142,107064
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0094.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0094,49090,385
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0095.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0095,267464,143406
+dnascissors              INFO    : Counting reads in file SLX-15026.FLD0096.000000000-BJWVR.s_1.fqjoin.gz
+dnascissors              INFO    : FLD0096,181198,143333
+dnascissors              INFO    : Done.

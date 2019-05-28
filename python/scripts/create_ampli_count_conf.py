@@ -1,10 +1,8 @@
-import csv
 import sqlalchemy
 from dnascissors.config import cfg
 from dnascissors.model import Base
-from shutil import copyfile
 import log as logger
-import amplifind
+import run_ampli_find
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
@@ -17,8 +15,8 @@ def create_files(session, refgenome, project):
         amplifind_amplicon_desc_list = []
         for amplicon in amplifind.get_amplicons(session, project):
             i += 1
-            amplifind_amplicon = amplifind.find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
-            amplifind.print_amplifind_report(i, amplicon, amplifind_amplicon)
+            amplifind_amplicon = run_ampli_find.find_amplicon_sequence(refgenome, amplicon['guide_loc'], amplicon['chr'], amplicon['strand'], amplicon['fprimer_seq'], amplicon['rprimer_seq'])
+            run_ampli_find.print_amplifind_report(i, amplicon, amplifind_amplicon)
             # remove duplicated amplicons
             if not amplifind_amplicon['desc'] in amplifind_amplicon_desc_list:
                 amplifind_amplicon_desc_list.append(amplifind_amplicon['desc'])
