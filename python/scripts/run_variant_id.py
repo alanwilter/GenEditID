@@ -53,8 +53,8 @@ CONSEQUENCE_CATEGORIES = {
 
 IMPACT_WEIGHTING = {
     'HighImpact': 1,
-    'MediumImpact': .6,
-    'LowImpact': .1
+    'MediumImpact': .9,
+    'LowImpact': .7
 }
 
 # Output folder name for plots and data
@@ -114,7 +114,7 @@ def calculate_score(row):
     score = 0
     for name in IMPACT_WEIGHTING.keys():
         score += row[name]*IMPACT_WEIGHTING[name]
-    return score
+    return score/100
 
 # Pairwise alignment to classify variant
 with open(os.path.join(folder_name, 'variantid.out'), 'w') as out:
@@ -230,6 +230,7 @@ for i, amplicon in amplicons.iterrows():
 
     layout = {'barmode': 'stack',
               'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
+              #'xaxis': {'title': 'number of reads'},  # for project GEP00005
               'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
               'yaxis': {'title': 'samples'}}
 

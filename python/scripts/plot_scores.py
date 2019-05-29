@@ -46,7 +46,7 @@ for file in glob.glob(os.path.join(varianid_folder, 'koscores_*_with_plate_locat
                 colorscale='Blues',
                 reversescale=True,
                 cmin=0,  # min value of the colorscale
-                cmax=100,  # max value of the colorscale
+                cmax=1,  # max value of the colorscale
                 # colorbar={  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
                 #     'lenmode': "fraction",
                 #     'len': 0.6
@@ -152,7 +152,7 @@ if os.path.exists(protein_file):
                 colorscale='Reds',
                 reversescale=False,
                 cmin=0,  # min value of the colorscale
-                cmax=100,  # max value of the colorscale
+                cmax=1,  # max value of the colorscale
                 # colorbar={  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
                 #     'lenmode': "fraction",
                 #     'len': 0.6
