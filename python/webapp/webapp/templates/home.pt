@@ -119,12 +119,6 @@
                 return '<a href="'+data+'">edit</a>';
               }
             },
-            { "targets": 3,
-              "data": "submit_link",
-              "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">sequence</a>';
-              }
-            },
           ],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         } );

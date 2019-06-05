@@ -75,9 +75,10 @@ class Project(Base):
                 if experiment_layout.wells:
                     for well in experiment_layout.wells:
                         if well.sequencing_library_contents:
-                            for sequencing_library_content in well.sequencing_library_contents:
-                                if len(sequencing_library_content.variant_results) > 0:
-                                    return True
+                            return True
+                            #for sequencing_library_content in well.sequencing_library_contents:
+                            #    if len(sequencing_library_content.variant_results) > 0:
+                            #        return True
         return False
 
 
