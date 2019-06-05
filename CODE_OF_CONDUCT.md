@@ -18,11 +18,11 @@ Thank you for helping make this a welcoming, friendly project for all.
 
 Harassment includes offensive verbal comments related to gender, sexual orientation, disability, physical appearance, body size, race, religion, sexual images in public spaces, deliberate intimidation, stalking, following, harassing photography or recording, sustained disruption of talks or other events, inappropriate physical contact, and unwelcome sexual attention.
 
-Anyone asked to stop any harassing behavior are expected to comply immediately.
+Anyone asked to stop any harassing behaviour are expected to comply immediately.
 
 Be careful in the words that you choose. Remember that sexist, racist, and other exclusionary jokes can be offensive to those around you.
 
-If someone engages in behavior that violates this code of conduct, the team members take any action they deem appropriate, including warning the offender or expulsion from the project.
+If someone engages in behaviour that violates this code of conduct, the team members take any action they deem appropriate, including warning the offender or expulsion from the project.
 
 ## Reference
 

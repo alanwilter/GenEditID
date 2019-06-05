@@ -1,3 +1,7 @@
 # Python documentation
 
-[Cheat-Sheet](https://github.com/pycam/python-functions-and-modules/blob/master/python_fm_1.ipynb)
+## Link to our introductory courses
+[http://pycam.github.io/](http://pycam.github.io/)
+
+## Cheat Sheet
+[A Python Cheat-Sheet](https://github.com/pycam/python-data-science/blob/master/cheat_sheet_basic_python.ipynb)

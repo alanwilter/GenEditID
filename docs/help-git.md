@@ -1,7 +1,7 @@
 # Getting started with Git
 
 ## Link to our introductory course
-https://kirstiejane.github.io/friendly-github-intro/
+[https://kirstiejane.github.io/friendly-github-intro/](https://kirstiejane.github.io/friendly-github-intro/)
 
 ## More advance documentation
 
