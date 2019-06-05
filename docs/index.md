@@ -10,7 +10,6 @@
 * [Analysis documentation](analysis.md)
 * [Plots documentation](plots.md)
 
-See [planning](planning.md)
 
 ### How to...
 

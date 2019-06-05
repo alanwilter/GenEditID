@@ -6,6 +6,10 @@
 Go to [https://geneditid.github.io/editID/](https://geneditid.github.io/editID/)
 or directly to our [README](docs/index.md)]
 
+## Planning
+
+See [planning](docs/planning.md)
+
 
 ## People involved
 
