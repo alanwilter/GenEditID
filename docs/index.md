@@ -23,15 +23,15 @@ See [planning](planning.md)
 
 * Database: [Postgresql](https://www.postgresql.org/)
 * Object Relational Mapper: [SQLAlchemy](https://www.sqlalchemy.org/)
-* Python [https://www.python.org/](https://www.python.org/)
+* Language: [Python](https://www.python.org/)
 * Web App framework: [Pyramid](https://trypyramid.com/)
 
 
 ### Editors
 
-* PyCharm [https://www.jetbrains.com/pycharm/](https://www.jetbrains.com/pycharm/
-* Eclipse [http://www.eclipse.org/](http://www.eclipse.org/) with Python plugin PyDev [http://www.pydev.org/](http://www.pydev.org/)
-* Atom [https://atom.io/](https://atom.io/) or any others you like!
+* [PyCharm](https://www.jetbrains.com/pycharm/)
+* [Eclipse](http://www.eclipse.org/) with Python plugin [PyDev](http://www.pydev.org/)
+* [Atom](https://atom.io/) or any others you like!
 
 
 ## People involved
