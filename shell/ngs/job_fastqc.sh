@@ -14,7 +14,7 @@ echo `pwd`
 for f in *.fqjoin.gz
   do
     echo $f
-    /home/bioinformatics/pipelinesoftware/genomeediting/fastqc-v0.11.8/fastqc --outdir ../fastqc/ --noextract --format fastq $f
+    fastqc --outdir ../fastqc/ --noextract --format fastq $f
   done
 
 echo 'Job done'

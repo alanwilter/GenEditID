@@ -2,13 +2,7 @@
 
 ## Description
 
-
-## Documentation
-
-* [Database documentation](database.md)
-* [WebApp documentation](webapp.md)
-* [Analysis documentation](analysis.md)
-* [Plots documentation](plots.md)
+* [EditID Analysis](analysis.md)
 
 
 ### How to...

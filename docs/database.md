@@ -1,4 +1,4 @@
-# Genome Editing Database
+# EditID Database
 
 Notes on installing Postgres on RHEL 7.
 
