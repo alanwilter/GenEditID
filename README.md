@@ -1,17 +1,14 @@
-# Genome Editing project
+# GenEditID project
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/genome-editing/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-
-## Project documentation
-
-See our [Project Documentation](docs/README.md)
 
 ### How to...
 
 - [Get help with Git](docs/help-git.md)
 - [Get help with Python](docs/help-python.md)
 - [Get help with SQLAlchemy](docs/help-sqlalchemy.md)
+
 
 ### Technologies used: Postgres and Python
 
@@ -29,11 +26,11 @@ See our [Project Documentation](docs/README.md)
 
 - [Database documentation](docs/database.md)
 - [WebApp documentation](docs/webapp.md)
-- Data upload
 - [Analysis documentation](docs/analysis.md)
 - [Plots documentation](docs/plots.md)
 
-See [planning](docs/planning.md) and [to-do list](TODO.md)
+See [planning](docs/planning.md)
+
 
 ## People involved
 
@@ -42,6 +39,7 @@ See [planning](docs/planning.md) and [to-do list](TODO.md)
 * Rich Bowers [@rich7409](https://github.com/rich7409)
 * Chandu Chilamakuri [@chilamakuricsreddy](https://github.com/chilamakuricsreddy)
 * Anne Pajon [@pajanne](https://github.com/pajanne)
+
 
 ## Code of conduct
 
