@@ -277,7 +277,7 @@ class ProjectViews(object):
         hvariant_data_table_headers, hvariant_data_table_rows = self.get_variant_data_table(layouts, 'HaplotypeCaller')
 
         return dict(project=project,
-                    title="Genome Editing Core",
+                    title="GenEditID",
                     subtitle="Project: {}".format(project.geid),
                     cellgrowthplot=plotter.growth_plot(),
                     proteinabundanceplot=plotter.abundance_plot(),
@@ -302,7 +302,7 @@ class ProjectViews(object):
     def edit_project(self):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
-        title = "Genome Editing Core"
+        title = "GenEditID"
         subtitle = "Project: {}".format(project.geid)
         # Project table
         project_headers, project_rows = self.get_project_table(project)

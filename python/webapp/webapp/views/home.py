@@ -18,7 +18,7 @@ class HomeViews(object):
 
     @view_config(route_name='home', renderer='../templates/home.pt')
     def ge_home_page(self):
-        return_map = {'title': 'Genome Editing Core',
+        return_map = {'title': 'GenEditID',
                       'clash': False,
                       'error': False,
                       'info': False,
