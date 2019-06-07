@@ -5,7 +5,7 @@
 - [GenEditID detailed steps](https://geneditid.github.io/manual.html)
 - [GenEditID WebApp](docs/webapp.md)
 - [GenEditID Database](docs/database.md)
-- [GenEditID Plots](docs/plots)
+- [GenEditID Plots](docs/plots.md)
 
 
 ## Technologies used: Postgres and Python
