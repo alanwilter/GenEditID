@@ -1,14 +1,9 @@
-# EditID Database
-
-Notes on installing Postgres on RHEL 7.
-
-For this, I have installed Postgres 9.3 simply because the Clarity servers are running 9.3 and it makes Anne and my life easier to have the same version. Postgres is on 9.6 but I very much doubt we'll be using features in the later one that aren't in the earlier.
-
-The shared instance is running on bioinf-srv003 until we get a dedicated VM.
+# GenEditID database
 
 
-## Installing Packages
+## Installing packages on a linux server
 
+### on RHEL 7
 (As root)
 ```
 yum localinstall https://download.postgresql.org/pub/repos/yum/9.3/redhat/rhel-7-x86_64/pgdg-centos93-9.3-3.noarch.rpm
@@ -25,8 +20,7 @@ su - postgres
 exit
 ```
 
-
-## On Ubuntu
+### On ubuntu
 (As root)
 ```
 sudo apt install libpq-dev postgresql-client
@@ -36,64 +30,54 @@ sudo apt install libpq-dev postgresql-client
 sudo apt install postgresql postgresql-contrib
 ```
 
-
-## Configuring Access to the Database
+## Configuring access to the database
 
 (As postgres)
-
 ```
 sudo -i -u postgres
 ```
 
-Edit `/var/lib/pgsql/9.3/data/pg_hba.conf` to add access to the (to be created) database `geneediting`. Add the following:
-
+Edit `/var/lib/pgsql/9.3/data/pg_hba.conf` to add access to the (to be created) database `geneditid`. Add the following:
 ```
 # TYPE  DATABASE        USER        ADDRESS        METHOD
-local    geneediting    postgres                   ident
-local    geneediting    gene                       md5
-host     geneediting    gene        127.0.0.1/8    md5
-host     geneediting    gene        ::1/128        md5
-host     geneediting    gene        10.20.0.0/16   md5
+local    geneditid    postgres                   ident
+local    geneditid    gene                       md5
+host     geneditid    gene        127.0.0.1/8    md5
+host     geneditid    gene        ::1/128        md5
 ```
 
 Edit `/var/lib/pgsql/9.3/data/postgresql.conf` to change the `listen_addresses` to "`*`" (line 59).
 
 (As root)
-
 ```
 systemctl enable postgresql-9.3
 systemctl start postgresql-9.3
 ```
 
 (As postgres again)
-
 ```
-createdb geneediting
+createdb geneditid
 createuser gene
-psql geneediting
+psql geneditid
 ```
 
 (This is now in the Postgres client.)
-
 ```
 GRANT CREATE ON SCHEMA public TO "gene";
 GRANT USAGE ON SCHEMA public TO "gene";
 ALTER USER gene WITH PASSWORD 'gene';
 ```
 
-
-## Accessing the Database from elsewhere
+## Accessing the database from elsewhere
 
 ```
-psql -h bioinf-ge001.cri.camres.org -U gene geneediting
+psql -h <HOST_URL> -U gene geneditid
 ```
 
 The YAML setting for accessing this database in the code is:
-
 ```
-DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"
+DATABASE_URI: "postgresql://gene:gene@<HOST_URL>/geneditid"
 ```
-
 
 ## Python dependencies
 - [Postgresql](https://www.postgresql.org/) for production
@@ -117,10 +101,10 @@ python python/scripts/create_db.py
 
 Access the database using [DbVisualizer](http://www.dbvis.com/).
 
-View the [database schema](db_diagram.pdf).
+View the current [database schema](db_diagram.pdf).
 
 
 ## Create database schema on dedicated server
 
-- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@bioinf-ge001.cri.camres.org/geneediting"`
+- Edit configuration file `python/dnascissors/crispr.yml` file and use `DATABASE_URI: "postgresql://gene:gene@<HOST_URL>/geneditid"`
 - Run `python/scripts/create_db.py` script to create DB schema
