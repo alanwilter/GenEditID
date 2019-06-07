@@ -2,65 +2,23 @@ import os
 import sys
 import math
 import plotly.offline as py
-import pandas as pd
+import pandas
 from Bio import pairwise2
 from varcode import Variant
 from pyensembl import ensembl_grch38   # pyensembl install --release 95 --species homo_sapiens
 
-# Consequence weighting
-CONSEQUENCE_WEIGHTING = {
-    'ExonLoss': 1,
-    'PrematureStop': 1,
-    'FrameShift': 1,
-    'FrameShiftTruncation': 1,
-    ###
-    'ComplexFrameShift': 0.9,
-    'AlternateStartCodon': 0.9,
-    'ComplexSubstitution': 0.9,
-    'ExonicSpliceSite': 0.9,
-    'Complex': 0.9,
-    ###
-    'SpliceAcceptor': 0.7,
-    'SpliceDonor': 0.7,
-    'StartLoss': 0.7,
-    'StopLoss': 0.7,
-    'FivePrimeUTR': 0.7,
-    'IntronicSpliceSite': 0.7,
-    'Substitution': 0.7,
-    'ThreePrimeUTR': 0.7,
-    'Silent': 0.7,
-}
+# Consequence configuration
+consequence_config = pandas.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'consequence.csv'))
 
-CONSEQUENCE_CATEGORIES = {
-    'ExonLoss': 'HighImpact',
-    'PrematureStop': 'HighImpact',
-    'FrameShift': 'HighImpact',
-    'FrameShiftTruncation': 'HighImpact',
-    ###
-    'ComplexFrameShift': 'MediumImpact',
-    'AlternateStartCodon': 'MediumImpact',
-    'ComplexSubstitution': 'MediumImpact',
-    'ExonicSpliceSite': 'MediumImpact',
-    'Complex': 'MediumImpact',
-    ###
-    'SpliceAcceptor': 'LowImpact',
-    'SpliceDonor': 'LowImpact',
-    'StartLoss': 'LowImpact',
-    'StopLoss': 'LowImpact',
-    'FivePrimeUTR': 'LowImpact',
-    'IntronicSpliceSite': 'LowImpact',
-    'Substitution': 'LowImpact',
-    'ThreePrimeUTR': 'LowImpact',
-    'Silent': 'LowImpact',
-    ###
-    'WildType': 'WildType'
-}
+consequences = consequence_config[['name', 'weight']].copy()
+CONSEQUENCE_WEIGHTING = consequences.set_index('name').transpose().to_dict('records')[0]
 
-IMPACT_WEIGHTING = {
-    'HighImpact': 1,
-    'MediumImpact': .9,
-    'LowImpact': .7
-}
+categories = consequence_config[['name', 'category']].copy()
+CONSEQUENCE_CATEGORIES = categories.set_index('name').transpose().to_dict('records')[0]
+
+impact = consequence_config[['category', 'weight']].copy()
+impact.drop_duplicates(inplace=True)
+IMPACT_WEIGHTING = impact.set_index('category').transpose().to_dict('records')[0]
 
 # Output folder name for plots and data
 folder_name = 'editid_variantid'
@@ -73,8 +31,8 @@ if (not os.path.exists('amplicount.csv')) or (not os.path.exists('amplicount_con
     sys.exit(1)
 
 # Load amplicount files (configuration and variants) into pandas dataframe for analysis and ploting
-df_config = pd.read_csv('amplicount_config.csv')
-df_variants = pd.read_csv('amplicount.csv')
+df_config = pandas.read_csv('amplicount_config.csv')
+df_variants = pandas.read_csv('amplicount.csv')
 
 # Filter out low-frequency variants
 df_variants = df_variants[(df_variants['variant_frequency'] > 5)]
