@@ -13,20 +13,22 @@ CONSEQUENCE_WEIGHTING = {
     'PrematureStop': 1,
     'FrameShift': 1,
     'FrameShiftTruncation': 1,
-    'ComplexFrameShift': 0.8,
-    'AlternateStartCodon': 0.5,
-    'ComplexSubstitution': 0.5,
-    'ExonicSpliceSite': 0.5,
-    'Complex': 0.5,
-    'SpliceAcceptor': 0.2,
-    'SpliceDonor': 0.2,
-    'StartLoss': 0.2,
-    'StopLoss': 0.2,
-    'FivePrimeUTR': 0.1,
-    'IntronicSpliceSite': 0.1,
-    'Substitution': 0.1,
-    'ThreePrimeUTR': 0.1,
-    'Silent': 0,
+    ###
+    'ComplexFrameShift': 0.9,
+    'AlternateStartCodon': 0.9,
+    'ComplexSubstitution': 0.9,
+    'ExonicSpliceSite': 0.9,
+    'Complex': 0.9,
+    ###
+    'SpliceAcceptor': 0.7,
+    'SpliceDonor': 0.7,
+    'StartLoss': 0.7,
+    'StopLoss': 0.7,
+    'FivePrimeUTR': 0.7,
+    'IntronicSpliceSite': 0.7,
+    'Substitution': 0.7,
+    'ThreePrimeUTR': 0.7,
+    'Silent': 0.7,
 }
 
 CONSEQUENCE_CATEGORIES = {
@@ -34,11 +36,13 @@ CONSEQUENCE_CATEGORIES = {
     'PrematureStop': 'HighImpact',
     'FrameShift': 'HighImpact',
     'FrameShiftTruncation': 'HighImpact',
+    ###
     'ComplexFrameShift': 'MediumImpact',
     'AlternateStartCodon': 'MediumImpact',
     'ComplexSubstitution': 'MediumImpact',
     'ExonicSpliceSite': 'MediumImpact',
     'Complex': 'MediumImpact',
+    ###
     'SpliceAcceptor': 'LowImpact',
     'SpliceDonor': 'LowImpact',
     'StartLoss': 'LowImpact',
@@ -48,6 +52,7 @@ CONSEQUENCE_CATEGORIES = {
     'Substitution': 'LowImpact',
     'ThreePrimeUTR': 'LowImpact',
     'Silent': 'LowImpact',
+    ###
     'WildType': 'WildType'
 }
 
