@@ -2,9 +2,6 @@ BASEDIR=$(dirname "$0")/..
 cd $BASEDIR
 
 source venv/bin/activate
-#export PYTHONPATH=`pwd`/python
-
-shell/load_ref_data.sh
 
 PROJNAME='GEP00001'
 PROJDIR=data/${PROJNAME}

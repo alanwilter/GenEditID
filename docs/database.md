@@ -94,7 +94,7 @@ git clone https://github.com/GenEditID/editID.git
 cd editID/
 python3 -m venv venv
 source venv/bin/activate
-pip install -r python/requirements.txt
+pip install -e python/.
 
 python python/scripts/create_db.py
 ```

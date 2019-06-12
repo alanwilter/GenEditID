@@ -1,5 +1,0 @@
-# dnascissors, installing them from local src
--e .
-
-# dnascissors-webapp, installing them from local src
--e ../.

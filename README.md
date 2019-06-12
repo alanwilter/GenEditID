@@ -1,6 +1,6 @@
 # GeneditID project
 
-A flexible, open-access workflow to facilitate the identification of cell clones that have desirable CRISPR-Cas9-induced gene edits. [https://geneditid.github.io/](https://geneditid.github.io/)
+A flexible, open-access workflow to facilitate the identification of cell clones that have desirable CRISPR-Cas9-induced gene edits. See manual [https://geneditid.github.io/manual.html](https://geneditid.github.io/manual.html)
 
 ## Documentation
 

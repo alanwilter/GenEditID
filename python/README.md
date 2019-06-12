@@ -1,1 +1,1 @@
-# dnascissors python package
+# GeneditID module

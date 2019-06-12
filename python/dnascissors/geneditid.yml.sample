@@ -2,10 +2,10 @@
 ### database
 ################################################################################
 
-# Copy this file as "crispr.yml" and set the URI appropriate for your database.
+# Template for "geneditid.yml" and set the URI appropriate for your database.
 
 # Local SQLite database
-#DATABASE_URI: "sqlite:///geneditid.sqlite"
+DATABASE_URI: "sqlite:///geneditid.sqlite"
 
 # Local Postgres database
 #DATABASE_URI: "postgresql://gene:gene@localhost/geneditid"
