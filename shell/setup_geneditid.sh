@@ -16,3 +16,6 @@ python python/scripts/create_db.py
 
 echo 'Loading GenEditID reference data'
 python python/scripts/load_ref_data.py
+
+echo 'Installing Homo Sapiens reference genome'
+pyensembl install --release 95 --species homo_sapiens

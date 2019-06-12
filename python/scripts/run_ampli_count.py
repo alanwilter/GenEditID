@@ -3,7 +3,7 @@ import gzip
 import argparse
 import collections
 import pandas as pd
-import log as logger
+import scripts.log as logger
 from Bio import SeqIO
 
 
