@@ -1,13 +1,13 @@
 # GeneditID project
 
-A flexible, open-access workflow to facilitate the identification of cell clones that have desirable CRISPR-Cas9-induced gene edits. See manual [https://geneditid.github.io/manual.html](https://geneditid.github.io/manual.html)
+A flexible, open-access workflow to facilitate the identification of cell clones that have desirable CRISPR-Cas9-induced gene edits. See project documentation @ [https://geneditid.github.io/manual.html](https://geneditid.github.io/manual.html)
 
 ## Documentation
 
 - [GenEditID detailed steps](https://geneditid.github.io/manual.html)
-- [GenEditID WebApp](docs/webapp.md)
-- [GenEditID Database](docs/database.md)
-- [GenEditID Plots](docs/plots.md)
+- [GenEditID WebApp](https://geneditid.github.io/webapp.html)
+- [GenEditID Database](https://geneditid.github.io/database.html)
+- [GenEditID Plots](https://geneditid.github.io/plots.html)
 
 
 ## Technologies used: Postgres and Python
@@ -20,9 +20,9 @@ A flexible, open-access workflow to facilitate the identification of cell clones
 
 ## How to...
 
-- [Get help with Git](help-git.md)
-- [Get help with Python](help-python.md)
-- [Get help with SQLAlchemy](help-sqlalchemy.md)
+- [Get help with Git](https://geneditid.github.io/help-git.html)
+- [Get help with Python](https://geneditid.github.io/help-python.html)
+- [Get help with SQLAlchemy](https://geneditid.github.io/help-sqlalchemy.html)
 
 
 ## Editors
