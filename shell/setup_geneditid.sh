@@ -5,14 +5,14 @@ echo 'Creating Python3 virtual environment'
 python3 -m venv venv
 source venv/bin/activate
 
-echo 'Installing GeneditID dependencies'
+echo 'Installing GenEditID dependencies'
 pip install -e python/.
 
-echo 'Copying configuraton file'
+echo 'Copying GenEditID configuraton file'
 cp python/dnascissors/geneditid.yml.sample python/dnascissors/geneditid.yml
 
-echo 'Creating the database'
+echo 'Creating the GenEditID database'
 python python/scripts/create_db.py
 
-echo 'Loading reference data'
+echo 'Loading GenEditID reference data'
 python python/scripts/load_ref_data.py
