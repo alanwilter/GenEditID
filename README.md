@@ -4,11 +4,9 @@ A flexible, open-access workflow to facilitate the identification of cell clones
 
 ## Documentation
 
-- [GenEditID detailed steps](https://geneditid.github.io/manual.html)
-- [GenEditID WebApp](https://geneditid.github.io/webapp.html)
-- [GenEditID Database](https://geneditid.github.io/database.html)
-- [GenEditID Plots](https://geneditid.github.io/plots.html)
-
+- [GenEditID Manual: detailed steps](https://geneditid.github.io/manual.html)
+- [GenEditID Setup Postgres Database](https://geneditid.github.io/database.html)
+- [GenEditID Setup WebApp for production](https://geneditid.github.io/webapp.html)
 
 ## Technologies used: Postgres and Python
 
