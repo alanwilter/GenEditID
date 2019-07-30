@@ -12,7 +12,7 @@ install_requires = [
     # configuration
     'pyyaml',
     # database
-    'psycopg2',
+    # 'psycopg2',  # for production only
     'sqlalchemy',
     # data
     'xlrd',

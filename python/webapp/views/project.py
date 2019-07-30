@@ -3,7 +3,6 @@ import uuid
 import shutil
 import socket
 import logging
-import psycopg2
 import colander
 import requests
 import deform.widget
