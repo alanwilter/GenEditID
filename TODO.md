@@ -1,10 +1,14 @@
+# Things done...
+
+- FastQ files added into GDrive to be [downloaded from here](https://drive.google.com/drive/folders/1MN_vzy3hjGOAnycwwtI53nrAuOaB5RJf?usp=sharing) (step 3)
+- Access to [Google Drive paper from here](https://drive.google.com/drive/folders/1MQAmhxjuewH2gDoUkzXzz1wmgMK6CV7E?usp=sharing)
+- Account setup on [https://framateam.org/geneditid/](https://framateam.org/geneditid/) for team discussion, [please sign-up here!](https://framateam.org/signup_user_complete/?id=q4szea3pitfhpfrmdgaijxsdwo)
+
+# Things in progress...
+
 # Things to do...
 
-
-- Add FastQ files in a test data directory (step 3)
-- Give read access to Google Drive paper
 - Run steps 4 till 6
-- Setup account on https://framateam.org/login
 - Create proper test data
   - simplified submission spreadsheet
   - 3 FastQ files
