@@ -21,3 +21,7 @@
 - Add validation scripts for variant classification `Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)` `var.effects().top_priority_effect()`
 - Modify the analysis steps to be ran from the database instead of flat files
 - Drive the analysis from the WebApp
+
+# Slack integration
+
+- Find us on [slack](geneditid.slack.com)
