@@ -8,18 +8,16 @@
 
 # Things to do...
 
-- Run steps 4 till 6
 - Create proper test data
-  - simplified submission spreadsheet
-  - 3 FastQ files
-  - run analysis on these 3 files only for test
-
-
+  - select 3 FastQ files
+  - create a simplified submission spreadsheet
+  - run all analysis steps on these 3 files only
+- Simplify submission spreadsheet and database
 - Add plots to the WebApp
-- Add output of the run_ampli_count tool into a new database table for plotting in the WebApp (add class AmpliCountResult in model.py)
-- Modify the analysis steps to be ran from the database instead of flat files
-- Update the plotting scripts to call the code form the WebApp
+  - Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
+  - Update the plotting scripts to call the code from the WebApp to avoid code duplication
+
 - Add validation scripts for the parameters chosen for the alignment `pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)`
 - Add validation scripts for variant classification `Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)` `var.effects().top_priority_effect()`
-- Simplify submission spreadsheet and database
+- Modify the analysis steps to be ran from the database instead of flat files
 - Drive the analysis from the WebApp
