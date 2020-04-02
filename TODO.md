@@ -2,15 +2,16 @@
 
 - FastQ files added into GDrive to be [downloaded from here](https://drive.google.com/drive/folders/1MN_vzy3hjGOAnycwwtI53nrAuOaB5RJf?usp=sharing) (step 3)
 - Access to [Google Drive paper from here](https://drive.google.com/drive/folders/1MQAmhxjuewH2gDoUkzXzz1wmgMK6CV7E?usp=sharing)
-- Account setup on [https://framateam.org/geneditid/](https://framateam.org/geneditid/) for team discussion, [please sign-up here!](https://framateam.org/signup_user_complete/?id=q4szea3pitfhpfrmdgaijxsdwo)
+- Slack integration, find us on [geneditid](geneditid.slack.com)
 
 # Things in progress...
 
+- Create proper test data
+  - [x] select 3 FastQ files
+  - [ ] run all analysis steps on these 3 files only
+
 # Things to do...
 
-- Create proper test data
-  - select 3 FastQ files
-  - run all analysis steps on these 3 files only
 - Simplify submission spreadsheet and database
 - Add new plots to the WebApp
   - Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
@@ -29,7 +30,7 @@
 
 The test data is from the project GEP00009, it includes fastq run files for FLD0018, FLD0046, FLD0060.
 The target is FTO on chr16 chr16_53704130, length 182.
-In folder test_data/GEP00009/fastq/ in GDrive, there are the 6 files needed for testing :
+In folder [test_data/GEP00009/fastq/](https://drive.google.com/drive/folders/1TCYqPAkrP6ju-lop_l2Ymb4lSsb1oHtq?usp=sharing) in GDrive, there are the 6 files needed for testing :
 - SLX-15026.FLD0018.000000000-BJWVR.s_1.r_1.fq.gz
 - SLX-15026.FLD0018.000000000-BJWVR.s_1.r_2.fq.gz
 - SLX-15026.FLD0046.000000000-BJWVR.s_1.r_1.fq.gz
