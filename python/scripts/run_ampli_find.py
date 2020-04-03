@@ -1,4 +1,5 @@
 import sqlalchemy
+import os
 from dnascissors.config import cfg
 from dnascissors.model import Base
 from dnascissors.model import Primer
@@ -106,7 +107,12 @@ def get_primer_pair(sequence, fprimer_seq, rprimer_seq):
 def find_amplicon_sequence(refgenome, guide_loc, chr, strand, fprimer_seq, rprimer_seq):
     # retrieve amplicon sequence +/- 1000 around guide location
     start = guide_loc - 1000
-    sequence = Fasta(refgenome)['{}'.format(chr)][start:guide_loc+1000].seq
+    if os.path.exists(refgenome + '.fai'):
+        print('fai file for {} already exists, there is no need to rebuild indexes'.format(refgenome))
+        sequence = Fasta(refgenome, rebuild=False, build_index=False, read_ahead=10000)['{}'.format(chr)][start:guide_loc+1000].seq
+    else:
+        print('fai file for {} do not exist, it will take a while to generate it'.format(refgenome))
+        sequence = Fasta(refgenome, read_ahead=10000)['{}'.format(chr)][start:guide_loc+1000].seq
 
     fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq = get_primer_pair(sequence, fprimer_seq, rprimer_seq)
 

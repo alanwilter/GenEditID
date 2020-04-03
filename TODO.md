@@ -189,3 +189,35 @@ Creating Amplicon Read Coverage plot for chr16_54931181
 
 - Visualise plots in your browser
   - `editid_variantid/heatmap_chr16_54931181.html`
+
+
+# Issue with large uncompressed genome file needed to identify coordinates of amplicon
+
+- Get [Homo_sapiens.GRCh38.dna.toplevel.fa.gz](ftp://ftp.ensembl.org/pub/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.toplevel.fa.gz)
+- [Read code from pyfaidx](https://github.com/mdshw5/pyfaidx/blob/master/tests/test_Fasta_bgzip.py): it seems possible to give a gzip file to Fasta() method
+- Try directly but without success
+  ```
+  geneditid_create_amplicount_config --project=GEP00009 --genome=/Users/pajanne/workspace/data/Homo_sapiens.GRCh38.dna.toplevel.fa.gz
+  --- Amplicon #1
+  Target name	FTO
+  Compressed FASTA is only supported in BGZF format. Use the samtools bgzip utility (instead of gzip) to compress your FASTA.
+  ---
+  --- Amplicon #2
+  Target name	IRX5
+  Compressed FASTA is only supported in BGZF format. Use the samtools bgzip utility (instead of gzip) to compress your FASTA.
+  ---
+  ```
+- Get bgzip utility from samtools [htslib-1.10.2](https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2) and install
+  ```
+  cd htslib-1.10.2
+  ./configure
+  sudo make install
+  ```
+- Compress file using bgzip
+  ```
+  bgzip < /Volumes/CRUKCI_HDCLONE/Homo_sapiens.GRCh38.dna.toplevel.fa > Homo_sapiens.GRCh38.dna.toplevel.fa.gz
+  ```
+- Re-run step 4 with new compressed file: the first time, [pyfaidx](https://pypi.org/project/pyfaidx/) will generate indexed files .fai and it will take some time! There is also a `read_ahead` option to reduce runtime that could be explored.
+  ```
+  geneditid_create_amplicount_config --project=GEP00009 --genome=/Users/pajanne/workspace/GenEditID/data/reference/Homo_sapiens.GRCh38.dna.toplevel.fa.gz
+  ```
