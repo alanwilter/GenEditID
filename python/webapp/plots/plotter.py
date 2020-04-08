@@ -2,7 +2,9 @@ import pandas
 import sqlalchemy
 import logging
 
-from math import ceil, floor
+#from math import ceil, floor
+import math
+import os
 
 import plotly.graph_objs as go
 import plotly.offline as py
@@ -88,6 +90,188 @@ class Plotter:
             growth_file = "cell_growth_{}.html".format(self.project_geid)
         return py.plot(figure, filename=growth_file, auto_open=False, show_link=False,
                        include_plotlyjs=self.include_js, output_type=output_type)
+
+##################################################################################################################################################################
+### Coverage plot
+### TO DO
+### Currently reading data from file
+### Need to get the data from database
+
+    def coverage_plot(self, coverage_file=None):
+        # Amplicon Read Coverage plots
+        df_config = pandas.read_csv('data/GEP00001/amplicount_config.csv')
+        df_variants = pandas.read_csv('data/GEP00001/amplicount.csv')
+        # Filter out low-frequency variants
+        df_variants = df_variants[(df_variants['variant_frequency'] > 5)]
+  
+
+        # List of samples
+        samples = df_variants[['sample_id']].copy()
+        samples.drop_duplicates(inplace=True)
+        samples.reset_index(inplace=True)
+ 
+        # List of amplicons
+        amplicons = df_variants[['amplicon_id']].copy()
+        amplicons.drop_duplicates(inplace=True)
+        amplicons.reset_index(inplace=True)
+
+        # List of variants
+        variants = df_variants[['amplicon_id', 'sequence']].copy()
+        variants.drop_duplicates(inplace=True)
+        variants.reset_index(inplace=True)
+
+
+        df_amplicons = df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']].copy()
+        df_amplicons.drop_duplicates(inplace=True)
+
+        COLORS = {
+            'amplicon_filtered_reads': 'rgb(12,100,201)',
+            'amplicon_low_quality_reads': 'rgb(204,204,204)',
+            'amplicon_primer_dimer_reads': 'rgb(170,170,170)',
+            'amplicon_low_abundance_reads': 'rgb(133,133,133)'
+        }
+        MAX_READS = df_amplicons.loc[df_amplicons['amplicon_reads'].idxmax()]['amplicon_reads']
+
+        for i, amplicon in amplicons.iterrows():
+            df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']].copy()
+            df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
+            print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
+            data = []
+            for name in ['amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
+                trace = {
+                    'x': df_coverage[name],
+                    'y': df_coverage['sample_id'],
+                    'name': ' '.join(name.split('_')[1:]),
+                    'type': 'bar',
+                    'orientation': 'h',
+                    'marker': {
+                    'color': COLORS[name]
+                    }
+                }
+                data.append(trace)
+
+            layout = go.Layout( {'barmode': 'stack',
+                      'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
+                      #'xaxis': {'title': 'number of reads'},  # for project GEP00005
+                      'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
+                      'yaxis': {'title': 'samples'}},
+                       autosize=False,
+                       width=800,
+                       height=500)
+
+
+            figure = go.Figure(data=data, layout=layout)
+            output_type = "file"
+            if not coverage_file:
+                output_type = "div"
+                coverage_file = "coverage_{}.html".format(self.project_geid)
+            return py.plot(figure, filename=coverage_file, auto_open=False, show_link=False,
+                           include_plotlyjs=self.include_js, output_type=output_type)
+
+##################################################################################################################################################################
+
+
+
+##################################################################################################################################################################
+### KO_scores plot
+### TO DO
+### Currently reading data from file
+### Need to get the data from database
+
+    def impact_plot(self, impact_file=None):
+        # Calculate KO score
+        def calculate_score(row):
+            score = 0
+            for name in IMPACT_WEIGHTING.keys():
+                score += row[name]*IMPACT_WEIGHTING[name]
+            return score/100
+        # 'data/GEP00001/amplicount_config.csv'
+        #consequence_config = pandas.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'consequence.csv'))
+        consequence_config = pandas.read_csv( 'python/scripts/consequence.csv')
+
+        consequences = consequence_config[['name', 'weight']].copy()
+        CONSEQUENCE_WEIGHTING = consequences.set_index('name').transpose().to_dict('records')[0]
+
+        categories = consequence_config[['name', 'category']].copy()
+        CONSEQUENCE_CATEGORIES = categories.set_index('name').transpose().to_dict('records')[0]
+
+        impact = consequence_config[['category', 'weight']].copy()
+        impact.drop_duplicates(inplace=True)
+        IMPACT_WEIGHTING = impact.set_index('category').transpose().to_dict('records')[0]
+
+        df_config = pandas.read_csv('data/GEP00001/amplicount_config.csv')
+        df_variants = pandas.read_csv('data/GEP00001/editid_variantid/variantid.csv')
+        # Filter out low-frequency variants
+        df_variants = df_variants[(df_variants['variant_frequency'] > 5)]
+
+        # List of amplicons
+        amplicons = df_variants[['amplicon_id']].copy()
+        amplicons.drop_duplicates(inplace=True)
+        amplicons.reset_index(inplace=True)
+
+
+        VCOLORS = {
+            'HighImpact': 'rgb(174,19,36)',
+            'MediumImpact': 'rgb(206,123,18)',
+            'LowImpact': 'rgb(233,185,28)',
+            'WildType': 'rgb(250,253,225)',
+            'LowFrequency': 'rgb(238,238,238)'
+        }
+
+        for consequence in CONSEQUENCE_CATEGORIES.keys():
+            df_variants.loc[(df_variants['variant_consequence'] == consequence), 'impact'] = CONSEQUENCE_CATEGORIES[consequence]
+
+        df_variants.loc[(df_variants['variant_consequence'] != 'WildType') & (df_variants['variant_score'] == 0), 'impact'] = 'LowImpact'
+        df_impacts = df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']].copy()
+        grouped_impacts = df_impacts.groupby(['sample_id', 'amplicon_id', 'impact'])
+        df_impacts['impact_frequency'] = grouped_impacts.transform('sum')
+        df_impacts = df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
+        df_impacts.drop_duplicates(inplace=True)
+        #df_impacts.to_csv(os.path.join(folder_name, 'impacts.csv'), index=False)
+        for i, amplicon in amplicons.iterrows():
+            data = []
+            df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
+            pivot_df_impacts_per_amplicon = df_impacts_per_amplicon.pivot(index='sample_id', columns='impact', values='impact_frequency').reset_index()
+            pivot_df_impacts_per_amplicon.fillna(value=0, inplace=True)
+            pivot_df_impacts_per_amplicon['LowFrequency'] = 100 - pivot_df_impacts_per_amplicon.iloc[:, 1:].sum(axis=1)
+            for name in IMPACT_WEIGHTING.keys():
+                if name not in pivot_df_impacts_per_amplicon.columns:
+                    pivot_df_impacts_per_amplicon[name] = 0
+            pivot_df_impacts_per_amplicon['koscore'] = pivot_df_impacts_per_amplicon.apply(calculate_score, axis=1)
+            pivot_df_impacts_per_amplicon.sort_values(by=['koscore'], ascending=[True], inplace=True)
+            #pivot_df_impacts_per_amplicon.to_csv(os.path.join(folder_name, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
+            for name in ['HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency']:
+                trace = {
+                    'x': pivot_df_impacts_per_amplicon[name],
+                    'y': pivot_df_impacts_per_amplicon['sample_id'],
+                    'name': name,
+                    'type': 'bar',
+                    'orientation': 'h',
+                    'marker': {
+                        'color': VCOLORS[name]
+                    }
+                }
+                data.append(trace)
+            layout =  go.Layout ({'barmode': 'stack',
+                      'title': 'Variant Impact Frequency for {}'.format(amplicon['amplicon_id']),
+                      'xaxis': {'title': 'frequency'},
+                      'yaxis': {'title': 'samples'}},
+                      autosize=False,
+                      width=800,
+                      height=500
+                      )
+
+            figure = go.Figure(data=data, layout=layout)
+            output_type = "file"
+            if not impact_file:
+                output_type = "div"
+                impact_file = "koscores_{}.html".format(self.project_geid)
+    
+            return py.plot(figure, filename=impact_file, auto_open=False, show_link=False,
+                           include_plotlyjs=self.include_js, output_type=output_type)
+
+
+##################################################################################################################################################################
 
     def abundance_plot(self, abundance_file=None):
         # Get all wells for the project where there is protein abundance information.
@@ -352,14 +536,14 @@ class Plotter:
             # create plot layout in a grid of two columns and n rows
             # calculate number of subplots (number of plates)
             numberofplates = len(set(df['plate']))
-            numberofplotrows = ceil(numberofplates / 2)
+            numberofplotrows = math.ceil(numberofplates / 2)
             plotheight = numberofplotrows*330  # calculation of total plot height, see comment further down
             # create figure
             subplottitles = [i for i, j in dfgroup]
             figure = tools.make_subplots(rows=numberofplotrows, cols=2, subplot_titles=subplottitles, print_grid=False)
             row_counter = 1
             for i, j in zip(range(0, numberofplates), dataplot):
-                subplot_row = floor(row_counter)  # the roughest way to change row every two loops? Oh dear.
+                subplot_row = math.floor(row_counter)  # the roughest way to change row every two loops? Oh dear.
                 row_counter = row_counter + 0.5
                 subplot_column = 1 if 1 & i == 0 else 2
                 figure.append_trace(j, subplot_row, subplot_column)
