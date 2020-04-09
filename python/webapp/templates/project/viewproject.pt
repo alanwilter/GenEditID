@@ -109,11 +109,17 @@
         <!-- Plots section ************************************************* -->
         <div role="tabpanel" class="tab-pane" id="plots">
           <h3>Plots</h3>
-          <div tal:condition="cellgrowthplot">
-              <h4>Cell Growth</h4>
-              ${structure: cellgrowthplot}
+          <div tal:condition="coverageplot">
+              <h4>Coverage</h4>
+              ${structure: coverageplot}
           </div>
 
+          <div tal:condition="impactplot">
+              <h4>impact</h4>
+              ${structure: impactplot}
+          </div>
+          
+          
           <div tal:condition="proteinabundanceplot">
               <h4>Protein Abundance</h4>
               ${structure: proteinabundanceplot}
