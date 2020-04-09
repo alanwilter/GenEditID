@@ -92,13 +92,6 @@ class ProjectViews(object):
                     if slc.variant_results:
                         for v in slc.variant_results:
                             if v.variant_caller == variant_caller:
-                                # https://software.broadinstitute.org/software/igv/ControlIGV
-                                igv_url = None
-                                bam = "http://bioinf-ge001.cri.camres.org/data/{}/idbam/{}.bam".format(layout.project.geid, slc.sequencing_barcode)
-                                if genome:
-                                    locus = "{}:{}".format(v.chromosome, v.position)
-                                    igv_url = "http://localhost:60151/load?file={}&locus={}&genome={}&name={}".format(bam, locus, genome, quote(slc.sequencing_sample_name))
-
                                 vrow_odict['plate'] = layout.geid
                                 vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
                                 vrow_odict['clone'] = well.well_content.clone.name if well.well_content else None
@@ -106,8 +99,6 @@ class ProjectViews(object):
                                 vrow_odict['barcode'] = slc.sequencing_barcode
                                 vrow_odict['variant_caller'] = v.variant_caller
                                 vrow_odict['variant_type'] = v.variant_type
-                                vrow_odict['IGV link'] = igv_url
-                                vrow_odict['BAM file'] = bam
                                 vrow_odict['consequence'] = v.consequence
                                 vrow_odict['gene_id'] = v.gene_id
                                 vrow_odict['gene'] = v.gene
@@ -172,14 +163,6 @@ class ProjectViews(object):
             "nuclease"
         ]
         guide_rows = []
-        # Guide mismatch table
-        guide_mismatch_headers = [
-            "genome region",
-            "1",
-            "2",
-            "3"
-        ]
-        guide_mismatch_rows = []
         targets = project.targets
         for target in targets:
             row = []
@@ -205,28 +188,6 @@ class ProjectViews(object):
                 guide_row.append(guide.exon)
                 guide_row.append(guide.nuclease)
                 guide_rows.append(guide_row)
-                mismatch_counts = [0] * 4
-                mismatch_counts[0] = "{} coding".format(guide.name)
-                for mismatch in guide.guide_mismatches:
-                    if mismatch.is_off_target_coding_region:
-                        if mismatch.number_of_mismatches == 1:
-                            mismatch_counts[1] = mismatch.number_of_off_targets
-                        elif mismatch.number_of_mismatches == 2:
-                            mismatch_counts[2] = mismatch.number_of_off_targets
-                        elif mismatch.number_of_mismatches == 3:
-                            mismatch_counts[3] = mismatch.number_of_off_targets
-                guide_mismatch_rows.append(mismatch_counts)
-                mismatch_counts = [0] * 4
-                mismatch_counts[0] = "{} non-coding".format(guide.name)
-                for mismatch in guide.guide_mismatches:
-                    if not mismatch.is_off_target_coding_region:
-                        if mismatch.number_of_mismatches == 1:
-                            mismatch_counts[1] = mismatch.number_of_off_targets
-                        elif mismatch.number_of_mismatches == 2:
-                            mismatch_counts[2] = mismatch.number_of_off_targets
-                        elif mismatch.number_of_mismatches == 3:
-                            mismatch_counts[3] = mismatch.number_of_off_targets
-                guide_mismatch_rows.append(mismatch_counts)
         # Scores: sample data table
         layouts = project.experiment_layouts
         sample_data_table_headers = []
@@ -273,7 +234,6 @@ class ProjectViews(object):
         if row_odict:
             sample_data_table_headers = row_odict.keys()
         vvariant_data_table_headers, vvariant_data_table_rows = self.get_variant_data_table(layouts, 'VarDict')
-        hvariant_data_table_headers, hvariant_data_table_rows = self.get_variant_data_table(layouts, 'HaplotypeCaller')
 
         return dict(project=project,
                     title="GenEditID",
@@ -288,14 +248,11 @@ class ProjectViews(object):
                     target_rows=target_rows,
                     guide_headers=guide_headers,
                     guide_rows=guide_rows,
-                    guide_mismatch_headers=guide_mismatch_headers,
-                    guide_mismatch_rows=guide_mismatch_rows,
                     vvariant_data_table_headers=vvariant_data_table_headers,
                     vvariant_data_table_rows=vvariant_data_table_rows,
-                    hvariant_data_table_headers=hvariant_data_table_headers,
-                    hvariant_data_table_rows=hvariant_data_table_rows,
                     sample_data_table_headers=sample_data_table_headers,
-                    sample_data_table_rows=sample_data_table_rows)
+                    sample_data_table_rows=sample_data_table_rows
+                    )
 
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
     def edit_project(self):

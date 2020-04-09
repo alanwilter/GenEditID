@@ -22,9 +22,9 @@ class HomeViews(object):
                       'clash': False,
                       'error': False,
                       'info': False,
-                      'column_headers': ["geid",
-                                         "view",
-                                         "edit",
+                      'column_headers': ["project geid",
+                                         "setup analysis",
+                                         "view results",
                                          "name",
                                          "type",
                                          "scientist",
@@ -44,8 +44,8 @@ class HomeViews(object):
             last_project = self.dbsession.query(Project).order_by(Project.id.desc()).first()
             for project in projects:
                 rows.append([project.geid,
-                             "project/{}".format(project.id),
                              "project/{}/edit".format(project.id),
+                             "project/{}".format(project.id),
                              project.name,
                              project.project_type,
                              project.scientist,
@@ -94,8 +94,8 @@ class HomeViews(object):
                     projects = self.dbsession.query(Project).all()
                     for project in projects:
                         rows.append([project.geid,
-                                     "project/{}".format(project.id),
                                      "project/{}/edit".format(project.id),
+                                     "project/{}".format(project.id),
                                      project.name,
                                      project.project_type,
                                      project.scientist,

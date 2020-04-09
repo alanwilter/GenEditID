@@ -108,15 +108,15 @@
           "aaSorting": [[0,'desc']],
           "columnDefs": [
             { "targets": 1,
-              "data": "view_link",
-              "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">view</a>';
-              }
-            },
-            { "targets": 2,
               "data": "edit_link",
               "render": function ( data, type, full, meta ) {
                 return '<a href="'+data+'">edit</a>';
+              }
+            },
+            { "targets": 2,
+              "data": "view_link",
+              "render": function ( data, type, full, meta ) {
+                return '<a href="'+data+'">view</a>';
               }
             },
           ],

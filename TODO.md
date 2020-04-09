@@ -8,14 +8,18 @@
 
 - Create proper test data
   - [x] select 3 FastQ files
-  - [ ] run all analysis steps on these 3 files only
+  - [x] run all analysis steps on these 3 files only
+  - [ ] improve setup for testing
+
+- Add new plots to the WebApp
+  - [ ] Update WebApp interface to reflect changes
+  - [ ] Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
+  - [ ] Update the plotting scripts to call the code from the WebApp to avoid code duplication
+
 
 # Things to do...
 
 - Simplify submission spreadsheet and database
-- Add new plots to the WebApp
-  - Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
-  - Update the plotting scripts to call the code from the WebApp to avoid code duplication
 
 - Add validation scripts for the parameters chosen for the alignment `pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)`
 - Add validation scripts for variant classification `Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)` `var.effects().top_priority_effect()`
@@ -220,4 +224,15 @@ Creating Amplicon Read Coverage plot for chr16_54931181
 - Re-run step 4 with new compressed file: the first time, [pyfaidx](https://pypi.org/project/pyfaidx/) will generate indexed files .fai and it will take some time! There is also a `read_ahead` option to reduce runtime that could be explored.
   ```
   geneditid_create_amplicount_config --project=GEP00009 --genome=/Users/pajanne/workspace/GenEditID/data/reference/Homo_sapiens.GRCh38.dna.toplevel.fa.gz
+  ```
+- Install [Git Large File Storage (LFS)](https://git-lfs.github.com/) to push reference files to github
+  ```
+  brew install git-lfs
+  git lfs install
+  git lfs track "*.fa.gz"
+  git lfs track "*.fa.gz.fai"
+  git add .gitattributes
+  git add data/reference/.
+  git commit -m '.....'
+  git push
   ```
