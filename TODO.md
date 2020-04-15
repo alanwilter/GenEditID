@@ -236,3 +236,9 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   git commit -m '.....'
   git push
   ```
+
+# Dash and Flask
+
+- [Flask](https://flask.palletsprojects.com/en/1.1.x/)
+- [Dash](https://dash.plotly.com/)
+- [How to embed a Dash app into an existing Flask app](https://medium.com/@olegkomarov_77860/how-to-embed-a-dash-app-into-an-existing-flask-app-ea05d7a2210b)
