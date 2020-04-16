@@ -12,3 +12,8 @@ DATABASE_URI: "sqlite:///geneditid.sqlite"
 
 # Shared Postgres database on linux server
 #DATABASE_URI: "postgresql://gene:gene@<HOST_URL>/geneditid"
+
+################################################################################
+### project data folder
+################################################################################
+PROJECTS_FOLDER: "GEPIDs"
