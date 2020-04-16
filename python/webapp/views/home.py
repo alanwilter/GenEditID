@@ -1,5 +1,6 @@
 import logging
 import datetime
+import os
 
 from pyramid.response import Response
 from pyramid.view import view_config
@@ -7,6 +8,7 @@ from pyramid.httpexceptions import HTTPFound
 
 from sqlalchemy.exc import DBAPIError
 
+from dnascissors.config import cfg
 from dnascissors.model import Project
 
 
@@ -15,6 +17,7 @@ class HomeViews(object):
         self.logger = logging.getLogger(__name__)
         self.request = request
         self.dbsession = request.dbsession
+        self.projects_folder = cfg['PROJECTS_FOLDER']
 
     @view_config(route_name='home', renderer='../templates/home.pt')
     def ge_home_page(self):
@@ -26,6 +29,7 @@ class HomeViews(object):
                                          "setup analysis",
                                          "view results",
                                          "name",
+                                         "folder on disk",
                                          "type",
                                          "scientist",
                                          "group",
@@ -47,6 +51,7 @@ class HomeViews(object):
                              "project/{}/edit".format(project.id),
                              "project/{}".format(project.id),
                              project.name,
+                             project.project_folder,
                              project.project_type,
                              project.scientist,
                              project.group,
@@ -79,6 +84,9 @@ class HomeViews(object):
                     project.description = fields['project_description'].strip()[:1024]
                     self.dbsession.add(project)
                     self.dbsession.commit()
+                    if not os.path.exists(project.project_folder):
+                        os.makedirs(project.project_folder)
+                        os.makedirs(os.path.join(project.project_folder, 'fastq'))
                     return_map['info'] = "Project {} has been created.".format(project.geid)
                     return HTTPFound(self.request.route_url('home'))
                 except ValueError as e:
@@ -97,6 +105,7 @@ class HomeViews(object):
                                      "project/{}/edit".format(project.id),
                                      "project/{}".format(project.id),
                                      project.name,
+                                     project.project_folder,
                                      project.project_type,
                                      project.scientist,
                                      project.group,

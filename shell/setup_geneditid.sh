@@ -12,7 +12,7 @@ pip install -e python/.
 echo 'Copying GenEditID configuraton file'
 cp python/dnascissors/geneditid.yml.sample python/dnascissors/geneditid.yml
 
-echo 'Creating the GenEditID database'
+echo 'Creating the GenEditID database and the projects folder'
 python python/scripts/create_db.py
 
 echo 'Loading GenEditID reference data'
