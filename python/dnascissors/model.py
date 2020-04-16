@@ -2,6 +2,9 @@
 Python3 file of the genome-editing project
 Created by Anne Pajon @pajanne on 08/03/2017
 """
+import os
+from dnascissors.config import cfg
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
@@ -49,6 +52,10 @@ class Project(Base):
     comments = Column(String(1024))
 
     @property
+    def project_folder(self):
+        return os.path.join(cfg['PROJECTS_FOLDER'], self.geid)
+
+    @property
     def is_abundance_data_available(self):
         if self.experiment_layouts:
             for experiment_layout in self.experiment_layouts:
@@ -75,10 +82,10 @@ class Project(Base):
                 if experiment_layout.wells:
                     for well in experiment_layout.wells:
                         if well.sequencing_library_contents:
-                            return True
-                            #for sequencing_library_content in well.sequencing_library_contents:
-                            #    if len(sequencing_library_content.variant_results) > 0:
-                            #        return True
+                            #return True
+                            for sequencing_library_content in well.sequencing_library_contents:
+                                if len(sequencing_library_content.variant_results) > 0:
+                                    return True
         return False
 
 
@@ -349,21 +356,6 @@ class VariantResult(Base):
                                               self.gene_id,
                                               self.allele_fraction,
                                               self.alleles)
-
-
-class MutationSummary(Base):
-    __tablename__ = 'mutation_summary'
-    id = Column(Integer, primary_key=True)
-    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_mutation_summary_fk', ondelete='CASCADE'), unique=True, nullable=False)
-    sequencing_library_content = relationship(
-        SequencingLibraryContent,
-        backref=backref('mutation_summaries', uselist=True, cascade='delete,all'))
-    zygosity = Column(Enum('homo', 'smut', 'dmut', 'iffy', 'warn', name='zygosity'))
-    consequence = Column(String(250))
-    has_off_target = Column(Boolean)
-    has_frameshift = Column(Boolean)
-    variant_caller_presence = Column(Enum('VH', 'V-', '-H', 'V?', name='variant_caller_presence'))
-    score = Column(Integer)
 
 
 class ProteinAbundance(Base):
