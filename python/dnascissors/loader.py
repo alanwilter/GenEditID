@@ -26,7 +26,6 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import CellGrowth
 from dnascissors.model import ProteinAbundance
 from dnascissors.model import VariantResult
-from dnascissors.model import MutationSummary
 
 
 # --------------------------------------------------------------------------------
@@ -468,8 +467,8 @@ class LayoutLoader(Loader):
             # Find or create experiment layout
             if not row.geid:
                 raise LoaderException('Experiment layout GEID is required on row {}'.format(i))
-            if not row.geid.split('_')[0] == self.project.geid:
-                raise LoaderException('Experiment layout GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
+            #if not row.geid.split('_')[0] == self.project.geid:
+            #    raise LoaderException('Experiment layout GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
             layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
                 layout = ExperimentLayout(project=self.project)
@@ -521,8 +520,8 @@ class LayoutLoader(Loader):
             experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
             if not experiment_layout:
                 raise LoaderException('Experiment layout GEID {} is required for plate GEID {}'.format(row.experiment_layout_geid, row.geid))
-            if not row.geid.split('_')[0] == self.project.geid:
-                raise LoaderException('Plate GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
+            #if not row.geid.split('_')[0] == self.project.geid:
+            #    raise LoaderException('Plate GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
             plate = Plate(experiment_layout=experiment_layout)
             plate.geid = row.geid
             plate.barcode = row.plate_barcode
@@ -796,157 +795,3 @@ class VariantLoader(Loader):
     def load(self):
         self.load_sheet('SNVs', 'SNV')
         self.load_sheet('Indels', 'INDEL')
-
-
-# --------------------------------------------------------------------------------
-# MutationLoader class
-# --------------------------------------------------------------------------------
-class MutationLoader(Loader):
-
-    def __init__(self, session, project_geid):
-        self.log = logging.getLogger(__name__)
-        self.session = session
-        self.project_geid = project_geid
-
-    def clean(self):
-        # Might be better:
-        # https://stackoverflow.com/questions/39773560/sqlalchemy-how-do-you-delete-multiple-rows-without-querying
-        mutations = self.session.query(MutationSummary).\
-                    join(SequencingLibraryContent).\
-                    join(Well).\
-                    join(ExperimentLayout).\
-                    join(Project).\
-                    filter(Project.geid == self.project_geid).\
-                    all()
-        for m in mutations:
-            self.session.delete(m)
-        self.session.flush()
-        self.log.info('Deleted {} mutation summaries'.format(len(mutations)))
-
-    def _get_mutations_(self, well, variant_results, variant_caller='VarDict', allele_fraction_threshold=0.1):
-        mutations = []
-        nb_variants = 0
-        mutations_has_off_target = False
-        for variant in variant_results:
-            # select INDEL variants only from VarDict caller with allele_fraction above 0.1
-            if variant.variant_caller == variant_caller and variant.variant_type == 'INDEL' and variant.allele_fraction > allele_fraction_threshold:
-                nb_variants += 1
-                self.log.info('--- variant: {} {} {}'.format(variant.variant_caller, variant.variant_type, variant.allele_fraction))
-                # check amplicon and allele are on the same chromosome
-                if not variant.amplicon.split('_')[1] == variant.chromosome:
-                    raise ValueError('Amplicon on {} and variant on {}'.format(variant.amplicon.split('_')[1], variant.chromosome))
-                if len(well.well_content.guides) == 1:
-                    # find which cut sites match the variant
-                    guide = well.well_content.guides[0]
-                    matched_amplicon_selection = None
-                    for amplicon_selection in guide.amplicon_selections:
-                        if variant.chromosome.endswith(amplicon_selection.amplicon.chromosome) and variant.position >= amplicon_selection.amplicon.start and variant.position <= amplicon_selection.amplicon.end:
-                            matched_amplicon_selection = amplicon_selection
-                            if not amplicon_selection.is_on_target:
-                                mutations_has_off_target = True
-                    if matched_amplicon_selection:
-                        # select mutation only if within the amplicon range
-                        mutations.append(variant)
-                elif len(well.well_content.guides) > 1:
-                    raise LoaderException('More than one associated guide, {} found. Cannot calculate the score.'.format(len(well.well_content.guides)))
-        return mutations, nb_variants, mutations_has_off_target
-
-    def _characterise_mutations_(self, mutations, nb_variants):
-        # caracterise the mutations
-        mutation_zygosity = None
-        mutation_consequence = None
-        if len(mutations) == nb_variants:
-            if len(mutations) > 0:
-                if len(mutations) == 1:
-                    if mutations[0].allele_fraction > 0.85:
-                        mutation_zygosity = 'homo'
-                    elif mutations[0].allele_fraction < 0.85 and mutations[0].allele_fraction > 0.35:
-                        mutation_zygosity = 'smut'
-                    else:
-                        mutation_zygosity = 'iffy'
-                elif len(mutations) == 2:
-                    if mutations[0].allele_fraction < 0.85 and mutations[0].allele_fraction > 0.35 and mutations[1].allele_fraction < 0.85 and mutations[1].allele_fraction > 0.35:
-                        mutation_zygosity = 'dmut'
-                    else:
-                        mutation_zygosity = 'iffy'
-                else:
-                    mutation_zygosity = 'iffy'
-                mutation_consequence = ':'.join(set([m.consequence for m in mutations]))
-        else:
-            mutation_zygosity = 'warn'
-            self.log.warning('*** Number of mutations ({}) is not the same as number of variants ({})'.format(len(mutations), nb_variants))
-        return mutation_zygosity, mutation_consequence
-
-    def _characterise_variant_caller_presence(self, vardict_zygosity, haplo_zygosity):
-        if vardict_zygosity and not haplo_zygosity:
-            return 'V-'
-        if haplo_zygosity and not vardict_zygosity:
-            return '-H'
-        if vardict_zygosity == haplo_zygosity:
-            return 'VH'
-        return 'V?'
-
-    def _get_score_(self, has_off_target, consequence, zygosity):
-        """
-        weighted score 70 for has_off_target, 10 for consequence, 10 for zygosity
-        and 10 for protein 800/100 ratio
-        """
-        score = 0
-        if zygosity == 'warn':
-            return 0
-        if not has_off_target:
-            score += 70*100
-        if consequence:
-            if 'frameshift' in consequence:
-                score += 10*100
-        if zygosity == 'dmut':
-            score += 10*80
-        elif zygosity == 'homo':
-            score += 10*15
-        elif zygosity == 'smut':
-            score += 10*5
-        return score
-
-    def _create_summary_(self, sequencing_library_content, zygosity, caller_presence, consequence, has_off_target):
-        summary = MutationSummary(sequencing_library_content=sequencing_library_content)
-        summary.zygosity = zygosity
-        summary.consequence = consequence
-        summary.has_off_target = has_off_target
-        summary.score = self._get_score_(has_off_target, consequence, zygosity)
-        if consequence:
-            summary.has_frameshift = True if 'frameshift' in consequence else False
-        summary.variant_caller_presence = caller_presence
-        self.session.add(summary)
-        self.log.info('    Mutation added: {}\t{}\t{}'.format(summary.zygosity, summary.has_off_target, summary.consequence))
-
-    def load(self):
-        results = self.session.query(SequencingLibraryContent)\
-                              .join(SequencingLibraryContent.well)\
-                              .join(Well.well_content)\
-                              .join(Well.experiment_layout)\
-                              .join(ExperimentLayout.project)\
-                              .filter(Project.geid == self.project_geid)\
-                              .all()
-        for sequencing_library_content in results:
-            well = sequencing_library_content.well
-            layout = well.experiment_layout
-            self.log.info('--- [{} {} {}{}] sample: {}\t{}'.format(layout.project.geid, layout.geid, well.row, well.column, sequencing_library_content.sequencing_sample_name, sequencing_library_content.sequencing_barcode))
-
-            # VarDict
-            # allele_fraction set to default (0.1) to get list of mutations
-            mutations, nb_variants, mhot = self._get_mutations_(well, sequencing_library_content.variant_results, 'VarDict')
-            # allele_fraction set to zero to detect off target
-            m, nbv, mutations_has_off_target = self._get_mutations_(well, sequencing_library_content.variant_results, 'VarDict', 0)
-            mutation_zygosity, mutation_consequence = self._characterise_mutations_(mutations, nb_variants)
-
-            # HaplotypeCaller
-            haplo_mutations, haplo_nb_variants, mhot = self._get_mutations_(well, sequencing_library_content.variant_results, 'HaplotypeCaller')
-            m, nbv, haplo_mutations_has_off_target = self._get_mutations_(well, sequencing_library_content.variant_results, 'VarDict', 0)
-            haplo_mutation_zygosity, haplo_mutation_consequence = self._characterise_mutations_(haplo_mutations, haplo_nb_variants)
-
-            variant_caller_presence = self._characterise_variant_caller_presence(mutation_zygosity, haplo_mutation_zygosity)
-
-            if mutation_zygosity:
-                self._create_summary_(sequencing_library_content, mutation_zygosity, variant_caller_presence, mutation_consequence, mutations_has_off_target)
-            elif haplo_mutation_zygosity:
-                self._create_summary_(sequencing_library_content, haplo_mutation_zygosity, variant_caller_presence, haplo_mutation_consequence, haplo_mutations_has_off_target)
