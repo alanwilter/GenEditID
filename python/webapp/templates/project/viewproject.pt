@@ -23,7 +23,6 @@
         <li role="presentation" class="active"><a role="tab" data-toggle="tab" aria-controls="overview" href="#overview">Overview</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="reads" href="#reads">Reads</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="variants" href="#variants">Variants</a></li>
-        <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="plots" href="#plots">Plots</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="scores" href="#scores">Scores</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="help" href="#help">Help</a></li>
       </ul>
@@ -67,13 +66,22 @@
 
         <!-- Reads section ************************************************* -->
         <div role="tabpanel" class="tab-pane" id="reads">
-          <h3>Reads counts</h3>
-
+          <h3>Reads</h3>
+          <h4>Amplicon Read Coverage plot(s)</h4>
+          <div tal:condition="coverageplot">
+              ${structure: coverageplot}
+          </div>
+          <h4>Amplicon Read Coverage in table</h4>
         </div>
 
         <!-- Variants section ********************************************** -->
         <div role="tabpanel" class="tab-pane" id="variants">
           <h3>Variants</h3>
+          <h4>Variant Impact Frequency plot(s)</h4>
+          <div tal:condition="impactplot">
+              ${structure: impactplot}
+          </div>
+          <h4>Variant Impact Frequency in table</h4>
           <table id="vvariantdatatable" class="table table-hover table-condensed">
               <thead>
                   <th tal:repeat="header vvariant_data_table_headers">${header}</th>
@@ -84,42 +92,21 @@
           </table>
         </div>
 
-        <!-- Plots section ************************************************* -->
-        <div role="tabpanel" class="tab-pane" id="plots">
-          <h3>Plots</h3>
-          <div tal:condition="coverageplot">
-              <h4>Coverage</h4>
-              ${structure: coverageplot}
-          </div>
-
-          <div tal:condition="impactplot">
-              <h4>impact</h4>
-              ${structure: impactplot}
-          </div>
-          
-          
-          <div tal:condition="proteinabundanceplot">
-              <h4>Protein Abundance</h4>
-              ${structure: proteinabundanceplot}
-          </div>
-
-          <div tal:condition="ngsplot">
-            <h4>Sequencing</h4>
-            ${structure: ngsplot}
-          </div>
-
-        </div>
-
-        <!-- Sample analysis section *************************************** -->
+        <!-- Scores section ************************************************ -->
         <div role="tabpanel" class="tab-pane" id="scores">
           <h3>Scores</h3>
-          <h4>Scores on plate(s)</h4>
-          <!--
-          <div tal:condition="platescoringplot">
-            ${structure: platescoringplot}
+          <h4>KO Scores on plate(s)</h4>
+          <div tal:condition="heatmapplot">
+              ${structure: heatmapplot}
           </div>
-          -->
-
+          <h4>Protein Expression Scores on plate(s)</h4>
+          <div tal:condition="heatmapplot">
+              ${structure: heatmapplot}
+          </div>
+          <h4>KO Scores on plate(s)</h4>
+          <div tal:condition="heatmapplot">
+              ${structure: heatmapplot}
+          </div>
           <h4>Scores in table</h4>
           <table id="sampledatatable" class="table table-hover table-condensed">
               <thead>
@@ -133,8 +120,8 @@
 
         <!-- Help section ************************************************** -->
         <div role="tabpanel" class="tab-pane" id="help">
-          <h3>Scoring system</h3>
-          To be written...
+          <h3>Help</h3>
+          The analysis steps are detailed on <a target="blank" href="https://geneditid.github.io/manual.html">the manual of the GenEditID's web page</a>.
         </div>
       </div>
 

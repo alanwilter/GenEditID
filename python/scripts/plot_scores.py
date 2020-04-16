@@ -3,7 +3,7 @@ import glob
 import os
 import plotly.graph_objs as go
 import plotly.offline as py
-from plotly import tools
+from plotly import subplots
 
 
 def main():
@@ -43,17 +43,12 @@ def main():
                 name=i,  # i is the plate_id
                 mode='markers',
                 marker=dict(
-                    size='20',  # dot size
+                    size=20,  # dot size
                     color=grouped_data['koscore'].tolist(),  # assign a color based on score
-                    showscale=True,  # if nloop == 1 else False,
+                    showscale=True, 
                     colorscale='Blues',
-                    reversescale=True,
                     cmin=0,  # min value of the colorscale
                     cmax=1,  # max value of the colorscale
-                    # colorbar={  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
-                    #     'lenmode': "fraction",
-                    #     'len': 0.6
-                    # }
                 ),
                 # hover text
                 text=hovertext,
@@ -65,7 +60,7 @@ def main():
         plotheight = numberofplates*400  # calculation of total plot height, see comment further down
         # create figure
         subplottitles = [i for i, j in df_koscores_groupby]
-        figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in dataplots:
             i += 1
@@ -172,7 +167,7 @@ def main():
         plotheight = numberofplates*400  # calculation of total plot height, see comment further down
         # create figure for protein expression
         subplottitles = [i for i, j in df_protein_expression_groupby]
-        figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in dataplots:
             i += 1
@@ -193,7 +188,7 @@ def main():
         py.plot(figure, filename=os.path.join(varianid_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
 
         # create figure for combined plot
-        combined_figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in combined_dataplots:
             i += 1

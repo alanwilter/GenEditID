@@ -20,7 +20,7 @@
         </p>
         <h2>Edit Project: ${project.geid}</h2>
 
-        <!-- Project datils ************************************************** -->
+        <!-- Project details ************************************************* -->
         <h4>Project Details</h4>
         <table id="projecttable" class="table table-hover table-condensed">
             <thead>

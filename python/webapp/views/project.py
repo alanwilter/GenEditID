@@ -30,8 +30,6 @@ from dnascissors.model import SequencingLibraryContent
 from dnascissors.model import Well
 
 from webapp.plots.plotter import Plotter
-from webapp.plots.ngsplotter import NGSPlotter
-
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
 # File uploads: http://docs.pylonsproject.org/projects/pyramid-cookbook/en/latest/forms/file_uploads.html
@@ -57,6 +55,7 @@ class ProjectViews(object):
         project_headers = [
             "geid",
             "name",
+            "folder",
             "type",
             "scientist",
             "group",
@@ -68,6 +67,7 @@ class ProjectViews(object):
             "ngs data"]
         project_rows = [[project.geid,
                         project.name,
+                        project.project_folder,
                         project.project_type,
                         project.scientist,
                         project.group,
@@ -135,7 +135,6 @@ class ProjectViews(object):
         id = self.request.matchdict['projectid']
         project = self.dbsession.query(Project).filter(Project.id == id).one()
         plotter = Plotter(self.dbsession, project.geid)
-        ngsplotter = NGSPlotter(self.dbsession, project.geid)
         # Project table
         project_headers, project_rows = self.get_project_table(project)
         # Target table
@@ -221,12 +220,6 @@ class ProjectViews(object):
                     row_odict['sample'] = slc.sequencing_sample_name
                     row_odict['barcode'] = slc.sequencing_barcode
                     row_odict['dna source'] = slc.dna_source
-                    if slc.mutation_summaries:
-                        row_odict['zygosity'] = slc.mutation_summaries[0].zygosity
-                        row_odict['consequence'] = slc.mutation_summaries[0].consequence
-                        row_odict['has off-target'] = slc.mutation_summaries[0].has_off_target
-                        row_odict['variant caller presence'] = slc.mutation_summaries[0].variant_caller_presence
-                        row_odict['score'] = slc.mutation_summaries[0].score
                 if well.abundances:
                     if well.abundances[0].ratio_800_700:
                         row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
@@ -238,12 +231,6 @@ class ProjectViews(object):
         return dict(project=project,
                     title="GenEditID",
                     subtitle="Project: {}".format(project.geid),
-                    #cellgrowthplot=plotter.growth_plot(),
-                    coverageplot=plotter.coverage_plot(),
-                    impactplot=plotter.impact_plot(),
-                    proteinabundanceplot=plotter.abundance_plot(),
-                    ngsplot=ngsplotter.combined_ngs_plot(),
-                    platescoringplot=plotter.plate_scoring_plots(),
                     project_headers=project_headers,
                     project_rows=project_rows,
                     target_headers=target_headers,
@@ -253,7 +240,10 @@ class ProjectViews(object):
                     vvariant_data_table_headers=vvariant_data_table_headers,
                     vvariant_data_table_rows=vvariant_data_table_rows,
                     sample_data_table_headers=sample_data_table_headers,
-                    sample_data_table_rows=sample_data_table_rows
+                    sample_data_table_rows=sample_data_table_rows,
+                    coverageplot=plotter.coverage_plot(),
+                    impactplot=plotter.variant_impact_plot(),
+                    heatmapplot=plotter.heatmap_plot(),
                     )
 
     @view_config(route_name="project_edit", renderer="../templates/project/editproject.pt")
@@ -293,6 +283,7 @@ class ProjectViews(object):
                 loader.load_project_data(project.id)
                 self.dbsession.commit()
                 url = self.request.route_url('project_edit', projectid=project.id)
+                shutil.copyfile(file_path, os.path.join(project.project_folder, "{}.xlsx".format(project.geid)))
                 return HTTPFound(url)
             except LoaderException as e:
                 self.dbsession.rollback()
@@ -398,7 +389,7 @@ class ProjectViews(object):
             if not filedata:
                 return None
             self.logger.debug("Uploaded = %s" % filename)
-            file_path = os.path.join('uploads/', "{}{}".format(uuid.uuid4(), suffix))
+            file_path = os.path.join('uploads', "{}{}".format(uuid.uuid4(), suffix))
             temp_file_path = file_path + '~'
             filedata.seek(0)
             with open(temp_file_path, 'wb') as output_file:

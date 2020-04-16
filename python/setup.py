@@ -18,7 +18,7 @@ install_requires = [
     'xlrd',
     'pandas',
     # plots
-    'plotly==2.0.12',
+    'plotly==4.6.0',
     'colorlover',
     # webapp
     'pyramid',
