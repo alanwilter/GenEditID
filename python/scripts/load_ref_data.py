@@ -10,7 +10,7 @@ import log as logger
 
 def main():
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_ref_data.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'load_ref_data.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine

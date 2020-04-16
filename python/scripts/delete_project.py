@@ -10,7 +10,7 @@ import log as logger
 
 def main():
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'delete_project.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'delete_project.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine
@@ -22,6 +22,7 @@ def main():
         session.delete(project)
         session.flush()
         session.commit()
+        log.info('Project {} deleted'.format(sys.argv[1]))
     except Exception as e:
         log.exception(e)
         session.rollback()

@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--clean", dest="clean", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_cell_growth.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'load_cell_growth.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine

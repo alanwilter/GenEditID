@@ -2,11 +2,6 @@ import os
 import logging
 import logging.config
 
-HOST = 'smtp.cruk.cam.ac.uk'
-FROM = 'anne.pajon@cruk.cam.ac.uk'
-TO = 'anne.pajon@cruk.cam.ac.uk'
-SUBJECT = '[ERROR] Genome Editing Project'
-
 # logging definition
 LOGGING = {
     'version': 1,
@@ -33,27 +28,10 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose',
         },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'errors.log',
-            'maxBytes': 1000000,
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'email': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.SMTPHandler',
-            'mailhost': HOST,
-            'fromaddr': FROM,
-            'toaddrs': [TO],
-            'subject': SUBJECT,
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'dnascissors': {
-            'handlers': ['console', 'info_file', 'error_file'],
+            'handlers': ['console', 'info_file'],
             'propagate': True,
             'level': 'DEBUG',
         },
@@ -61,15 +39,12 @@ LOGGING = {
 }
 
 
-def get_custom_logger(logfile=None, noemail=True):
+def get_custom_logger(logfile=None):
     if logfile:
         logdir = os.path.dirname(logfile)
-        if logdir != "":
+        if not logdir:
             if not os.path.exists(logdir):
                 os.makedirs(logdir)
         LOGGING['handlers']['info_file']['filename'] = logfile
-        LOGGING['handlers']['error_file']['filename'] = logfile + ".errors"
-    if not noemail:
-        LOGGING['loggers']['dnascissors']['handlers'].append('email')
     logging.config.dictConfig(LOGGING)
     return logging.getLogger('dnascissors')

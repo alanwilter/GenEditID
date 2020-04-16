@@ -48,7 +48,7 @@ def main():
     parser.add_argument("--genome", dest="refgenome", action="store", help="The reference genome fasta file e.g. 'Homo_sapiens.GRCh38.dna.toplevel.fa'", required=True)
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'create_config.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'create_config.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine
