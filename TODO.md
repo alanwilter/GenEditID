@@ -13,7 +13,7 @@
   - [ ] add fastq files into test data folder
 
 - Add new plots to the WebApp
-  - [ ] Make subplot working
+  - [x] Make subplot working
   - [ ] Update WebApp interface to reflect changes
   - [ ] Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
   - [ ] Update the plotting scripts to call the code from the WebApp to avoid code duplication
@@ -157,12 +157,12 @@ INFO:pyensembl.sequence_data:Loaded sequence dictionary from /Users/pajanne/Libr
 INFO:pyensembl.sequence_data:Loaded sequence dictionary from /Users/pajanne/Library/Caches/pyensembl/GRCh38/ensembl95/Homo_sapiens.GRCh38.pep.all.fa.gz.pickle
 Creating Amplicon Read Coverage plot for chr16_54931181
 ```
-- Check results in `editid_variantid/variantid.csv` and `editid_variantid/impacts.csv` and plots
-  - `editid_variantid/coverage_chr16_54931181.html`
-  - `editid_variantid/koscores_chr16_54931181.html`
+- Check results in `geneditid_plots/variantid.csv` and `geneditid_plots/impacts.csv` and plots
+  - `geneditid_plots/coverage_chr16_54931181.html`
+  - `geneditid_plots/koscores_chr16_54931181.html`
 
   ```
-  cat editid_variantid/variantid.csv
+  cat geneditid_plots/variantid.csv
   sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,variant_id,variant_type,variant_consequence,variant_score
   FLD0018,chr16_54931181,255430,170277,96494,73610,173,18932,47091,48.8,CCATGCCCGTGTGTGGCCATGTCCTATCCGCAGGGCTACTTGTACCAGCCGTCCGCCTCGCTTGGCGCTCTACTCGTGCCCGGCGTACAGCACCAGCGTCATTTCGGGGCCCCGCACGGATGAGCTCGGCCGCTCTTCTTCGGGCTCCGCGTTCTCGCCCTACGCTGGCTCGACTGCCTTCACGGCGCCCTCGCCGGGCTACAACTCGCACCTCCA,var1,Insertion,FrameShift,48.8
   FLD0018,chr16_54931181,255430,170277,96494,73610,173,18932,17682,18.32,CCATGCCCGTGTGTGCCAATTATGGGACTTACCCACCCAGATTTAGACATAGGTCAGTGGAACTGACCCTAAGAAGAGGCAGCAATATAGGTAAGAATGAAAGCTAAGGCACATCTAACAGCCATCCATGGGTGGGGAGGGCTACAACTCGCACCTCCA,var2,Insertion_Deletion_Mismatch,ComplexFrameShift,16.488
@@ -172,7 +172,7 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   ```
 
   ```
-  cat editid_variantid/impacts.csv
+  cat geneditid_plots/impacts.csv
   sample_id,amplicon_id,impact,impact_frequency
   FLD0018,chr16_54931181,HighImpact,48.8
   FLD0018,chr16_54931181,MediumImpact,18.32
@@ -194,7 +194,7 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   ```
 
 - Visualise plots in your browser
-  - `editid_variantid/heatmap_chr16_54931181.html`
+  - `geneditid_plots/heatmap_chr16_54931181.html`
 
 
 # Issue with large uncompressed genome file needed to identify coordinates of amplicon

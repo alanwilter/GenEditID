@@ -9,8 +9,8 @@ from Bio import pairwise2
 from varcode import Variant
 from pyensembl import ensembl_grch38   # pyensembl install --release 95 --species homo_sapiens
 
-import plotly.graph_objs as go
 import plotly.offline as py
+import plotly.graph_objs as go
 from plotly import subplots
 
 from geneditid.config import cfg
@@ -20,13 +20,17 @@ from geneditid.model import Base
 class Plotter:
 
     def __init__(self, dbsession, project_geid):
+        self.log = logging.getLogger(__name__)
+
         self.include_js = False
         self.dbsession = dbsession
         self.project_geid = project_geid
 
+        self.log.info('Plots for project {}'.format(self.project_geid))
+
         # Folders setup
         self.project_folder = os.path.join(cfg['PROJECTS_FOLDER'], self.project_geid)
-        self.plots_folder = os.path.join(self.project_folder, 'editid_variantid')
+        self.plots_folder = os.path.join(self.project_folder, 'geneditid_plots')
         if not os.path.exists(self.plots_folder):
             os.mkdir(self.plots_folder)
 
@@ -207,7 +211,7 @@ class Plotter:
         self.df_variants.to_csv(os.path.join(self.plots_folder, 'variantid.csv'), index=False)
 
 
-    def coverage_plot(self, coverage_file=None):
+    def coverage_plot(self, coverage_file='coverage.html'):
         if not self.df_variants_is_valid():
             return
 
@@ -219,43 +223,42 @@ class Plotter:
         }
         MAX_READS = self.df_amplicons.loc[self.df_amplicons['amplicon_reads'].idxmax()]['amplicon_reads']
 
+        # Plot titles
+        titles = []
+        for i, amplicon in self.amplicons.iterrows():
+            titles.append('Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']))
+
+        # Initialize figure with subplots
+        fig = subplots.make_subplots(rows=len(self.amplicons), cols=1, subplot_titles=titles)
+
+        # Loop over all amplicons
         for i, amplicon in self.amplicons.iterrows():
             df_coverage = self.df_amplicons[self.df_amplicons['amplicon_id'] == amplicon['amplicon_id']].copy()
             df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
 
-            #print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
-            data = []
+            # Only show legend once
+            showlegend=False
+            if i == 0:
+                showlegend=True
+
             for name in ['amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
-                trace = {
-                    'x': df_coverage[name],
-                    'y': df_coverage['sample_id'],
-                    'name': ' '.join(name.split('_')[1:]),
-                    'type': 'bar',
-                    'orientation': 'h',
-                    'marker': {
-                    'color': COLORS[name]
-                    },
-                }
-                data.append(trace)
+                trace = go.Bar(x=df_coverage[name],
+                               y=df_coverage['sample_id'],
+                               name=' '.join(name.split('_')[1:]),
+                               orientation='h',
+                               marker={'color': COLORS[name]},
+                               showlegend=showlegend,
+                              )
+                fig.append_trace(trace, i+1, 1)
 
-            layout = go.Layout( {'barmode': 'stack',
-                      'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
-                      #'xaxis': {'title': 'number of reads'},  # for project GEP00005
-                      'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
-                      'yaxis': {'title': 'samples', 'dtick': 1}},
-                       autosize=False,
-                       width=800,
-                       height=500)
-
-            figure = go.Figure(data=data, layout=layout)
-        output_type = "file"
-        if not coverage_file:
-            output_type = "div"
-            coverage_file = "coverage_{}.html".format(self.project_geid)
-        return py.plot(figure, filename=coverage_file, auto_open=False, show_link=False, include_plotlyjs=self.include_js, output_type=output_type)
+        fig.update_layout(barmode='stack', height=800*len(self.amplicons), width=1200,)
+        fig.update_xaxes({'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]})
+        fig.update_yaxes({'title': 'samples', 'dtick': 1})
+        fig.write_html(file=os.path.join(self.plots_folder, coverage_file), auto_play=False)
+        return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
-    def variant_impact_plot(self, impact_file=None):
+    def variant_impact_plot(self, impact_file='koscores.html'):
         if not self.df_variants_is_valid():
             return
 
@@ -277,6 +280,16 @@ class Plotter:
         df_impacts = df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
         df_impacts.drop_duplicates(inplace=True)
         df_impacts.to_csv(os.path.join(self.plots_folder, 'impacts.csv'), index=False)
+
+        # Plot titles
+        titles = []
+        for i, amplicon in self.amplicons.iterrows():
+            titles.append('Variant Impact Frequency for {}'.format(amplicon['amplicon_id']))
+
+        # Initialize figure with subplots
+        fig = subplots.make_subplots(rows=len(self.amplicons), cols=1, subplot_titles=titles)
+
+        # Loop over all amplicons
         for i, amplicon in self.amplicons.iterrows():
             data = []
             df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
@@ -289,33 +302,27 @@ class Plotter:
             pivot_df_impacts_per_amplicon['koscore'] = pivot_df_impacts_per_amplicon.apply(self.calculate_score, axis=1)
             pivot_df_impacts_per_amplicon.sort_values(by=['koscore'], ascending=[True], inplace=True)
             pivot_df_impacts_per_amplicon.to_csv(os.path.join(self.plots_folder, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
-            for name in ['HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency']:
-                trace = {
-                    'x': pivot_df_impacts_per_amplicon[name],
-                    'y': pivot_df_impacts_per_amplicon['sample_id'],
-                    'name': name,
-                    'type': 'bar',
-                    'orientation': 'h',
-                    'marker': {
-                        'color': VCOLORS[name]
-                    }
-                }
-                data.append(trace)
-            layout =  go.Layout ({'barmode': 'stack',
-                      'title': 'Variant Impact Frequency for {}'.format(amplicon['amplicon_id']),
-                      'xaxis': {'title': 'frequency'},
-                      'yaxis': {'title': 'samples'}},
-                      autosize=False,
-                      width=800,
-                      height=500
-                      )
 
-            figure = go.Figure(data=data, layout=layout)
-            output_type = "file"
-            if not impact_file:
-                output_type = "div"
-                impact_file = "koscores_{}.html".format(self.project_geid)
-            return py.plot(figure, filename=impact_file, auto_open=False, show_link=False, include_plotlyjs=self.include_js, output_type=output_type)
+            # Only show legend once
+            showlegend=False
+            if i == 0:
+                showlegend=True
+
+            for name in ['HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency']:
+                trace = go.Bar(x=pivot_df_impacts_per_amplicon[name],
+                               y=pivot_df_impacts_per_amplicon['sample_id'],
+                               name=name,
+                               orientation='h',
+                               marker={'color': VCOLORS[name]},
+                               showlegend=showlegend,
+                              )
+                fig.append_trace(trace, i+1, 1)
+
+        fig.update_layout(barmode='stack', height=800*len(self.amplicons), width=1200,)
+        fig.update_xaxes({'title': 'frequency'})
+        fig.update_yaxes({'title': 'samples', 'dtick': 1})
+        fig.write_html(file=os.path.join(self.plots_folder, impact_file), auto_play=False)
+        return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
     def heatmap_plot(self, heatmap_file=None):
@@ -324,11 +331,11 @@ class Plotter:
 
         # TODO: Currently reading data from file - Need to get the data from database
         template = pandas.read_csv(os.path.join('data', 'templates', 'template_96wellplate.csv'))
-        varianid_folder = os.path.join('data', 'GEP00001', 'editid_variantid')
+        plots_folder = os.path.join('data', 'GEP00001', 'editid_variantid')
 
         df_all_koscores = pandas.DataFrame()
 
-        for file in glob.glob(os.path.join(varianid_folder, 'koscores_*_with_plate_location.csv')):
+        for file in glob.glob(os.path.join(plots_folder, 'koscores_*_with_plate_location.csv')):
             amplicon = file.split('koscores_')[1].split('_with_plate_location')[0]
             print(amplicon)
             df_koscores = pandas.read_csv(file)
@@ -407,7 +414,7 @@ class Plotter:
             df_protein_expression = df_protein_expression.merge(df_all_koscores, left_on=['plate_id', 'well', 'sample_id'], right_on=['plate_id', 'well', 'sample_id'], how='left')
             df_protein_expression.fillna(value=0, inplace=True)
             df_protein_expression['combined_score'] = df_protein_expression['norm_protein_abundance']*df_protein_expression['koscore']
-            df_protein_expression.to_csv(os.path.join(varianid_folder, 'expression_data_normalised_and_combined.csv'), index=False)
+            df_protein_expression.to_csv(os.path.join(plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
             df_protein_expression_groupby = df_protein_expression.groupby(['plate_id'])
             # construct the list of data plots
             dataplots = []
@@ -494,7 +501,7 @@ class Plotter:
             # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
             # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
             figure.layout.update(dict(title='Protein expression scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(figure, filename=os.path.join(varianid_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+            py.plot(figure, filename=os.path.join(plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
 
             # create figure for combined plot
             combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
@@ -515,28 +522,4 @@ class Plotter:
             # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
             # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
             combined_figure.layout.update(dict(title='Combined scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(combined_figure, filename=os.path.join(varianid_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
-
-
-def main():
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                        datefmt='%m-%d %H:%M')
-    engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
-    Base.metadata.bind = engine
-    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = DBSession()
-    try:
-        plotter = Plotter(session, 'GEP00001')
-        plotter.include_js = True
-        plotter.coverage_plot("coverage.html")
-        plotter.variant_impact_plot("koscores.html")
-        plotter.heatmap_plot("heatmap.html")
-
-    except Exception as e:
-        logging.exception(e)
-    finally:
-        session.close()
-
-if __name__ == '__main__':
-    main()
+            py.plot(combined_figure, filename=os.path.join(plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)

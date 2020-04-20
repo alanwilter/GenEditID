@@ -30,7 +30,7 @@ install_requires = [
     'transaction',
     'zope.sqlalchemy',
     'waitress',
-    # amplicount and varianid analysis
+    # amplicount and variantid analysis
     'pyfaidx',
     'biopython',
     'varcode'

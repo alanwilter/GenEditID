@@ -29,7 +29,7 @@ from geneditid.model import Project
 from geneditid.model import SequencingLibraryContent
 from geneditid.model import Well
 
-from geneditidapp.plots.plotter import Plotter
+from geneditid.plotter import Plotter
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
 # File uploads: http://docs.pylonsproject.org/projects/pyramid-cookbook/en/latest/forms/file_uploads.html
