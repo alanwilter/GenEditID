@@ -1,8 +1,10 @@
 import os
 import sys
 import math
-import plotly.offline as py
 import pandas
+import plotly.offline as py
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 def main():
     # Load variants
@@ -26,35 +28,44 @@ def main():
     }
     MAX_READS = df_amplicons.loc[df_amplicons['amplicon_reads'].idxmax()]['amplicon_reads']
 
+    titles = []
+    for i, amplicon in amplicons.iterrows():
+        titles.append('Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']))
+
+    # Initialize figure with subplots
+    fig = make_subplots(rows=len(amplicons), cols=1, subplot_titles=titles)
+
+    # Loop over all amplicons
     for i, amplicon in amplicons.iterrows():
         df_coverage = df_amplicons[df_amplicons['amplicon_id'] == amplicon['amplicon_id']].copy()
         df_coverage.sort_values(by=['amplicon_filtered_reads'], inplace=True)
 
-        # *** Plotting instruction starts - plot one barplot per amplicon into a separate file
-        print('Creating Amplicon Read Coverage plot for {}'.format(amplicon['amplicon_id']))
-        data = []
+        # Only show legend once
+        showlegend=False
+        if i == 0:
+            showlegend=True
+
         for name in ['amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
-            trace = {
-                'x': df_coverage[name],
-                'y': df_coverage['sample_id'],
-                'name': ' '.join(name.split('_')[1:]),
-                'type': 'bar',
-                'orientation': 'h',
-                'marker': {
-                    'color': COLORS[name]
-                }
-            }
-            data.append(trace)
+            trace = go.Bar(x=df_coverage[name],
+                           y=df_coverage['sample_id'],
+                           name=' '.join(name.split('_')[1:]),
+                           orientation='h',
+                           marker={'color': COLORS[name]},
+                           showlegend=showlegend,
+                          )
+            fig.append_trace(trace, i+1, 1)
 
-        layout = {'barmode': 'stack',
-                  'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
-                  'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
-                  'yaxis': {'title': 'samples'}}
+    layout = {'barmode': 'stack',
+              'title': 'Amplicon Read Coverage for {}'.format(amplicon['amplicon_id']),
+              'xaxis': {'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]},
+              'yaxis': {'title': 'samples'}}
 
-        py.plot({'data': data, 'layout': layout}, filename='coverage_{}.html'.format(amplicon['amplicon_id']), auto_open=False)
-        # *** Plotting instuction ends
+    fig.update_layout(barmode='stack', height=800*len(amplicons), width=1200,)
+    fig.update_xaxes({'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]})
+    fig.update_yaxes({'title': 'samples', 'dtick': 1})
 
-    # TODO: plot all bar plots onto one plot using subplots into one file coverage.html
+    py.plot(fig, filename='coverage.html', auto_open=False)
+
 
 if __name__ == '__main__':
     main()

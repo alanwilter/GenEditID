@@ -9,17 +9,19 @@
 - Create proper test data
   - [x] select 3 FastQ files
   - [x] run all analysis steps on these 3 files only
-  - [ ] improve setup for testing
+  - [x] improve setup for testing
+  - [ ] add fastq files into test data folder
 
 - Add new plots to the WebApp
+  - [ ] Make subplot working
   - [ ] Update WebApp interface to reflect changes
   - [ ] Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
   - [ ] Update the plotting scripts to call the code from the WebApp to avoid code duplication
 
+- [ ] Simplify submission spreadsheet and database
+
 
 # Things to do...
-
-- Simplify submission spreadsheet and database
 
 - Add validation scripts for the parameters chosen for the alignment `pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)`
 - Add validation scripts for variant classification `Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)` `var.effects().top_priority_effect()`
