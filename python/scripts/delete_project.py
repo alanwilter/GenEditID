@@ -2,8 +2,8 @@ import os
 import sys
 import sqlalchemy
 
-from dnascissors.config import cfg
-from dnascissors.model import Base, Project
+from geneditid.config import cfg
+from geneditid.model import Base, Project
 
 import log as logger
 

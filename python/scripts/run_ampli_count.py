@@ -5,7 +5,7 @@ import collections
 import pandas as pd
 import scripts.log as logger
 from Bio import SeqIO
-from dnascissors.config import cfg
+from geneditid.config import cfg
 
 
 def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold):

@@ -1,7 +1,7 @@
 import sqlalchemy
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.model import Target
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.model import Target
 import requests
 import json
 

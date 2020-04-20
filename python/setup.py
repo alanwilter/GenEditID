@@ -20,7 +20,7 @@ install_requires = [
     # plots
     'plotly==4.6.0',
     'colorlover',
-    # webapp
+    # geneditidapp
     'pyramid',
     'pyramid_chameleon',
     'pyramid_jinja2',
@@ -49,7 +49,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         'paste.app_factory': [
-            'main = webapp:main',
+            'main = geneditidapp:main',
         ],
         'console_scripts': [
             'geneditid_create_amplicount_config = scripts.create_ampli_count_conf:main',

@@ -17,19 +17,19 @@ from pyramid.view import view_config
 from json import JSONEncoder
 from sqlalchemy.exc import DBAPIError
 
-from dnascissors.loader import CellGrowthLoader
-from dnascissors.loader import ExistingEntityException
-from dnascissors.loader import LayoutLoader
-from dnascissors.loader import LoaderException
-from dnascissors.loader import ProteinAbundanceLoader
+from geneditid.loader import CellGrowthLoader
+from geneditid.loader import ExistingEntityException
+from geneditid.loader import LayoutLoader
+from geneditid.loader import LoaderException
+from geneditid.loader import ProteinAbundanceLoader
 
-from dnascissors.model import ExperimentLayout
-from dnascissors.model import Plate
-from dnascissors.model import Project
-from dnascissors.model import SequencingLibraryContent
-from dnascissors.model import Well
+from geneditid.model import ExperimentLayout
+from geneditid.model import Plate
+from geneditid.model import Project
+from geneditid.model import SequencingLibraryContent
+from geneditid.model import Well
 
-from webapp.plots.plotter import Plotter
+from geneditidapp.plots.plotter import Plotter
 
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/quick_tutorial/forms.html
 # File uploads: http://docs.pylonsproject.org/projects/pyramid-cookbook/en/latest/forms/file_uploads.html

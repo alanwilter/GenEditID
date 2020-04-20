@@ -89,7 +89,7 @@ source ~/GenEditID/venv/bin/activate
   ```
 
 - Extract amplicons and targets coordinates from the database to produce the config file to run `ampli_count`:
-  NB. We are testing with data files from project GEP00009, so we need to create 8 'fake' projects first in the webapp  and then upload the submission sheet of project GEP00009 (re-do steps 1 and 2) to be able to run the script and get sensible data:
+  NB. We are testing with data files from project GEP00009, so we need to create 8 'fake' projects first in the geneditidapp  and then upload the submission sheet of project GEP00009 (re-do steps 1 and 2) to be able to run the script and get sensible data:
   ```
   geneditid_create_amplicount_config --project=GEP00001 --genome=Homo_sapiens.GRCh38.dna.toplevel.fa
   --- Amplicon #1
@@ -128,12 +128,12 @@ source ~/GenEditID/venv/bin/activate
   ```
   Three files analysed in one hour:
   ```
-  2020-04-02 23:15:10,526 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0018.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-02 23:27:24,464 dnascissors              INFO    : FLD0018,255430,39,96494
-  2020-04-02 23:27:24,758 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0046.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-02 23:48:40,345 dnascissors              INFO    : FLD0046,366226,49,118951
-  2020-04-02 23:48:40,571 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0060.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-03 00:09:30,860 dnascissors              INFO    : FLD0060,313702,52,104464
+  2020-04-02 23:15:10,526 geneditid              INFO    : Counting reads in file SLX-15026.FLD0018.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-02 23:27:24,464 geneditid              INFO    : FLD0018,255430,39,96494
+  2020-04-02 23:27:24,758 geneditid              INFO    : Counting reads in file SLX-15026.FLD0046.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-02 23:48:40,345 geneditid              INFO    : FLD0046,366226,49,118951
+  2020-04-02 23:48:40,571 geneditid              INFO    : Counting reads in file SLX-15026.FLD0060.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-03 00:09:30,860 geneditid              INFO    : FLD0060,313702,52,104464
   ```
 
 - Check results in `amplicount.csv`

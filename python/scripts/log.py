@@ -30,7 +30,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'dnascissors': {
+        'geneditid': {
             'handlers': ['console', 'info_file'],
             'propagate': True,
             'level': 'DEBUG',
@@ -47,4 +47,4 @@ def get_custom_logger(logfile=None):
                 os.makedirs(logdir)
         LOGGING['handlers']['info_file']['filename'] = logfile
     logging.config.dictConfig(LOGGING)
-    return logging.getLogger('dnascissors')
+    return logging.getLogger('geneditid')

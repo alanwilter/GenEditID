@@ -13,8 +13,8 @@ import plotly.graph_objs as go
 import plotly.offline as py
 from plotly import subplots
 
-from dnascissors.config import cfg
-from dnascissors.model import Base
+from geneditid.config import cfg
+from geneditid.model import Base
 
 
 class Plotter:

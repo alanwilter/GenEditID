@@ -3,4 +3,4 @@ cd $BASEDIR
 
 source venv/bin/activate
 echo 'Starting GenEditID WebApp'
-pserve python/webapp/development.ini --reload
+pserve python/geneditidapp/development.ini --reload

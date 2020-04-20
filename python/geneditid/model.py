@@ -3,7 +3,7 @@ Python3 file of the genome-editing project
 Created by Anne Pajon @pajanne on 08/03/2017
 """
 import os
-from dnascissors.config import cfg
+from geneditid.config import cfg
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship

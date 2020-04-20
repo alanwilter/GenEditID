@@ -1,6 +1,6 @@
 import sqlalchemy
-from dnascissors.config import cfg
-from dnascissors.model import Base
+from geneditid.config import cfg
+from geneditid.model import Base
 import scripts.log as logger
 import scripts.run_ampli_find
 from Bio.Seq import Seq

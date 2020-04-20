@@ -5,11 +5,11 @@ import sqlalchemy
 import logging
 import sys
 
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.model import ExperimentLayout
-from dnascissors.model import Project
-from dnascissors.model import Well
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.model import ExperimentLayout
+from geneditid.model import Project
+from geneditid.model import Well
 
 
 class DataExtractor:

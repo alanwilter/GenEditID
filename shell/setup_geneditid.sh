@@ -10,7 +10,7 @@ echo 'Installing GenEditID dependencies'
 pip install -e python/.
 
 echo 'Copying GenEditID configuraton file'
-cp python/dnascissors/geneditid.yml.sample python/dnascissors/geneditid.yml
+cp python/geneditid/geneditid.yml.sample python/geneditid/geneditid.yml
 
 echo 'Creating the GenEditID database and the projects folder'
 python python/scripts/create_db.py
@@ -22,6 +22,6 @@ echo 'Installing Homo Sapiens reference genome'
 pyensembl install --release 95 --species homo_sapiens
 
 echo 'Create symlink to template file for accessing it from the WebApp'
-cd python/webapp/static/
+cd python/geneditidapp/static/
 ln -s ../../../data/templates/GEPXXXXX.xlsx
 cd $BASEDIR

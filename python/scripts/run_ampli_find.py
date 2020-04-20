@@ -1,12 +1,12 @@
 import sqlalchemy
 import os
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.model import Primer
-from dnascissors.model import AmpliconSelection
-from dnascissors.model import Guide
-from dnascissors.model import Target
-from dnascissors.model import Project
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.model import Primer
+from geneditid.model import AmpliconSelection
+from geneditid.model import Guide
+from geneditid.model import Target
+from geneditid.model import Project
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC

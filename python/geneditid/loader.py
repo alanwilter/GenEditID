@@ -7,25 +7,25 @@ import json
 
 from sqlalchemy.orm.exc import NoResultFound
 
-from dnascissors.model import Project
-from dnascissors.model import Genome
-from dnascissors.model import Target
-from dnascissors.model import Guide
-from dnascissors.model import GuideMismatch
-from dnascissors.model import Amplicon
-from dnascissors.model import AmpliconSelection
-from dnascissors.model import Primer
-from dnascissors.model import CellLine
-from dnascissors.model import Clone
-from dnascissors.model import ExperimentLayout
-from dnascissors.model import Plate
-from dnascissors.model import WellContent
-from dnascissors.model import Well
-from dnascissors.model import SequencingLibrary
-from dnascissors.model import SequencingLibraryContent
-from dnascissors.model import CellGrowth
-from dnascissors.model import ProteinAbundance
-from dnascissors.model import VariantResult
+from geneditid.model import Project
+from geneditid.model import Genome
+from geneditid.model import Target
+from geneditid.model import Guide
+from geneditid.model import GuideMismatch
+from geneditid.model import Amplicon
+from geneditid.model import AmpliconSelection
+from geneditid.model import Primer
+from geneditid.model import CellLine
+from geneditid.model import Clone
+from geneditid.model import ExperimentLayout
+from geneditid.model import Plate
+from geneditid.model import WellContent
+from geneditid.model import Well
+from geneditid.model import SequencingLibrary
+from geneditid.model import SequencingLibraryContent
+from geneditid.model import CellGrowth
+from geneditid.model import ProteinAbundance
+from geneditid.model import VariantResult
 
 
 # --------------------------------------------------------------------------------

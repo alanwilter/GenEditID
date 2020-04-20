@@ -16,4 +16,4 @@ DATABASE_URI: "sqlite:///geneditid.sqlite"
 ################################################################################
 ### project data folder
 ################################################################################
-PROJECTS_FOLDER: "GEPIDs"
+PROJECTS_FOLDER: "PROJECTS"
