@@ -2,7 +2,7 @@ import sqlalchemy
 
 from geneditid.config import cfg
 from geneditid.model import Base
-from geneditid.loader import LayoutLoader
+from geneditid.loader import ProjectConfigLoader
 
 import log as logger
 
@@ -23,10 +23,10 @@ def main():
     DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
     session = DBSession()
 
-    loader = LayoutLoader(session, options.file_layout)
+    loader = ProjectConfigLoader(session, options.geid, options.file_layout)
 
     try:
-        loader.load_project_data(loader.get_projectid(options.geid))
+        loader.load()
         session.commit()
     except Exception as e:
         log.exception(e)

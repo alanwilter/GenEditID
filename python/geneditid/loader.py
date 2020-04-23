@@ -195,23 +195,25 @@ class RefLoader(Loader):
 
 
 # --------------------------------------------------------------------------------
-# LayoutLoader class
+# ProjectConfigLoader class
 # --------------------------------------------------------------------------------
-class LayoutLoader(Loader):
+class ProjectConfigLoader(Loader):
 
-    def __init__(self, session, workbook_file):
+    def __init__(self, session, project_geid, workbook_file):
         self.log = logging.getLogger(__name__)
         self.session = session
+        self.project = self.session.query(Project).filter(Project.geid == project_geid).first()
+        if not self.project:
+            raise LoaderException("Project {} not found".format(project_geid))
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
-        self.project = None
 
-    def clean(self, project):
-        self.session.delete(project)
+    def clean(self):
+        self.session.delete(self.project)
         self.session.flush()
 
-    def load_all(self, clean_if_exists=False):
-        self.load_project(clean_if_exists)
+    def load(self):
+        self.reset_project()
         self.load_targets()
         self.load_guides()
         self.load_guide_mismatches()
@@ -220,48 +222,11 @@ class LayoutLoader(Loader):
         self.load_plates()
         self.load_sequencing_libraries()
 
-    def load_project_data(self, projectid):
-        self.project = self.session.query(Project).filter(Project.id == projectid).first()
-        self.load_targets()
-        self.load_guides()
-        self.load_guide_mismatches()
-        self.load_amplicon_selection()
-        self.load_experiment_layout()
-        self.load_plates()
-        self.load_sequencing_libraries()
-
-    def get_projectid(self, project_geid):
-        return self.session.query(Project).filter(Project.geid == project_geid).first().id
-
-    def load_project(self, clean_if_exists=False):
-        sheet = self.xls.parse('Project')
-        if len(sheet) > 1:
-            raise LoaderException('More than one Project in the submission form')
-        for i, row in enumerate(sheet.itertuples(), 1):
-            if not row.geid:
-                raise LoaderException('Project identifier is required on row {}'.format(i))
-            project = self.session.query(Project).filter(Project.geid == row.geid).first()
-            if project:
-                if clean_if_exists:
-                    self.log.info("Already have a project {} ({})".format(project.geid, project.name))
-                    self.log.info("Removing this project and its associated data.")
-                    self.clean(project)
-                else:
-                    raise ExistingEntityException(Project, row.geid, "Already have project {}. Will not overwrite it.".format(project.geid))
-
-            project = Project()
-            project.geid = row.geid
-            project.name = row.name
-            project.scientist = row.scientist
-            project.affiliation = row.affiliation
-            project.group = row.group
-            project.group_leader = row.group_leader
-            project.start_date = self.get_date(row.start_date)
-            project.project_type = row.project_type
-            project.description = self.get_string(row.description, 1024)
-            self.session.add(project)
-            self.project = project
-            self.log.info('Created project {}'.format(project.name))
+    def reset_project(self):
+        self.log.info("Removing project {} and its associated data.".format(project.geid))
+        self.clean(self.project)
+        self.session.add(self.project)
+        self.log.info('Project {} named {} has been reset.'.format(project.geid, project.name))
 
     def load_targets(self):
         sheet = self.xls.parse('Target')

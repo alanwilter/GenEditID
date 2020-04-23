@@ -22,23 +22,17 @@ class HomeViews(object):
     @view_config(route_name='home', renderer='../templates/home.pt')
     def ge_home_page(self):
         return_map = {'title': 'GenEditID',
-                      'clash': False,
                       'error': False,
                       'info': False,
-                      'column_headers': ["project geid",
-                                         "setup analysis",
-                                         "view results",
+                      'column_headers': ["project identifier",
+                                         "project link",
                                          "name",
-                                         "folder on disk",
                                          "type",
-                                         "scientist",
-                                         "group",
-                                         "date",
-                                         "description",
-                                         "comments",
+                                         "creation date",
+                                         "data location",
+                                         "sequencing data",
                                          "abundance data",
                                          "growth data",
-                                         "ngs data",
                                          ]
                         }
         try:
@@ -48,19 +42,14 @@ class HomeViews(object):
             last_project = self.dbsession.query(Project).order_by(Project.id.desc()).first()
             for project in projects:
                 rows.append([project.geid,
-                             "project/{}/edit".format(project.id),
-                             "project/{}".format(project.id),
+                             "project/{}".format(project.geid),
                              project.name,
-                             project.project_folder,
                              project.project_type,
-                             project.scientist,
-                             project.group,
                              project.start_date,
-                             project.description,
-                             project.comments,
+                             project.project_folder,
+                             project.is_sequencing_data_available,
                              project.is_abundance_data_available,
                              project.is_growth_data_available,
-                             project.is_variant_data_available,
                              ])
             return_map['rows'] = rows
             # New project creation form
@@ -86,35 +75,33 @@ class HomeViews(object):
                     self.dbsession.commit()
                     if not os.path.exists(project.project_folder):
                         os.makedirs(project.project_folder)
-                        os.makedirs(os.path.join(project.project_folder, 'fastq'))
+                        os.makedirs(os.path.join(project.project_folder, cfg['FASTQ_SUBFOLDER']))
                     return_map['info'] = "Project {} has been created.".format(project.geid)
                     return HTTPFound(self.request.route_url('home'))
                 except ValueError as e:
                     self.dbsession.rollback()
                     self.logger.error("Unexpected value error: {}".format(e))
-                    return_map['error'] = str(e)
+                    return_map['error'] = "Unexpected value error: {}".format(e)
                 except DBAPIError as e:
                     self.dbsession.rollback()
                     self.logger.error("Unexpected database error: {}".format(e))
-                    return_map['error'] = str(e)
+                    if 'UNIQUE constraint failed: project.name' in str(e):
+                        return_map['error'] = 'Project name "{}" already exists, please choose another name.'.format(fields['project_name'])
+                    else:
+                        return_map['error'] = "Unexpected database error: {}".format(e)
                 finally:
                     rows = []
                     projects = self.dbsession.query(Project).all()
                     for project in projects:
                         rows.append([project.geid,
-                                     "project/{}/edit".format(project.id),
-                                     "project/{}".format(project.id),
+                                     "project/{}".format(project.geid),
                                      project.name,
-                                     project.project_folder,
                                      project.project_type,
-                                     project.scientist,
-                                     project.group,
                                      project.start_date,
-                                     project.description,
-                                     project.comments,
+                                     project.project_folder,
+                                     project.is_sequencing_data_available,
                                      project.is_abundance_data_available,
                                      project.is_growth_data_available,
-                                     project.is_variant_data_available,
                                      ])
                     return_map['rows'] = rows
                     return return_map

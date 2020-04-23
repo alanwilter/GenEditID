@@ -1,11 +1,11 @@
 .warning
 {
-  color:        orange;
+  color: orange;
 }
 
 .error
 {
-  color:        red;
+  color: red;
 }
 
 table#udftable
@@ -21,7 +21,8 @@ table#udfTable td
     font-size: 14px;
 }
 
-label
-{
-    font-weight: normal;
+.breadcrumb > li + li:before {
+    color: #ccc;
+    content: "| ";
+    padding: 0 5px;
 }

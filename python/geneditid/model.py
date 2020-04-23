@@ -3,6 +3,7 @@ Python3 file of the genome-editing project
 Created by Anne Pajon @pajanne on 08/03/2017
 """
 import os
+import glob
 from geneditid.config import cfg
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -76,16 +77,19 @@ class Project(Base):
         return False
 
     @property
-    def is_variant_data_available(self):
-        if self.experiment_layouts:
-            for experiment_layout in self.experiment_layouts:
-                if experiment_layout.wells:
-                    for well in experiment_layout.wells:
-                        if well.sequencing_library_contents:
-                            #return True
-                            for sequencing_library_content in well.sequencing_library_contents:
-                                if len(sequencing_library_content.variant_results) > 0:
-                                    return True
+    def is_sequencing_data_available(self):
+        if glob.glob(os.path.join(self.project_folder, cfg['FASTQ_SUBFOLDER'], '*.fq.gz')):
+            # TODO check that all samples have a fastq files on disk 
+            return True
+        # if self.experiment_layouts:
+        #     for experiment_layout in self.experiment_layouts:
+        #         if experiment_layout.wells:
+        #             for well in experiment_layout.wells:
+        #                 if well.sequencing_library_contents:
+        #                     #return True
+        #                     for sequencing_library_content in well.sequencing_library_contents:
+        #                         if len(sequencing_library_content.variant_results) > 0:
+        #                             return True
         return False
 
 

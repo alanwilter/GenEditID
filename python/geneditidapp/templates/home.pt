@@ -8,20 +8,27 @@
     <div class="content">
       <div class="container-fluid">
         <h1>${title} <small>Project Tracking</small></h1>
+        <p>
+          <ol class="breadcrumb">
+            <li><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</li>
+            <li><a href="${request.route_url('help')}"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Getting started</a></li>
+            <li class="active"></li>
+          </ol>
+        </p>
 
         <h2>Create new project</h2>
         <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-horizontal" role="form">
           <div class="row">
             <div class="col-md-6">
-              <div class="form-group">
-                <label for="input_project_name" class="col-md-4 control-label">Project name:</label>
-                <div class="col-md-8">
-                  <input class="form-control" id="input_project_name" name="project_name" placeholder="The name of the project" type="text">
-                </div>
+              <div class="form-group required">
+                  <label for="input_project_name" class="col-md-4 control-label">Project name:</label>
+                  <div class="col-md-8">
+                    <input class="form-control" id="input_project_name" name="project_name" placeholder="The name of the project" type="text" required="true">
+                  </div>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-group">
+              <div class="form-group required">
                 <label for="input_project_type" class="col-md-4 control-label">Project type:</label>
                 <div class="col-md-8">
                   <select class="form-control" id="input_project_type" name="project_type" type="text">
@@ -72,14 +79,14 @@
               </div>
             </div>
           </div>
-          <div class='error' tal:condition="error">
+          <div class='alert alert-danger' tal:condition="error">
               <p>
-                  Error: ${error}
+                  Error! ${error}
               </p>
           </div>
-          <div class='info' tal:condition="info">
+          <div class='alert alert-success' tal:condition="info">
               <p>
-                  Info: ${info}
+                  Success! ${info}
               </p>
           </div>
         </form>
@@ -105,19 +112,16 @@
   $(document).ready (
     function() {
         $('#project-data').DataTable ( {
-          "aaSorting": [[0,'desc']],
+          "aaSorting": [[0, 'desc']],
           "columnDefs": [
-            { "targets": 1,
-              "data": "edit_link",
+            { "targets": [ 0 ],
               "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">edit</a>';
+                return '<a href="' + full[1] + '">' + data + '</a>';
               }
             },
-            { "targets": 2,
-              "data": "view_link",
-              "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">view</a>';
-              }
+            { "targets": [ 1 ],
+              "visible": false,
+              "searchable": false
             },
           ],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
