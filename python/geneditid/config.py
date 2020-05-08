@@ -1,10 +1,5 @@
-"""
-Python3 file of the genome-editing project
-Created by Anne Pajon @pajanne on 08/03/2017
-"""
-
-import yaml
 import os
+import yaml
 
 yml_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geneditid.yml')
 

@@ -19,7 +19,7 @@ from sqlalchemy.exc import DBAPIError
 
 from geneditid.loader import CellGrowthLoader
 from geneditid.loader import ExistingEntityException
-from geneditid.loader import ProjectConfigLoader
+from geneditid.loader import ProjectDataLoader
 from geneditid.loader import LoaderException
 from geneditid.loader import ProteinAbundanceLoader
 
@@ -256,12 +256,12 @@ class ProjectViews(object):
                 error = False
                 file_path = self._upload("layoutfile", ".xlsx")
                 self.dbsession.begin_nested()
-                loader = ProjectConfigLoader(self.dbsession, project.geid, file_path)
+                loader = ProjectDataLoader(self.dbsession, project.geid, file_path)
                 loader.load()
                 self.dbsession.commit()
                 shutil.copyfile(file_path, os.path.join(project.project_folder, "{}.xlsx".format(project.geid)))
                 return_map['info'] = "Project configuration file has been uploaded successfully."
-                # TODO update return_map
+                # ********** TODO update return_map
                 return HTTPFound(self.request.route_url('project', gepid=project.geid))
             except LoaderException as e:
                 self.dbsession.rollback()
@@ -325,7 +325,7 @@ class ProjectViews(object):
     #         try:
     #             file_path = self._upload("layoutfile", ".xlsx")
     #             self.dbsession.begin_nested()
-    #             loader = ProjectConfigLoader(self.dbsession, project.geid, file_path)
+    #             loader = ProjectDataLoader(self.dbsession, project.geid, file_path)
     #             loader.load()
     #             self.dbsession.commit()
     #             url = self.request.route_url('project_edit', projectid=project.id)

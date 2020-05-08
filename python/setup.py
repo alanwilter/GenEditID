@@ -14,6 +14,8 @@ install_requires = [
     # database
     # 'psycopg2',  # for production only
     'sqlalchemy',
+    # test
+    'pytest',
     # data
     'xlrd',
     'pandas',

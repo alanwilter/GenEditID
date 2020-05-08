@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+import datetime
 import csv
 import pandas
 import requests
@@ -7,15 +7,19 @@ import json
 
 from sqlalchemy.orm.exc import NoResultFound
 
-from geneditid.model import Project
+from geneditid.config import cfg
+
+# reference data
 from geneditid.model import Genome
+from geneditid.model import CellLine
+# project data
+from geneditid.model import Project
 from geneditid.model import Target
 from geneditid.model import Guide
 from geneditid.model import GuideMismatch
 from geneditid.model import Amplicon
 from geneditid.model import AmpliconSelection
 from geneditid.model import Primer
-from geneditid.model import CellLine
 from geneditid.model import Clone
 from geneditid.model import ExperimentLayout
 from geneditid.model import Plate
@@ -23,6 +27,7 @@ from geneditid.model import WellContent
 from geneditid.model import Well
 from geneditid.model import SequencingLibrary
 from geneditid.model import SequencingLibraryContent
+# analysis data
 from geneditid.model import CellGrowth
 from geneditid.model import ProteinAbundance
 from geneditid.model import VariantResult
@@ -149,6 +154,8 @@ class Loader:
         gene = json.loads(r.text)
         if gene:
             return gene[0]['id']
+        else:
+            return gene_symbol
 
 
 # --------------------------------------------------------------------------------
@@ -156,264 +163,250 @@ class Loader:
 # --------------------------------------------------------------------------------
 class RefLoader(Loader):
 
-    GENOMES = ['Homo sapiens [GRCh37]',
-               'Homo sapiens [GRCh38]',
-               'Mus musculus [GRCm38]']
+    GENOMES = cfg['GENOMES']
 
-    CELL_LINES = ['MCF7',
-                  'T47D',
-                  'MESC',
-                  'A549',
-                  'HUES9',
-                  'ZRTamR',
-                  'ZRTamS',
-                  'HEK293T']
+    CELL_LINES = cfg['CELL_LINES']
 
-    def __init__(self, session):
+    def __init__(self, dbsession):
         self.log = logging.getLogger(__name__)
-        self.session = session
+        self.dbsession = dbsession
 
     def load_genomes(self):
         for genome_name in self.GENOMES:
             species = genome_name.split('[')[0][:-1]
             assembly = genome_name.split('[')[1][:-1]
             # Find or create genome
-            genome = self.session.query(Genome).filter(Genome.assembly == assembly).first()
+            genome = self.dbsession.query(Genome).filter(Genome.assembly == assembly).first()
             if not genome:
                 genome = Genome(species=species, assembly=assembly)
-                self.session.add(genome)
+                self.dbsession.add(genome)
                 self.log.info('Created genome {}'.format(genome.assembly))
 
     def load_celllines(self):
         for cell_line_name in self.CELL_LINES:
             # Find or create cell line
-            cell_line = self.session.query(CellLine).filter(CellLine.name == cell_line_name).first()
+            cell_line = self.dbsession.query(CellLine).filter(CellLine.name == cell_line_name).first()
             if not cell_line:
                 cell_line = CellLine(name=cell_line_name)
-                self.session.add(cell_line)
+                self.dbsession.add(cell_line)
                 self.log.info('Created cell line {}'.format(cell_line.name))
 
 
 # --------------------------------------------------------------------------------
-# ProjectConfigLoader class
+# ProjectLoader class
 # --------------------------------------------------------------------------------
-class ProjectConfigLoader(Loader):
+class ProjectLoader(Loader):
 
-    def __init__(self, session, project_geid, workbook_file):
+    def __init__(self, dbsession):
         self.log = logging.getLogger(__name__)
-        self.session = session
-        self.project = self.session.query(Project).filter(Project.geid == project_geid).first()
+        self.dbsession = dbsession
+        self.project_geid = None
+        self.project = None
+
+    def set_next_project_geid(self):
+        last_project = self.dbsession.query(Project).order_by(Project.id.desc()).first()
+        if last_project:
+            self.project_geid = "GEP{:05d}".format(int(last_project.geid[3:]) + 1)
+        else:
+            self.project_geid = "GEP00001"
+
+    def create_project(self, name, project_type):
+        self.set_next_project_geid()
+        project = Project()
+        project.geid = self.project_geid
+        project.name = 'pytest project'
+        project.project_type = 'knock-out'
+        project.start_date = datetime.date.today()
+        self.dbsession.add(project)
+        self.project = project
+
+    def delete_project(self, project_geid_todelete):
+        self.project_geid = project_geid_todelete
+        self.project = self.dbsession.query(Project).filter(Project.geid == project_geid_todelete).first()
+        if not self.project:
+            raise LoaderException("Project {} not found".format(project_geid_todelete))
+        self.log.info("Removing project {} and its associated data.".format(project_geid_todelete))
+        self.dbsession.delete(self.project)
+        self.log.info('Project {} deleted.'.format(self.project.geid))
+
+    def reset_project(self, project_geid_todelete):
+        self.log.info("Reseting project {} and deleting its associated data.".format(project_geid_todelete))
+        self.delete_project(project_geid_todelete)
+        self.dbsession.add(self.project)
+        self.log.info('Project {} named {} has been reset.'.format(self.project.geid, self.project.name))
+
+# --------------------------------------------------------------------------------
+# ProjectDataLoader class
+# --------------------------------------------------------------------------------
+class ProjectDataLoader(Loader):
+
+    def __init__(self, dbsession, project_geid, workbook_file):
+        self.log = logging.getLogger(__name__)
+        self.dbsession = dbsession
+        self.project = self.dbsession.query(Project).filter(Project.geid == project_geid).first()
         if not self.project:
             raise LoaderException("Project {} not found".format(project_geid))
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
 
-    def clean(self):
-        self.session.delete(self.project)
-        self.session.flush()
-
     def load(self):
-        self.reset_project()
+        project_loader = ProjectLoader(self.dbsession)
+        project_loader.reset_project(self.project.geid)
         self.load_targets()
         self.load_guides()
         self.load_guide_mismatches()
-        self.load_amplicon_selection()
-        self.load_experiment_layout()
+        self.load_amplicon()
+        #self.load_layout()
         self.load_plates()
-        self.load_sequencing_libraries()
 
-    def reset_project(self):
-        self.log.info("Removing project {} and its associated data.".format(project.geid))
-        self.clean(self.project)
-        self.session.add(self.project)
-        self.log.info('Project {} named {} has been reset.'.format(project.geid, project.name))
+    def check_mandatory_fields(self, sheet_name, sheet, mandatory_fields):
+        for field in mandatory_fields:
+            if field in sheet.columns[sheet.isna().any()].tolist():
+                raise LoaderException('Column {} needs a value in {} tab'.format(field, sheet_name))
 
     def load_targets(self):
         sheet = self.xls.parse('Target')
+        if sheet.empty:
+            raise LoaderException('Target tab is empty, it must be filled')
+        mandatory_fields = ['target_name',
+                            'target_genome',
+                            'target_gene_id',
+                            'target_chrom',
+                            'target_start',
+                            'target_end',
+                            'target_strand']
+        self.check_mandatory_fields('Target', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
-            if not row.genome:
-                raise LoaderException('Genome is required on row {}'.format(i))
-            # Find genome
-            self.genome = self.session.query(Genome).filter(Genome.assembly == row.genome.split('[')[1][:-1]).first()
+            self.genome = self.dbsession.query(Genome).filter(Genome.assembly == row.target_genome.split('[')[1][:-1]).first()
             if not self.genome:
-                raise LoaderException('Genome {} not found'.format(row.genome))
-            # Find or create target
-            if not row.name:
-                raise LoaderException('Target name is required on row {}'.format(i))
-            target = self.session.query(Target).filter(Target.name == row.name).filter(Target.project == self.project).first()
-            if target:
-                self.log.info("Already have a target called {}. It's from the project {}.".format(target.name, target.project.name))
-            else:
-                target = Target(project=self.project, genome=self.genome)
-                target.name = row.name
-                target.gene_id = self.get_gene_id(row.gene_id, self.genome.species)  #row.gene_id
-                if not target.gene_id:
-                    target.gene_id = row.gene_id
-                    #gene_id = self.get_gene_id(row.name, self.genome.species)
-                    #raise LoaderException('Gene id {} is not a valid Ensembl gene symbol. Could it be {}?'.format(row.gene_id, gene_id))
-                target.chromosome = str(row.chromosome)
-                target.start = int(row.start)
-                target.end = int(row.end)
-                target.strand = self.to_strand(row.strand, i)
-                target.description = self.get_string(row.description, 1024)
-                self.session.add(target)
-                self.log.info('Created target {}'.format(target.name))
+                raise LoaderException('Genome {} not found (Target tab, row {})'.format(row.target_genome, i))
+            target = Target(project=self.project, genome=self.genome)
+            target.name = row.target_name
+            target.gene_id = self.get_gene_id(row.target_gene_id, self.genome.species)
+            target.chromosome = str(row.target_chrom)
+            target.start = int(row.target_start)
+            target.end = int(row.target_end)
+            target.strand = self.to_strand(row.target_strand, i)
+            target.description = self.get_string(row.target_description, 1024)
+            self.dbsession.add(target)
+            self.log.info('Target {} created'.format(target.name))
 
     def load_guides(self):
         sheet = self.xls.parse('Guide')
+        if sheet.empty:
+            raise LoaderException('Guide tab is empty, it must be filled')
+        mandatory_fields = ['target_name',
+                            'guide_name',
+                            'guide_sequence']
+        self.check_mandatory_fields('Guide', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
-            if not row.target_name:
-                raise LoaderException('Target name is required on row {}'.format(i))
-            target = self.session.query(Target).filter(Target.name == row.target_name).filter(Target.project == self.project).first()
+            target = self.dbsession.query(Target).filter(Target.name == row.target_name).filter(Target.project == self.project).first()
             if not target:
-                raise LoaderException('Target "{}" does not exist (row {})'.format(row.target_name, i))
-            if not row.name:
-                raise LoaderException('Guide name is required on row {}'.format(i))
-
-            try:
-                self.session.query(Guide).\
-                             join(Target).\
-                             join(Project).\
-                             filter(Project.geid == self.project.geid).\
-                             filter(Guide.name == row.name).\
-                             one()
-                raise LoaderException('Have more than one guide called "{}" in project {}.'.format(row.name, self.project.geid))
-            except NoResultFound:
-                guide = Guide(target=target, genome=self.genome)
-                guide.name = row.name
-                guide.guide_sequence = row.guide_sequence
-                guide.pam_sequence = row.pam_sequence
-                guide.activity = int(row.activity)
-                guide.exon = int(row.exon)
-                guide.nuclease = row.nuclease
-                self.session.add(guide)
-                self.log.info('Created guide {}'.format(guide.name))
+                raise LoaderException('Target {} not found (Guide tab, row {})'.format(row.target_name, i))
+            guide = Guide(target=target, genome=self.genome)
+            guide.name = row.guide_name
+            guide.guide_sequence = row.guide_sequence
+            guide.pam_sequence = row.guide_pam_sequence
+            if pandas.notnull(row.guide_activity):
+                guide.activity = int(row.guide_activity)
+            if pandas.notnull(row.guide_exon):
+                guide.exon = int(row.guide_exon)
+            guide.nuclease = row.guide_nuclease
+            self.dbsession.add(guide)
+            self.log.info('Guide {} created'.format(guide.name))
 
     def load_guide_mismatches(self):
         sheet = self.xls.parse('GuideMismatches')
+        mandatory_fields = ['guide_name',
+                            'is_off_target_coding_region',
+                            'number_of_mismatches',
+                            'number_of_off_targets']
+        if not sheet.empty:
+            self.check_mandatory_fields('GuideMismatches', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
-            if not row.guide_name:
-                raise LoaderException('Guide name is required on row {}'.format(i))
-            try:
-                guide = self.session.query(Guide).\
-                                     join(Target).\
-                                     join(Project).\
-                                     filter(Project.geid == self.project.geid).\
-                                     filter(Guide.name == row.guide_name).\
-                                     one()
-            except NoResultFound:
-                raise LoaderException('Guide "{}" does not exist (row {})'.format(row.guide_name, i))
+            guide = self.dbsession.query(Guide)\
+                                  .join(Target)\
+                                  .join(Project)\
+                                  .filter(Project.geid == self.project.geid)\
+                                  .filter(Guide.name == row.guide_name)\
+                                  .one()
+            if not guide:
+                raise LoaderException('Guide {} not found (GuideMismatches tab, row {})'.format(row.guide_name, i))
             guide_mismatch = GuideMismatch(guide=guide)
             guide_mismatch.is_off_target_coding_region = bool(row.is_off_target_coding_region)
             guide_mismatch.number_of_mismatches = int(row.number_of_mismatches)
             guide_mismatch.number_of_off_targets = int(row.number_of_off_targets)
-            self.session.add(guide_mismatch)
-            self.log.info('Created guide mismatch entry ({}, {}, {}) for {}'.format(guide_mismatch.is_off_target_coding_region, guide_mismatch.number_of_mismatches, guide_mismatch.number_of_off_targets, guide.name))
+            self.dbsession.add(guide_mismatch)
+            self.log.info('Guide mismatch ({}, {}, {}) for {} created'.format(guide_mismatch.is_off_target_coding_region, guide_mismatch.number_of_mismatches, guide_mismatch.number_of_off_targets, guide.name))
 
-    def load_amplicon_selection(self):
-        sheet = self.xls.parse('AmpliconSelection')
-        previous_strand = None
+    def load_amplicon(self):
+        sheet = self.xls.parse('Amplicon')
+        if sheet.empty:
+            raise LoaderException('Amplicon tab is empty, it must be filled')
+        mandatory_fields = ['guide_name',
+                            'experiment_type',
+                            'guide_location',
+                            'guide_strand',
+                            'is_on_target',
+                            'dna_feature',
+                            'chrom',
+                            'forward_primer_sequence',
+                            'forward_primer_start',
+                            'forward_primer_end',
+                            'reverse_primer_sequence',
+                            'reverse_primer_start',
+                            'reverse_primer_end']
+        self.check_mandatory_fields('Amplicon', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
-            # Need the guide first.
-            if not row.guide_name:
-                raise LoaderException('Guide name is required on row {}'.format(i))
-            try:
-                guide = self.session.query(Guide).\
-                                     join(Target).\
-                                     join(Project).\
-                                     filter(Project.geid == self.project.geid).\
-                                     filter(Guide.name == row.guide_name).\
-                                     one()
-            except NoResultFound:
-                raise LoaderException('Guide "{}" does not exist (row {})'.format(row.guide_name, i))
-
-            # Find or create the amplicon
-            amplicon = self.session.query(Amplicon).filter(Amplicon.genome == self.genome)\
-                                                   .filter(Amplicon.chromosome == str(row.chromosome))\
-                                                   .filter(Amplicon.start == int(row.forward_primer_start))\
-                                                   .filter(Amplicon.end == int(row.reverse_primer_end)).first()
-            if not amplicon:
-                amplicon = Amplicon(genome=self.genome)
-                amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
-                amplicon.chromosome = str(row.chromosome)
-                amplicon.start = int(row.forward_primer_start)
-                amplicon.end = int(row.reverse_primer_end)
-                self.session.add(amplicon)
-                self.log.info('Created amplicon {}_chr{}_{}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start))
-            # Find or create the amplicon selection
-            strand = self.to_strand(row.guide_strand, i)
-            if strand:
-                previous_strand = strand
-            else:
-                if previous_strand:
-                    strand = previous_strand
-                else:
-                    raise LoaderException("Have no guide strand on row {}".format(i))
-            # get score
-            selection_score = None
-            if pandas.notnull(row.score):  # and row.score != 'NA':
-                selection_score = int(row.score)
-            selection = self.session.query(AmpliconSelection)\
-                                    .filter(AmpliconSelection.amplicon == amplicon)\
-                                    .filter(AmpliconSelection.guide == guide)\
-                                    .filter(AmpliconSelection.experiment_type == row.experiment_type)\
-                                    .filter(AmpliconSelection.guide_location == int(row.guide_location))\
-                                    .filter(AmpliconSelection.guide_strand == strand)\
-                                    .filter(AmpliconSelection.is_on_target == bool(row.is_on_target))\
-                                    .filter(AmpliconSelection.score == selection_score)\
-                                    .filter(AmpliconSelection.description == self.get_string(row.description, 1024)).first()
-            if not selection:
-                selection = AmpliconSelection(guide=guide, amplicon=amplicon)
-                selection.experiment_type = row.experiment_type
-                selection.guide_location = int(row.guide_location)
-                selection.guide_strand = strand
-                selection.is_on_target = bool(row.is_on_target)
-                selection.score = selection_score
-                selection.description = self.get_string(row.description, 1024)
-                self.session.add(selection)
-                self.log.info('Created amplicon selection of amplicon {}_chr{}_{} at {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, selection.guide_location))
-            # Find or create forward primer
-            if not row.forward_primer_geid:
-                raise LoaderException('Forward primer GEID is required on row {}'.format(i))
-            forward_primer = self.session.query(Primer).filter(Primer.geid == str(row.forward_primer_geid)).first()
+            guide = self.dbsession.query(Guide)\
+                                  .join(Target)\
+                                  .join(Project)\
+                                  .filter(Project.geid == self.project.geid)\
+                                  .filter(Guide.name == row.guide_name)\
+                                  .one()
+            if not guide:
+                raise LoaderException('Guide {} not found (Amplicon tab, row {})'.format(row.guide_name, i))
+            # create the amplicon
+            amplicon = Amplicon(project=self.project, genome=self.genome)
+            amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
+            amplicon.chromosome = str(row.chrom)
+            amplicon.start = int(row.forward_primer_start)
+            amplicon.end = int(row.reverse_primer_end)
+            self.dbsession.add(amplicon)
+            self.log.info('Amplicon {} created'.format(amplicon.get_name))
+            # create link between amplicon and guide
+            selection = AmpliconSelection(guide=guide, amplicon=amplicon)
+            selection.experiment_type = row.experiment_type
+            selection.guide_location = int(row.guide_location)
+            selection.guide_strand = self.to_strand(row.guide_strand, i)
+            selection.is_on_target = bool(row.is_on_target)
+            if pandas.notnull(row.score):
+                selection.score = int(row.score)
+            selection.description = self.get_string(row.description, 1024)
+            self.dbsession.add(selection)
+            self.log.info('Amplicon link between amplicon {} and guide {} at {} created'.format(amplicon.get_name, guide.name, selection.guide_location))
             # check reverse primer coordinnates after forward primer
             if not (int(row.forward_primer_start) < int(row.forward_primer_end) < int(row.reverse_primer_start) < int(row.reverse_primer_end)):
-                raise LoaderException('Forward primer coordinates must be before reverse ones on row {}'.format(i))
-            if not forward_primer:
-                forward_primer = Primer(genome=self.genome)
-                forward_primer.geid = str(row.forward_primer_geid)
-                forward_primer.sequence = row.forward_primer_sequence
-                forward_primer.strand = 'forward'
-                forward_primer.start = int(row.forward_primer_start)
-                forward_primer.end = int(row.forward_primer_end)
-                self.session.add(forward_primer)
-                self.log.info('Created primer {}'.format(forward_primer.geid))
-            else:
-                if not forward_primer.strand == 'forward' or not forward_primer.start == int(row.forward_primer_start) or not forward_primer.end == int(row.forward_primer_end):
-                    raise LoaderException('Forward primer GEID {} does not match what already recorded'.format(forward_primer.geid))
-            forward_primer.amplicons.append(amplicon)
-            self.log.info('Linked amplicon {}_chr{}_{} with forward primer {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, forward_primer.geid))
-            # Find or create reverse primer
-            if not row.reverse_primer_geid:
-                raise LoaderException('Reverse primer GEID is required on row {}'.format(i))
-            reverse_primer = self.session.query(Primer).filter(Primer.geid == str(row.reverse_primer_geid)).first()
-            if not reverse_primer:
-                reverse_primer = Primer(genome=self.genome)
-                reverse_primer.geid = str(row.reverse_primer_geid)
-                reverse_primer.sequence = row.reverse_primer_sequence
-                reverse_primer.strand = 'reverse'
-                reverse_primer.start = int(row.reverse_primer_start)
-                reverse_primer.end = int(row.reverse_primer_end)
-                self.session.add(reverse_primer)
-                self.log.info('Created primer {}'.format(reverse_primer.geid))
-            else:
-                if not reverse_primer.strand == 'reverse' or not reverse_primer.start == int(row.reverse_primer_start) or not reverse_primer.end == int(row.reverse_primer_end):
-                    raise LoaderException('Reverse primer GEID {} does not match what already recorded'.format(reverse_primer.geid))
-            reverse_primer.amplicons.append(amplicon)
-            self.log.info('Linked amplicon {}_chr{}_{} with forward primer {}'.format(amplicon.genome.assembly, amplicon.chromosome, amplicon.start, reverse_primer.geid))
+                raise LoaderException('Forward primer coordinates must be before reverse ones (Amplicon tab, row {})'.format(i))
+            # create forward primer
+            forward_primer = Primer(amplicon=amplicon, genome=self.genome)
+            forward_primer.sequence = row.forward_primer_sequence
+            forward_primer.strand = 'forward'
+            forward_primer.start = int(row.forward_primer_start)
+            forward_primer.end = int(row.forward_primer_end)
+            self.dbsession.add(forward_primer)
+            self.log.info('Forward primer {} for amplicon {} created'.format(forward_primer.sequence, amplicon.get_name))
+            # create reverse primer
+            reverse_primer = Primer(amplicon=amplicon, genome=self.genome)
+            reverse_primer.sequence = row.reverse_primer_sequence
+            reverse_primer.strand = 'reverse'
+            reverse_primer.start = int(row.reverse_primer_start)
+            reverse_primer.end = int(row.reverse_primer_end)
+            self.dbsession.add(reverse_primer)
+            self.log.info('Reverse primer {} for amplicon {} created'.format(reverse_primer.sequence, amplicon.get_name))
 
-    def load_experiment_layout(self):
-        sheet = self.xls.parse('ExperimentLayout')
+    def load_layout(self):
+        sheet = self.xls.parse('Layout')
         for i, row in enumerate(sheet.itertuples(), 1):
             guide = None
             clone = None
@@ -421,7 +414,7 @@ class ProjectConfigLoader(Loader):
             # May also need to find a guide.
             if self.get_value(row.guide_name):
                 try:
-                    guide = self.session.query(Guide).\
+                    guide = self.dbsession.query(Guide).\
                                          join(Target).\
                                          join(Project).\
                                          filter(Project.geid == self.project.geid).\
@@ -434,30 +427,30 @@ class ProjectConfigLoader(Loader):
                 raise LoaderException('Experiment layout GEID is required on row {}'.format(i))
             #if not row.geid.split('_')[0] == self.project.geid:
             #    raise LoaderException('Experiment layout GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
-            layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
+            layout = self.dbsession.query(ExperimentLayout).filter(ExperimentLayout.geid == row.geid).first()
             if not layout:
                 layout = ExperimentLayout(project=self.project)
                 layout.geid = row.geid
-                self.session.add(layout)
+                self.dbsession.add(layout)
                 self.log.info('Created experiment layout {} in project {}'.format(layout.geid, self.project.geid))
             # Cell line pool
             cell_line = None
             if self.get_value(row.cell_line_name):
-                cell_line = self.session.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
+                cell_line = self.dbsession.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
                 if not cell_line:
                     raise LoaderException('Cell line {} not found'.format(row.cell_line_name))
             # Clone
             if self.get_value(row.clone_name):
                 if not cell_line:
                     raise LoaderException('Cannot have a clone without a cell line on row {}'.format(i))
-                clone = self.session.query(Clone).filter(Clone.name == str(row.clone_name))\
+                clone = self.dbsession.query(Clone).filter(Clone.name == str(row.clone_name))\
                                                  .filter(Clone.cell_pool == self.get_string(row.cell_pool))\
                                                  .filter(Clone.project == self.project)\
                                                  .first()
                 if not clone:
                     clone = Clone(name=str(row.clone_name), cell_pool=self.get_string(row.cell_pool), project=self.project)
                     clone.cell_line = cell_line
-                    self.session.add(clone)
+                    self.dbsession.add(clone)
                     self.log.info('Created clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line.name, clone.cell_pool))
             # Well content
             if clone:
@@ -467,7 +460,7 @@ class ProjectConfigLoader(Loader):
                 content.replicate_group = self.get_int(row.replicate_group)
                 content.is_control = bool(row.is_control)
                 content.content_type = self.to_content_type(row.content_type, i)
-                self.session.add(content)
+                self.dbsession.add(content)
                 self.log.info("Created well content for clone {}".format(content.clone.name))
             # Well
             if not row.well_position:
@@ -476,43 +469,46 @@ class ProjectConfigLoader(Loader):
             well.row = row.well_position[0]
             well.column = int(row.well_position[1:])
             well.well_content = content
-            self.session.add(well)
+            self.dbsession.add(well)
             self.log.info('Created well {}{} in layout {}'.format(well.row, well.column, well.experiment_layout.geid))
 
-    def load_plates(self):
-        df = self.xls.parse('Plate')
-        for row in df.itertuples():
-            experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
-            if not experiment_layout:
-                raise LoaderException('Experiment layout GEID {} is required for plate GEID {}'.format(row.experiment_layout_geid, row.geid))
-            #if not row.geid.split('_')[0] == self.project.geid:
-            #    raise LoaderException('Plate GEID {} does not start with project GEID {}'.format(row.geid, self.project.geid))
-            plate = Plate(experiment_layout=experiment_layout)
-            plate.geid = row.geid
-            plate.barcode = row.plate_barcode
-            plate.description = row.description
-            self.session.add(plate)
-            self.log.info('Created plate {} in layout {}'.format(plate.geid, plate.experiment_layout.geid))
-
-    def load_sequencing_libraries(self):
-        df = self.xls.parse('SequencingLibrary')
-        for row in df.itertuples():
-            sequencing_library = self.session.query(SequencingLibrary).filter(SequencingLibrary.slxid == row.slxid).first()
+    # def load_sequencing_libraries(self):
+    #     df = self.xls.parse('SequencingLibrary')
+    #     for row in df.itertuples():
+            sequencing_library = self.dbsession.query(SequencingLibrary).filter(SequencingLibrary.slxid == row.slxid).first()
             if not sequencing_library:
                 sequencing_library = SequencingLibrary()
                 sequencing_library.slxid = row.slxid
                 sequencing_library.library_type = row.library_type
-                self.session.add(sequencing_library)
+                self.dbsession.add(sequencing_library)
                 self.log.info('Created sequening library {}'.format(sequencing_library.slxid))
-            experiment_layout = self.session.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
-            well = self.session.query(Well).filter(Well.row == row.well_position[0]).filter(Well.column == row.well_position[1:]).filter(Well.experiment_layout_id == experiment_layout.id).first()
+            experiment_layout = self.dbsession.query(ExperimentLayout).filter(ExperimentLayout.geid == row.experiment_layout_geid).first()
+            well = self.dbsession.query(Well).filter(Well.row == row.well_position[0]).filter(Well.column == row.well_position[1:]).filter(Well.experiment_layout_id == experiment_layout.id).first()
             seq_lib_content = SequencingLibraryContent(sequencing_library=sequencing_library, \
                                     well=well, \
                                     dna_source=row.dna_source, \
                                     sequencing_barcode=row.sequencing_barcode, \
                                     sequencing_sample_name = row.sequencing_sample_name)
-            self.session.add(seq_lib_content)
+            self.dbsession.add(seq_lib_content)
             self.log.info('Created sequencing library content {} for library {} in layout {}'.format(seq_lib_content.sequencing_barcode, sequencing_library.slxid, experiment_layout.geid))
+
+    def load_plates(self):
+        sheet = self.xls.parse('Plate')
+        mandatory_fields = ['layout_geid',
+                            'plate_name']
+        if not sheet.empty:
+            self.check_mandatory_fields('Plate', sheet, mandatory_fields)
+        for i, row in enumerate(sheet.itertuples(), 1):
+            layout = self.dbsession.query(ExperimentLayout)\
+                                   .filter(ExperimentLayout.geid == row.layout_geid).first()
+            if not layout:
+                raise LoaderException('Layout {} not found (Plate tab, row {})'.format(row.layout_geid, i))
+            plate = Plate(experiment_layout=layout)
+            plate.name = row.plate_name
+            plate.barcode = row.plate_barcode
+            plate.description = row.description
+            self.dbsession.add(plate)
+            self.log.info('Plate {} in layout {} created'.format(plate.plate_name, plate.experiment_layout.geid))
 
 
 # --------------------------------------------------------------------------------
@@ -520,18 +516,18 @@ class ProjectConfigLoader(Loader):
 # --------------------------------------------------------------------------------
 class ProteinAbundanceLoader(Loader):
 
-    def __init__(self, session, csv_file, plate_id):
+    def __init__(self, dbsession, csv_file, plate_id):
         self.log = logging.getLogger(__name__)
-        self.session = session
+        self.dbsession = dbsession
         self.csv_file = csv_file
         self.plate_id = plate_id
-        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
+        self.plate = self.dbsession.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
             raise LoaderException('No plate {}'.format(plate_id))
 
     def clean(self):
-        self.session.query(ProteinAbundance).filter(ProteinAbundance.plate_id == self.plate.id).delete()
-        self.session.flush()
+        self.dbsession.query(ProteinAbundance).filter(ProteinAbundance.plate_id == self.plate.id).delete()
+        self.dbsession.flush()
 
     def load(self, clean_if_exists=False):
         if self.plate.is_abundance_plate:
@@ -558,7 +554,7 @@ class ProteinAbundanceLoader(Loader):
                 elif channel:
                     rowchar = chr(a + row)
                     for column in range(1, 13):
-                        well = self.session.query(Well)\
+                        well = self.dbsession.query(Well)\
                                            .filter(Well.experiment_layout == self.plate.experiment_layout)\
                                            .filter(Well.row == rowchar)\
                                            .filter(Well.column == column)\
@@ -567,13 +563,13 @@ class ProteinAbundanceLoader(Loader):
                             raise LoaderException("There is no well at {}{} on plate {}".format(rowchar, column, self.plate.geid))
                         self.log.info("Setting well {}{} on {} for ICW {}".format(well.row, well.column, self.plate.geid, channel))
 
-                        abundance = self.session.query(ProteinAbundance)\
+                        abundance = self.dbsession.query(ProteinAbundance)\
                                                 .filter(ProteinAbundance.well == well)\
                                                 .filter(ProteinAbundance.plate == self.plate)\
                                                 .first()
                         if not abundance:
                             abundance = ProteinAbundance(well=well, plate=self.plate)
-                            self.session.add(abundance)
+                            self.dbsession.add(abundance)
                         if channel == 700:
                             abundance.intensity_channel_700 = self.get_float(line[column - 1])
                         elif channel == 800:
@@ -586,18 +582,18 @@ class ProteinAbundanceLoader(Loader):
 # --------------------------------------------------------------------------------
 class CellGrowthLoader(Loader):
 
-    def __init__(self, session, csv_file, plate_id):
+    def __init__(self, dbsession, csv_file, plate_id):
         self.log = logging.getLogger(__name__)
-        self.session = session
+        self.dbsession = dbsession
         self.csv_file = csv_file
         self.plate_id = plate_id
-        self.plate = self.session.query(Plate).filter(Plate.geid == plate_id).one()
+        self.plate = self.dbsession.query(Plate).filter(Plate.geid == plate_id).one()
         if not self.plate:
             raise LoaderException('No plate {}'.format(plate_id))
 
     def clean(self):
-        self.session.query(CellGrowth).filter(CellGrowth.plate_id == self.plate.id).delete()
-        self.session.flush()
+        self.dbsession.query(CellGrowth).filter(CellGrowth.plate_id == self.plate.id).delete()
+        self.dbsession.flush()
 
     def load(self, clean_if_exists=False):
         if self.plate.is_growth_plate:
@@ -626,7 +622,7 @@ class CellGrowthLoader(Loader):
                         location = header[column]
                         wellrow = location[0]
                         wellcolumn = int(location[1:])
-                        well = self.session.query(Well)\
+                        well = self.dbsession.query(Well)\
                                            .filter(Well.experiment_layout == self.plate.experiment_layout)\
                                            .filter(Well.row == wellrow)\
                                            .filter(Well.column == wellcolumn)\
@@ -635,7 +631,7 @@ class CellGrowthLoader(Loader):
                             raise LoaderException("There is no well at {}{} on plate {}".format(wellrow, wellcolumn, self.plate.geid))
                         value = float(line[column])
                         self.log.info("Setting well {}{} on {} for Incucyte {:f} at {}".format(well.row, well.column, self.plate.geid, value, line[0]))
-                        growth = self.session.query(CellGrowth)\
+                        growth = self.dbsession.query(CellGrowth)\
                                              .filter(CellGrowth.plate == self.plate)\
                                              .filter(CellGrowth.well == well)\
                                              .filter(CellGrowth.hours == hour)\
@@ -644,7 +640,7 @@ class CellGrowthLoader(Loader):
                             growth = CellGrowth(well=well, plate=self.plate)
                             growth.hours = hour
                             growth.timestamp = time
-                            self.session.add(growth)
+                            self.dbsession.add(growth)
                         growth.confluence_percentage = value
 
 
@@ -653,15 +649,15 @@ class CellGrowthLoader(Loader):
 # --------------------------------------------------------------------------------
 class VariantLoader(Loader):
 
-    def __init__(self, session, project_geid, workbook_file, variant_caller):
+    def __init__(self, dbsession, project_geid, workbook_file, variant_caller):
         self.log = logging.getLogger(__name__)
-        self.session = session
+        self.dbsession = dbsession
         self.project_geid = project_geid
         self.xls = pandas.ExcelFile(workbook_file)
         self.variant_caller = variant_caller
 
     def clean(self):
-        variants = self.session.query(VariantResult).\
+        variants = self.dbsession.query(VariantResult).\
                    join(SequencingLibraryContent).\
                    join(Well).\
                    join(ExperimentLayout).\
@@ -670,9 +666,9 @@ class VariantLoader(Loader):
                    all()
 
         for v in variants:
-            self.session.delete(v)
+            self.dbsession.delete(v)
 
-        self.session.flush()
+        self.dbsession.flush()
 
         self.log.info('Deleted {} variant results'.format(len(variants)))
 
@@ -719,10 +715,10 @@ class VariantLoader(Loader):
             return
         sheet.columns = header
         for i, row in enumerate(sheet.itertuples(), 1):
-            seq_lib_content = self.session.query(SequencingLibraryContent) \
-                                          .filter(SequencingLibraryContent.sequencing_sample_name == row.sample) \
-                                          .filter(SequencingLibraryContent.sequencing_barcode == row.barcode) \
-                                          .first()
+            seq_lib_content = self.dbsession.query(SequencingLibraryContent) \
+                                            .filter(SequencingLibraryContent.sequencing_sample_name == row.sample) \
+                                            .filter(SequencingLibraryContent.sequencing_barcode == row.barcode) \
+                                            .first()
             if not seq_lib_content:
                 raise LoaderException("There is no sequencing library content for {} sample with {} barcode".format(row.sample, row.barcode))
             result = VariantResult(sequencing_library_content=seq_lib_content)
@@ -754,7 +750,7 @@ class VariantLoader(Loader):
             result.forward_context = self.get_value(row.forward_context)
             result.alleles = self.get_value(row.alleles)
             result.reverse_context = self.get_value(row.reverse_context)
-            self.session.add(result)
+            self.dbsession.add(result)
             self.log.info("Variant result added for {} sample with {} barcode".format(row.sample, row.barcode))
 
     def load(self):

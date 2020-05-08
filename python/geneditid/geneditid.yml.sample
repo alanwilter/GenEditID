@@ -18,3 +18,21 @@ DATABASE_URI: "sqlite:///geneditid.sqlite"
 ################################################################################
 PROJECTS_FOLDER: "PROJECTS"
 FASTQ_SUBFOLDER: "fastq"
+
+################################################################################
+### reference data
+################################################################################
+GENOMES:
+  - 'Homo sapiens [GRCh37]'
+  - 'Homo sapiens [GRCh38]'
+  - 'Mus musculus [GRCm38]'
+
+CELL_LINES:
+  - 'MCF7'
+  - 'T47D'
+  - 'MESC'
+  - 'A549'
+  - 'HUES9'
+  - 'ZRTamR'
+  - 'ZRTamS'
+  - 'HEK293T'
