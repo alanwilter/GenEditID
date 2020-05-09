@@ -7,7 +7,7 @@ import sys
 
 from geneditid.config import cfg
 from geneditid.model import Base
-from geneditid.model import ExperimentLayout
+from geneditid.model import Layout
 from geneditid.model import Project
 from geneditid.model import Well
 
@@ -21,8 +21,8 @@ class DataExtractor:
     def get_data(self, data_file):
         results = self.dbsession.query(Well)\
                       .join(Well.well_content)\
-                      .join(Well.experiment_layout)\
-                      .join(ExperimentLayout.project)\
+                      .join(Well.layout)\
+                      .join(Layout.project)\
                       .filter(Project.geid == self.project_geid)\
                       .all()
         # data collection
@@ -56,7 +56,7 @@ class DataExtractor:
                 dna_source = well.sequencing_library_contents[0].dna_source
                 sequencing_barcode = well.sequencing_library_contents[0].sequencing_barcode
             data.append([
-                        well.experiment_layout.geid,
+                        well.layout.geid,
                         '{}{}'.format(well.row, well.column),
                         cell_line_name,
                         clone_name,
@@ -69,7 +69,7 @@ class DataExtractor:
                         intensity_channel_800,
                         well_abundance_ratio
                         ])
-            barcodes.append([well.experiment_layout.geid,
+            barcodes.append([well.layout.geid,
                              '{}{}'.format(well.row, well.column),
                              sequencing_barcode])
         if data:

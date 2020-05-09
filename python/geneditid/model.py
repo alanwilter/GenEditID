@@ -1,7 +1,3 @@
-"""
-Python3 file of the genome-editing project
-Created by Anne Pajon @pajanne on 08/03/2017
-"""
 import os
 import glob
 from geneditid.config import cfg
@@ -14,34 +10,34 @@ from sqlalchemy import Table, Column, Integer, String, Date, DateTime, Float, Bo
 Base = declarative_base()
 
 
-guide_well_content_association = Table('guide_well_content_association', Base.metadata,
-    Column('well_content_id', Integer, ForeignKey('well_content.id', ondelete='CASCADE')),
-    Column('guide_id', Integer, ForeignKey('guide.id', ondelete='CASCADE'))
-)
-
-
 class Genome(Base):
     # Ref from https://www.ncbi.nlm.nih.gov/grc
     __tablename__ = 'genome'
+    __table_args__ = ( UniqueConstraint('species', 'assembly', name='unique_genome_species_assembly'),
+                     )
     id = Column(Integer, primary_key=True)
     species = Column(String(32), nullable=False, index=True)
-    assembly = Column(String(32), unique=True, nullable=False, index=True)
-    UniqueConstraint('species', 'assembly', name='unique_genome_species_assembly')
+    assembly = Column(String(32), nullable=False, index=True)
 
 
 class CellLine(Base):
     # Ref from http://web.expasy.org/cellosaurus/
     # Data ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
     __tablename__ = 'cell_line'
+    __table_args__ = ( UniqueConstraint('name', name='cell_line_name'),
+                     )
     id = Column(Integer, primary_key=True)
-    name = Column(String(32), unique=True, nullable=False, index=True)
+    name = Column(String(32), nullable=False, index=True)
 
 
 class Project(Base):
     __tablename__ = 'project'
+    __table_args__ = ( UniqueConstraint('geid', name='unique_project_geid'),
+                       UniqueConstraint('name', name='unique_project_name')
+                     )
     id = Column(Integer, primary_key=True)
-    geid = Column(String(8), unique=True, nullable=False, index=True)
-    name = Column(String(64), unique=True, nullable=False, index=True)
+    geid = Column(String(8), nullable=False, index=True)
+    name = Column(String(64), nullable=False, index=True)
     scientist = Column(String(64))
     group = Column(String(64))
     group_leader = Column(String(64))
@@ -58,21 +54,21 @@ class Project(Base):
 
     @property
     def is_abundance_data_available(self):
-        if self.experiment_layouts:
-            for experiment_layout in self.experiment_layouts:
-                if experiment_layout.wells:
-                    for well in experiment_layout.wells:
-                        if len(well.abundances) > 0:
+        if self.layouts:
+            for layout in self.layouts:
+                if layout.layout_contents:
+                    for layout_content in layout.layout_contents:
+                        if len(layout_content.abundances) > 0:
                             return True
         return False
 
     @property
     def is_growth_data_available(self):
-        if self.experiment_layouts:
-            for experiment_layout in self.experiment_layouts:
-                if experiment_layout.wells:
-                    for well in experiment_layout.wells:
-                        if len(well.growths) > 0:
+        if self.layouts:
+            for layout in self.layouts:
+                if layout.layout_contents:
+                    for layout_content in layout.layout_contents:
+                        if len(layout_content.growths) > 0:
                             return True
         return False
 
@@ -81,20 +77,13 @@ class Project(Base):
         if glob.glob(os.path.join(self.project_folder, cfg['FASTQ_SUBFOLDER'], '*.fq.gz')):
             # TODO check that all samples have a fastq files on disk
             return True
-        # if self.experiment_layouts:
-        #     for experiment_layout in self.experiment_layouts:
-        #         if experiment_layout.wells:
-        #             for well in experiment_layout.wells:
-        #                 if well.sequencing_library_contents:
-        #                     #return True
-        #                     for sequencing_library_content in well.sequencing_library_contents:
-        #                         if len(sequencing_library_content.variant_results) > 0:
-        #                             return True
         return False
 
 
 class Target(Base):
     __tablename__ = 'target'
+    __table_args__ = ( UniqueConstraint('name', 'genome_id', 'project_id', name='unique_target_in_project'),
+                     )
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='CASCADE'))
     project = relationship(
@@ -109,26 +98,29 @@ class Target(Base):
     end = Column(Integer, nullable=False)
     strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False, index=True)
     description = Column(String(1024))
-    UniqueConstraint('name', 'project', name='unique_target_in_project')
 
 
 class Guide(Base):
     __tablename__ = 'guide'
+    __table_args__ = ( UniqueConstraint('name', 'genome_id', 'target_id', 'project_id', name='unique_guide_in_target_within_project'),
+                     )
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey('project.id', name='guide_project_fk', ondelete='CASCADE'))
+    project = relationship(
+        Project,
+        backref=backref('guides', uselist=True, cascade='delete,all'))
     target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='CASCADE'))
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
     genome_id = Column(Integer, ForeignKey('genome.id', name='guide_genome_fk'), nullable=False)
     genome = relationship(Genome)
-    well_contents = relationship('WellContent', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
     name = Column(String(32), nullable=False, index=True)
     guide_sequence = Column(String(250), nullable=False)
     pam_sequence = Column(String(6), nullable=True)
     activity = Column(Integer, nullable=True)
     exon = Column(Integer, nullable=True)
     nuclease = Column(String(250), nullable=True)
-    UniqueConstraint('name', 'genome', 'target', name='unique_guide_in_target')
 
 
 class GuideMismatch(Base):
@@ -198,40 +190,79 @@ class Primer(Base):
 
 class Clone(Base):
     __tablename__ = 'clone'
+    __table_args__ = ( UniqueConstraint('name', 'project_id', name='unique_clone_in_project'),
+                     )
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id', name='clone_project_fk', ondelete='CASCADE'))
     project = relationship(
         Project,
         backref=backref('clones', uselist=True, cascade='delete,all'))
-    name = Column(String(32), nullable=False, index=True)
     cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cell_line_fk'))
     cell_line = relationship(CellLine)
+    name = Column(String(32), nullable=False, index=True)
     cell_pool = Column(String(32))
     description = Column(String(1024))
-    UniqueConstraint('name', 'cell_pool', 'project', name='unique_clone_in_project')
 
 
-class ExperimentLayout(Base):
-    __tablename__ = 'experiment_layout'
+class Layout(Base):
+    __tablename__ = 'layout'
+    __table_args__ = ( UniqueConstraint('geid', 'project_id', name='unique_layout_in_project'),
+                       UniqueConstraint('sequencing_project_id', 'project_id', name='unique_sequencing_project_id_in_project')
+                     )
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='experiment_layout_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='layout_project_fk', ondelete='CASCADE'))
     project = relationship(
         Project,
-        backref=backref('experiment_layouts', uselist=True, cascade='delete,all'))
-    geid = Column(String(12), unique=True, nullable=False, index=True)
+        backref=backref('layouts', uselist=True, cascade='delete,all'))
+    geid = Column(String(12), nullable=False, index=True)
+    sequencing_project_id = Column(String(12), nullable=True)
+    sequencing_library_type = Column(String(32))
+
+
+class LayoutContent(Base):
+    __tablename__ = 'layout_content'
+    __table_args__ = ( UniqueConstraint('row', 'column', 'layout_id', name='layout_content_location_unique_in_layout'),
+                       UniqueConstraint('sequencing_barcode', 'layout_id', name='sequencing_barcode_unique_in_layout'),
+                     )
+    id = Column(Integer, primary_key=True)
+    layout_id = Column(Integer, ForeignKey('layout.id', name='layout_content_layout_fk', ondelete='CASCADE'), nullable=False)
+    layout = relationship(
+        Layout,
+        backref=backref('layout_contents', uselist=True, cascade='delete,all'))
+    guide_id = Column(Integer, ForeignKey('guide.id', name="layout_content_guide_fk", ondelete='CASCADE'))
+    guide = relationship(
+        Guide,
+        backref=backref('layout_contents', uselist=True, cascade='delete,all'))
+    clone_id = Column(Integer, ForeignKey('clone.id', name='layout_content_clone_fk', ondelete='CASCADE'))
+    clone = relationship(
+        Clone,
+        backref=backref('layout_contents', uselist=True, cascade='delete,all'))
+    row = Column(String(1), nullable=False)
+    column = Column(Integer, nullable=False)
+    sequencing_barcode = Column(String(20))
+    sequencing_dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', 'water', name='dna_source'), nullable=True)
+    sequencing_sample_name = Column(String(32), nullable=True)
+    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False, default='sample')
+    is_control = Column(Boolean, nullable=False, default=False)
+    replicate_group = Column(Integer, nullable=False, default=0)
+
+    def is_empty(self):
+        return (self.content_type == 'empty' and self.guide == None)
 
 
 class Plate(Base):
     __tablename__ = 'plate'
+    __table_args__ = ( UniqueConstraint('barcode', name='unique_plate_barcode'),
+                       UniqueConstraint('name', 'layout_id', name='unique_plate_name_in_layout')
+                     )
     id = Column(Integer, primary_key=True)
-    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='plate_experiment_layout_fk', ondelete='CASCADE'))
-    experiment_layout = relationship(
-        ExperimentLayout,
+    layout_id = Column(Integer, ForeignKey('layout.id', name='plate_layout_fk', ondelete='CASCADE'))
+    layout = relationship(
+        Layout,
         backref=backref('plates', uselist=True, cascade='delete,all'))
     name = Column(String(32), nullable=False, index=True)
-    barcode = Column(String(32), unique=True, index=True)
+    barcode = Column(String(32), index=True)
     description = Column(String)
-    UniqueConstraint('name', 'experiment_layout_id', name='unique_plate_name_in_layout')
 
     @property
     def is_abundance_plate(self):
@@ -244,136 +275,19 @@ class Plate(Base):
             return True
 
     @property
-    def is_ngs_plate(self):
-        for well in self.experiment_layout.wells:
-            if well.sequencing_library_contents:
-                for sequencing_library_content in well.sequencing_library_contents:
-                    if len(sequencing_library_content.variant_results) > 0:
-                        return True
-
-    @property
     def plate_type(self):
         types = {'abundance': self.is_abundance_plate,
                  'growth': self.is_growth_plate,
-                 #'NGS': self.is_ngs_plate
                  }
         return ','.join([k for k, v in types.items() if v is True])
-
-
-class WellContent(Base):
-    __tablename__ = 'well_content'
-    id = Column(Integer, primary_key=True)
-    clone_id = Column(Integer, ForeignKey('clone.id', name='well_content_clone_fk', ondelete='CASCADE'))
-    clone = relationship(
-        Clone,
-        backref=backref('well_contents', uselist=True, cascade='delete,all'))
-    guides = relationship('Guide', secondary=guide_well_content_association, cascade="all", passive_deletes=True)
-    replicate_group = Column(Integer, nullable=False, default=0)
-    content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False, default='sample')
-    is_control = Column(Boolean, nullable=False, default=False)
-
-
-class Well(Base):
-    __tablename__ = 'well'
-    id = Column(Integer, primary_key=True)
-    experiment_layout_id = Column(Integer, ForeignKey('experiment_layout.id', name='well_experiment_layout_fk', ondelete='CASCADE'), nullable=False)
-    experiment_layout = relationship(
-        ExperimentLayout,
-        backref=backref('wells', uselist=True, cascade='delete,all'))
-    well_content_id = Column(Integer, ForeignKey('well_content.id', name='well_well_content_fk', ondelete='CASCADE'), nullable=True)
-    well_content = relationship(
-        WellContent,
-        backref=backref('wells', uselist=True, cascade='delete,all'))
-    row = Column(String(1), nullable=False)
-    column = Column(Integer, nullable=False)
-    UniqueConstraint('experiment_layout_id', 'row', 'column', name='well_unique_in_layout')
-
-    def is_empty(self):
-        return self.well_content.clone == None
-
-
-class SequencingLibrary(Base):
-    __tablename__ = 'sequencing_library'
-    id = Column(Integer, primary_key=True)
-    slxid = Column(String(12), unique=True, nullable=True)
-    library_type = Column(String(32))
-
-
-class SequencingLibraryContent(Base):
-    __tablename__ = 'sequencing_library_content'
-    id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='well_sequencing_library_content_fk', ondelete='CASCADE'), nullable=False)
-    well = relationship(
-        Well,
-        backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
-    sequencing_library_id = Column(Integer, ForeignKey('sequencing_library.id', name='well_sequencing_library_fk', ondelete='CASCADE'), nullable=False)
-    sequencing_library = relationship(
-        SequencingLibrary,
-        backref=backref('sequencing_library_contents', uselist=True, cascade='delete,all'))
-    sequencing_barcode = Column(String(20), nullable=False)
-    dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', 'water', name='dna_source'), nullable=True)
-    sequencing_sample_name = Column(String(32), nullable=True)
-
-
-class VariantResult(Base):
-    __tablename__ = 'variant_result'
-    id = Column(Integer, primary_key=True)
-    sequencing_library_content_id = Column(Integer, ForeignKey('sequencing_library_content.id', name='sequencing_library_content_variant_result_fk', ondelete='CASCADE'), nullable=False)
-    sequencing_library_content = relationship(
-        SequencingLibraryContent,
-        backref=backref('variant_results', uselist=True, cascade='delete,all'))
-    variant_caller = Column(Enum('VarDict', 'HaplotypeCaller', 'FreeBayes', name='variant_caller'), nullable=False, index=True)
-    variant_type = Column(Enum('INDEL', 'SNV', name='variant_type'), nullable=False, index=True)
-    consequence = Column(String(250))
-    gene_id = Column(String(32))
-    gene = Column(String(32))
-    cdna_effect = Column(String(250))
-    protein_effect = Column(String(250))
-    codons = Column(String(250))
-    chromosome = Column(String(32))
-    position = Column(Integer)
-    ref = Column(String(250))
-    alt = Column(String(250))
-    allele_fraction = Column(Float)
-    depth = Column(Integer)
-    quality = Column(Integer)
-    amplicon = Column(String(250))
-    exon = Column(String(32))
-    intron = Column(String(32))
-    existing_variation = Column(String(250))
-    sift = Column(String(250))
-    polyphen = Column(String(250))
-    clinical_significance = Column(String(250))
-    gmaf = Column(String(250))
-    offset_from_primer_end = Column(Integer)
-    indel_length = Column(Integer)
-    forward_context = Column(String(250))
-    alleles = Column(String(250))
-    reverse_context = Column(String(250))
-
-    @property
-    def frame(self):
-        if self.indel_length:
-            if abs(self.indel_length) > 3:
-                return abs(self.indel_length) % 3
-            return abs(self.indel_length)
-
-    @property
-    def variant_str_summary(self):
-        return "{}:{}:{}:{}:{:.3f}:{}".format(self.variant_caller,
-                                              self.variant_type,
-                                              self.frame,
-                                              self.gene_id,
-                                              self.allele_fraction,
-                                              self.alleles)
 
 
 class ProteinAbundance(Base):
     __tablename__ = 'abundance'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='abundance_well_fk', ondelete='CASCADE'), nullable=False)
-    well = relationship(
-        Well,
+    layout_content_id = Column(Integer, ForeignKey('layout_content.id', name='abundance_layout_content_fk', ondelete='CASCADE'), nullable=False)
+    layout_content = relationship(
+        LayoutContent,
         backref=backref('abundances', uselist=True, cascade='delete,all'))
     plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='CASCADE'), nullable=False)
     plate = relationship(
@@ -394,9 +308,9 @@ class ProteinAbundance(Base):
 class CellGrowth(Base):
     __tablename__ = 'growth'
     id = Column(Integer, primary_key=True)
-    well_id = Column(Integer, ForeignKey('well.id', name='growth_well_fk', ondelete='CASCADE'), nullable=False)
-    well = relationship(
-        Well,
+    layout_content_id = Column(Integer, ForeignKey('layout_content.id', name='growth_layout_content_fk', ondelete='CASCADE'), nullable=False)
+    layout_content = relationship(
+        LayoutContent,
         backref=backref('growths', uselist=True, cascade='delete,all'))
     plate_id = Column(Integer, ForeignKey('plate.id', name='abundance_plate_fk', ondelete='CASCADE'), nullable=False)
     plate = relationship(

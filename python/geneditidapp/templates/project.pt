@@ -84,10 +84,9 @@
         <!-- Setup section ************************************************* -->
         <div role="tabpanel" class="tab-pane" id="setup">
           <h3>Setup</h3>
-          <h4>Upload data and experiment layout</h4>
+          <h4>Upload project data and layout</h4>
           <p>
-              Load targets, guides and amplicons, experiment layout, list of
-              plates and sequencing library details from an Excel file
+              Load targets, guides, amplicons, and layout from an Excel file
               using <a href="${request.route_url('home')}static/GEPXXXXX.xlsx">this template</a>.
           </p>
           <form action="${request.route_url('project', gepid=project.geid)}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-inline">
@@ -150,14 +149,6 @@
               ${structure: impactplot}
           </div>
           <h4>Variant Impact Frequency in table</h4>
-          <table id="vvariantdatatable" class="table table-hover table-condensed">
-              <thead>
-                  <th tal:repeat="header vvariant_data_table_headers">${header}</th>
-              </thead>
-              <tr tal:repeat="row vvariant_data_table_rows">
-                  <td tal:repeat="cell row">${cell}</td>
-              </tr>
-          </table>
         </div>
 
         <!-- Scores section ************************************************ -->
@@ -172,14 +163,6 @@
               ${structure: heatmapplot}
           </div>
           <h4>Scores in table</h4>
-          <table id="sampledatatable" class="table table-hover table-condensed">
-              <thead>
-                  <th tal:repeat="header sample_data_table_headers">${header}</th>
-              </thead>
-              <tr tal:repeat="row sample_data_table_rows">
-                  <td tal:repeat="cell row">${cell}</td>
-              </tr>
-          </table>
         </div>
       </div>
     </div>
@@ -200,6 +183,7 @@
         } );
         $('#guidemismatchtable').DataTable({
         } );
+        <!--
         $('#vvariantdatatable').DataTable({
           "aaSorting": [[4, 'asc']],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -220,6 +204,7 @@
             }
           ]
         } );
+        -->
         <!--
         $('#sampledatatable').DataTable({
           "aaSorting": [[14, 'desc']],

@@ -17,17 +17,16 @@ from pyramid.view import view_config
 from json import JSONEncoder
 from sqlalchemy.exc import DBAPIError
 
-from geneditid.loader import CellGrowthLoader
 from geneditid.loader import ExistingEntityException
-from geneditid.loader import ProjectDataLoader
 from geneditid.loader import LoaderException
+from geneditid.loader import ProjectDataLoader
+from geneditid.loader import CellGrowthLoader
 from geneditid.loader import ProteinAbundanceLoader
 
-from geneditid.model import ExperimentLayout
-from geneditid.model import Plate
 from geneditid.model import Project
-from geneditid.model import SequencingLibraryContent
-from geneditid.model import Well
+from geneditid.model import Layout
+from geneditid.model import LayoutContent
+from geneditid.model import Plate
 
 from geneditid.plotter import Plotter
 
@@ -79,68 +78,7 @@ class ProjectViews(object):
                         project.is_sequencing_data_available]]
         return project_headers, project_rows
 
-    def get_variant_data_table(self, layouts, variant_caller='VarDict'):
-        variant_data_table_headers = []
-        variant_data_table_rows = []
-        vrow_odict = OrderedDict()
-        for layout in layouts:
-            for well in layout.wells:
-                genome = None
-                if well.well_content and len(well.well_content.guides) > 0:
-                    genome = well.well_content.guides[0].genome.assembly
-                for slc in well.sequencing_library_contents:
-                    if slc.variant_results:
-                        for v in slc.variant_results:
-                            if v.variant_caller == variant_caller:
-                                vrow_odict['plate'] = layout.geid
-                                vrow_odict['well'] = "{:s}{:02}".format(well.row, well.column)
-                                vrow_odict['clone'] = well.well_content.clone.name if well.well_content else None
-                                vrow_odict['sample'] = slc.sequencing_sample_name
-                                vrow_odict['barcode'] = slc.sequencing_barcode
-                                vrow_odict['variant_caller'] = v.variant_caller
-                                vrow_odict['variant_type'] = v.variant_type
-                                vrow_odict['consequence'] = v.consequence
-                                vrow_odict['gene_id'] = v.gene_id
-                                vrow_odict['gene'] = v.gene
-                                vrow_odict['cdna_effect'] = v.cdna_effect
-                                vrow_odict['protein_effect'] = v.protein_effect
-                                vrow_odict['codons'] = v.codons
-                                vrow_odict['chromosome'] = v.chromosome
-                                vrow_odict['position'] = v.position
-                                vrow_odict['ref'] = v.ref
-                                vrow_odict['alt'] = v.alt
-                                vrow_odict['allele_fraction'] = v.allele_fraction
-                                vrow_odict['depth'] = v.depth
-                                vrow_odict['quality'] = v.quality
-                                vrow_odict['amplicon'] = v.amplicon
-                                vrow_odict['exon'] = v.exon
-                                vrow_odict['intron'] = v.intron
-                                vrow_odict['existing_variation'] = v.existing_variation
-                                vrow_odict['sift'] = v.sift
-                                vrow_odict['polyphen'] = v.polyphen
-                                vrow_odict['clinical_significance'] = v.clinical_significance
-                                vrow_odict['gmaf'] = v.gmaf
-                                vrow_odict['offset_from_primer_end'] = v.offset_from_primer_end
-                                vrow_odict['indel_length'] = v.indel_length
-                                vrow_odict['forward_context'] = v.forward_context
-                                vrow_odict['alleles'] = v.alleles
-                                vrow_odict['reverse_context'] = v.reverse_context
-                                variant_data_table_rows.append(list(vrow_odict.values()))
-        if vrow_odict:
-            variant_data_table_headers = vrow_odict.keys()
-        return variant_data_table_headers, variant_data_table_rows
-
-    def target_data_table(self):
-        pass
-
-    @view_config(route_name="project", renderer="../templates/project.pt")
-    def project(self):
-        gepid = self.request.matchdict['gepid']
-        project = self.dbsession.query(Project).filter(Project.geid == gepid).one()
-        plotter = Plotter(self.dbsession, project.geid)
-        # Project table
-        project_headers, project_rows = self.get_project_table(project)
-        # Target table
+    def get_target_table(self, project):
         target_headers = [
             "name",
             "species",
@@ -152,7 +90,21 @@ class ProjectViews(object):
             "strand",
             "description"]
         target_rows = []
-        # Guide table
+        for target in project.targets:
+            row = []
+            row.append(target.name)
+            row.append(target.genome.species)
+            row.append(target.genome.assembly)
+            row.append(target.gene_id)
+            row.append(target.chromosome)
+            row.append(target.start)
+            row.append(target.end)
+            row.append(target.strand)
+            row.append(target.description)
+            target_rows.append(row)
+        return target_headers, target_rows
+
+    def get_guide_table(self, project):
         guide_headers = [
             "target name",
             "species",
@@ -165,71 +117,29 @@ class ProjectViews(object):
             "nuclease"
         ]
         guide_rows = []
-        targets = project.targets
-        for target in targets:
-            row = []
-            row.append(target.name)
-            row.append(target.genome.species)
-            row.append(target.genome.assembly)
-            row.append(target.gene_id)
-            row.append(target.chromosome)
-            row.append(target.start)
-            row.append(target.end)
-            row.append(target.strand)
-            row.append(target.description)
-            target_rows.append(row)
-            for guide in target.guides:
-                guide_row = []
-                guide_row.append(target.name)
-                guide_row.append(guide.genome.species)
-                guide_row.append(guide.genome.assembly)
-                guide_row.append(guide.name)
-                guide_row.append(guide.guide_sequence)
-                guide_row.append(guide.pam_sequence)
-                guide_row.append(guide.activity)
-                guide_row.append(guide.exon)
-                guide_row.append(guide.nuclease)
-                guide_rows.append(guide_row)
-        # Scores: sample data table
-        layouts = project.experiment_layouts
-        sample_data_table_headers = []
-        sample_data_table_rows = []
-        row_odict = OrderedDict()
-        for layout in layouts:
-            for well in layout.wells:
-                row_odict = OrderedDict()
-                row_odict['plate'] = layout.geid
-                row_odict['well'] = "{:s}{:02}".format(well.row, well.column)
-                row_odict['type'] = None
-                row_odict['clone'] = None
-                row_odict['guides'] = None
-                row_odict['slxid'] = None
-                row_odict['sample'] = None
-                row_odict['barcode'] = None
-                row_odict['dna source'] = None
-                row_odict['protein'] = None
-                row_odict['zygosity'] = None
-                row_odict['consequence'] = None
-                row_odict['has off-target'] = None
-                row_odict['variant caller presence'] = None
-                row_odict['score'] = None
-                if well.well_content:
-                    row_odict['type'] = well.well_content.content_type
-                    row_odict['clone'] = well.well_content.clone.name
-                    if well.well_content.guides:
-                        row_odict['guides'] = "; ".join(g.name for g in well.well_content.guides)
-                for slc in well.sequencing_library_contents:
-                    row_odict['slxid'] = slc.sequencing_library.slxid
-                    row_odict['sample'] = slc.sequencing_sample_name
-                    row_odict['barcode'] = slc.sequencing_barcode
-                    row_odict['dna source'] = slc.dna_source
-                if well.abundances:
-                    if well.abundances[0].ratio_800_700:
-                        row_odict['protein'] = "{0:.3f}".format(well.abundances[0].ratio_800_700)
-                sample_data_table_rows.append(list(row_odict.values()))
-        if row_odict:
-            sample_data_table_headers = row_odict.keys()
-        vvariant_data_table_headers, vvariant_data_table_rows = self.get_variant_data_table(layouts, 'VarDict')
+        for guide in project.guides:
+            guide_row = []
+            guide_row.append(guide.target.name)
+            guide_row.append(guide.genome.species)
+            guide_row.append(guide.genome.assembly)
+            guide_row.append(guide.name)
+            guide_row.append(guide.guide_sequence)
+            guide_row.append(guide.pam_sequence)
+            guide_row.append(guide.activity)
+            guide_row.append(guide.exon)
+            guide_row.append(guide.nuclease)
+            guide_rows.append(guide_row)
+        return guide_headers, guide_rows
+
+    @view_config(route_name="project", renderer="../templates/project.pt")
+    def project(self):
+        gepid = self.request.matchdict['gepid']
+        project = self.dbsession.query(Project).filter(Project.geid == gepid).one()
+        plotter = Plotter(self.dbsession, project.geid)
+        # Tables
+        project_headers, project_rows = self.get_project_table(project)
+        target_headers, target_rows = self.get_target_table(project)
+        guide_headers, guide_rows = self.get_guide_table(project)
 
         return_map = {'project': project,
                 'title': "GenEditID",
@@ -242,10 +152,6 @@ class ProjectViews(object):
                 'target_rows': target_rows,
                 'guide_headers': guide_headers,
                 'guide_rows': guide_rows,
-                'vvariant_data_table_headers': vvariant_data_table_headers,
-                'vvariant_data_table_rows': vvariant_data_table_rows,
-                'sample_data_table_headers': sample_data_table_headers,
-                'sample_data_table_rows': sample_data_table_rows,
                 'coverageplot': plotter.coverage_plot(),
                 'impactplot': plotter.variant_impact_plot(),
                 'heatmapplot': plotter.heatmap_plot(),
@@ -260,8 +166,24 @@ class ProjectViews(object):
                 loader.load()
                 self.dbsession.commit()
                 shutil.copyfile(file_path, os.path.join(project.project_folder, "{}.xlsx".format(project.geid)))
-                return_map['info'] = "Project configuration file has been uploaded successfully."
-                # ********** TODO update return_map
+                project_headers, project_rows = self.get_project_table(project)
+                target_headers, target_rows = self.get_target_table(project)
+                guide_headers, guide_rows = self.get_guide_table(project)
+                return_map = {'project': project,
+                        'title': "GenEditID",
+                        'subtitle': "Project: {}".format(project.geid),
+                        'info': "Project configuration file has been uploaded successfully.",
+                        'error': False,
+                        'project_headers': project_headers,
+                        'project_rows': project_rows,
+                        'target_headers': target_headers,
+                        'target_rows': target_rows,
+                        'guide_headers': guide_headers,
+                        'guide_rows': guide_rows,
+                        'coverageplot': plotter.coverage_plot(),
+                        'impactplot': plotter.variant_impact_plot(),
+                        'heatmapplot': plotter.heatmap_plot(),
+                    }
                 return HTTPFound(self.request.route_url('project', gepid=project.geid))
             except LoaderException as e:
                 self.dbsession.rollback()
@@ -311,10 +233,10 @@ class ProjectViews(object):
     #         "description",
     #         "data"]
     #     plate_rows = []
-    #     plates = self.dbsession.query(Plate).join(ExperimentLayout).join(Project).filter(Project.geid == project.geid).all()
+    #     plates = self.dbsession.query(Plate).join(Layout).join(Project).filter(Project.geid == project.geid).all()
     #     for plate in plates:
     #         row = []
-    #         row.append(plate.experiment_layout.geid)
+    #         row.append(plate.layout.geid)
     #         row.append(plate.geid)
     #         row.append(plate.barcode)
     #         row.append(plate.description)

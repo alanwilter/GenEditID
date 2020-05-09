@@ -1,4 +1,6 @@
 import pytest
+import sqlalchemy
+
 from geneditid.config import cfg
 from geneditid.connect import dbsession
 
@@ -13,15 +15,13 @@ from geneditid.model import Amplicon
 from geneditid.model import Primer
 
 class TestProjectDataLoader:
-    @classmethod
-    def setup_class(self):
+    def setup_method(self):
         project_loader = ProjectLoader(dbsession)
         project_loader.create_project('pytest', 'knock-out')
         dbsession.commit()
         self.project = project_loader.project
 
-    @classmethod
-    def teardown_class(self):
+    def teardown_method(self):
         dbsession.delete(self.project)
         dbsession.commit()
 
@@ -90,3 +90,21 @@ class TestProjectDataLoader:
         loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_min_missingvalues.xlsx')
         with pytest.raises(LoaderException, match=r"Column target_gene_id needs a value in Target tab"):
             loader.load()
+
+    def test_load_min_withlayouterror1(self):
+        loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_min_withlayouterror1.xlsx')
+        with pytest.raises(sqlalchemy.exc.IntegrityError, match=r".*UNIQUE constraint failed: layout_content.row, layout_content.column, layout_content.layout_id.*"):
+            try:
+                loader.load()
+            except sqlalchemy.exc.IntegrityError as e:
+                dbsession.rollback()
+                raise
+
+    def test_load_min_withlayouterror2(self):
+        loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_min_withlayouterror2.xlsx')
+        with pytest.raises(sqlalchemy.exc.IntegrityError, match=r".*UNIQUE constraint failed: layout_content.sequencing_barcode, layout_content.layout_id.*"):
+            try:
+                loader.load()
+            except sqlalchemy.exc.IntegrityError as e:
+                dbsession.rollback()
+                raise
