@@ -49,7 +49,7 @@
         <div role="tabpanel" class="tab-pane fade in active" id="overview" >
           <h3>Overview</h3>
           <h4>Project Details</h4>
-          <table id="projecttable" class="table table-hover table-condensed">
+          <table id="projecttable" class="table table-bordered table-condensed">
               <thead>
                   <th tal:repeat="header project_headers">${header}</th>
               </thead>
@@ -59,7 +59,7 @@
           </table>
 
           <h4>Targets</h4>
-          <table id="targettable" class="table table-hover table-condensed">
+          <table id="targettable" class="table table-bordered table-hover table-condensed">
               <thead>
                   <th tal:repeat="header target_headers">${header}</th>
               </thead>
@@ -69,7 +69,7 @@
           </table>
 
           <h4>Guides</h4>
-          <table id="guidetable" class="table table-hover table-condensed">
+          <table id="guidetable" class="table table-bordered table-hover table-condensed">
               <thead>
                   <th tal:repeat="header guide_headers">${header}</th>
               </thead>
@@ -78,7 +78,24 @@
               </tr>
           </table>
 
-          <!-- h4>plate layouts</h4 -->
+          <h4>Amplicons</h4>
+          <table id="amplicontable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header amplicon_headers">${header}</th>
+              </thead>
+              <tr tal:repeat="row amplicon_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
+          <h4>Layout</h4>
+          <table id="layouttable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header layout_headers">${header}</th>
+              </thead>
+              <tr tal:repeat="row layout_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
 
         <!-- Setup section ************************************************* -->
@@ -171,16 +188,69 @@
 <script>
   $(document).ready(
     function() {
-        $('#projecttable').DataTable({
+        $('#projecttable').DataTable( {
           "searching": false,
           "paging":    false,
           "ordering":  false,
           "info":      false,
+          "columnDefs": [ {
+            "targets": [ 8 ],
+            "visible": false,
+            "searchable": false
+            }, {
+            "targets": [ 9 ],
+            "visible": false,
+            "searchable": false
+            }, {
+            "targets": [ 10 ],
+            "visible": false,
+            "searchable": false
+            }, {
+            "targets": [ 11 ],
+            "visible": false,
+            "searchable": false
+            },
+          ]
         } );
+
         $('#targettable').DataTable({
+          "searching": false,
+          "paging":    false,
+          "info":      false,
+          "columnDefs": [ {
+            "targets": [ 8 ],
+            "visible": false,
+            "searchable": false
+            },
+          ]
         } );
+
         $('#guidetable').DataTable({
+          "searching": false,
+          "paging":    false,
+          "info":      false,
         } );
+
+        $('#amplicontable').DataTable({
+          "searching": false,
+          "paging":    false,
+          "info":      false,
+          "columnDefs": [ {
+            "targets": [ 11 ],
+            "visible": false,
+            "searchable": false
+            }, {
+            "targets": [ 12 ],
+            "visible": false,
+            "searchable": false
+            },
+          ]
+        } );
+
+        $('#layouttable').DataTable({
+          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+        } );
+
         $('#guidemismatchtable').DataTable({
         } );
         <!--
@@ -213,10 +283,12 @@
           "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ]
         } );
         -->
+        <!--
         $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
           $($.fn.dataTable.tables(true)).DataTable()
              .columns.adjust()
              .responsive.recalc();
         } );
+      -->
     } );
 </script>

@@ -51,35 +51,37 @@ class ProjectViews(object):
         return deform.Form(schema, buttons=(submitButton,))
 
     def get_project_table(self, project):
-        project_headers = [
-            "geid",
+        headers = [
+            "project identifier",
             "name",
-            "folder",
             "type",
-            "scientist",
-            "group",
-            "date",
-            "description",
-            "comments",
+            "creation date",
+            "data location",
+            "sequencing data",
             "abundance data",
             "growth data",
-            "ngs data"]
-        project_rows = [[project.geid,
-                        project.name,
-                        project.project_folder,
-                        project.project_type,
-                        project.scientist,
-                        project.group,
-                        project.start_date,
-                        project.description,
-                        project.comments,
-                        project.is_abundance_data_available,
-                        project.is_growth_data_available,
-                        project.is_sequencing_data_available]]
-        return project_headers, project_rows
+            "scientist",
+            "group",
+            "description",
+            "comments",
+            ]
+        rows = [[project.geid,
+                 project.name,
+                 project.project_type,
+                 project.start_date,
+                 project.project_folder,
+                 project.is_sequencing_data_available,
+                 project.is_abundance_data_available,
+                 project.is_growth_data_available,
+                 project.scientist,
+                 project.group,
+                 project.description,
+                 project.comments
+                 ]]
+        return headers, rows
 
     def get_target_table(self, project):
-        target_headers = [
+        headers = [
             "name",
             "species",
             "assembly",
@@ -89,7 +91,7 @@ class ProjectViews(object):
             "end",
             "strand",
             "description"]
-        target_rows = []
+        rows = []
         for target in project.targets:
             row = []
             row.append(target.name)
@@ -101,14 +103,12 @@ class ProjectViews(object):
             row.append(target.end)
             row.append(target.strand)
             row.append(target.description)
-            target_rows.append(row)
-        return target_headers, target_rows
+            rows.append(row)
+        return headers, rows
 
     def get_guide_table(self, project):
-        guide_headers = [
+        headers = [
             "target name",
-            "species",
-            "assembly",
             "guide name",
             "guide sequence",
             "pam sequence",
@@ -116,20 +116,99 @@ class ProjectViews(object):
             "exon",
             "nuclease"
         ]
-        guide_rows = []
+        rows = []
         for guide in project.guides:
-            guide_row = []
-            guide_row.append(guide.target.name)
-            guide_row.append(guide.genome.species)
-            guide_row.append(guide.genome.assembly)
-            guide_row.append(guide.name)
-            guide_row.append(guide.guide_sequence)
-            guide_row.append(guide.pam_sequence)
-            guide_row.append(guide.activity)
-            guide_row.append(guide.exon)
-            guide_row.append(guide.nuclease)
-            guide_rows.append(guide_row)
-        return guide_headers, guide_rows
+            row = []
+            row.append(guide.target.name)
+            row.append(guide.name)
+            row.append(guide.guide_sequence)
+            row.append(guide.pam_sequence)
+            row.append(guide.activity)
+            row.append(guide.exon)
+            row.append(guide.nuclease)
+            rows.append(row)
+        return headers, rows
+
+    def get_amplicon_table(self, project):
+        headers = [
+            "amplicon name",
+            "forward primer",
+            "reverse primer",
+            "amplicon coordinates",
+            "guide name",
+            "experiment type",
+            "guide location",
+            "guide strand",
+            "is on target?",
+            "DNA feature",
+            "chromosome",
+            "score",
+            "description"
+        ]
+        rows = []
+        for amplicon in project.amplicons:
+            row = []
+            row.append(amplicon.name)
+            row.append(amplicon.fprimer.sequence)
+            row.append(amplicon.rprimer.sequence)
+            row.append(amplicon.coordinates)
+            row.append(amplicon.guide.name)
+            row.append(amplicon.experiment_type)
+            row.append(amplicon.guide_location)
+            row.append(amplicon.guide_strand)
+            row.append(amplicon.is_on_target)
+            row.append(amplicon.dna_feature)
+            row.append(amplicon.chromosome)
+            row.append(amplicon.score)
+            row.append(amplicon.description)
+            rows.append(row)
+        return headers, rows
+
+    def get_layout_table(self, project):
+        headers = [
+            "layout id",
+            "well position",
+            "guide name",
+            "sequencing barcode",
+            "sequencing dna source",
+            "sequencing project id",
+            "sequencing sample name",
+            "sequencing library type",
+            "cell line name",
+            "clone name",
+            "cell pool",
+            "content type",
+            "is control",
+            "replicate group"
+        ]
+        rows = []
+        for layout in project.layouts:
+            for content in layout.layout_contents:
+                row = []
+                row.append(layout.geid)
+                row.append(content.position)
+                if content.guide:
+                    row.append(content.guide.name)
+                else:
+                    row.append('')
+                row.append(content.sequencing_barcode)
+                row.append(content.sequencing_dna_source)
+                row.append(content.sequencing_project_id)
+                row.append(content.sequencing_sample_name)
+                row.append(content.sequencing_library_type)
+                if content.clone:
+                    row.append(content.clone.cell_line.name)
+                    row.append(content.clone.name)
+                    row.append(content.clone.cell_pool)
+                else:
+                    row.append('')
+                    row.append('')
+                    row.append('')
+                row.append(content.content_type)
+                row.append(content.is_control)
+                row.append(content.replicate_group)
+                rows.append(row)
+        return headers, rows
 
     @view_config(route_name="project", renderer="../templates/project.pt")
     def project(self):
@@ -140,6 +219,8 @@ class ProjectViews(object):
         project_headers, project_rows = self.get_project_table(project)
         target_headers, target_rows = self.get_target_table(project)
         guide_headers, guide_rows = self.get_guide_table(project)
+        amplicon_headers, amplicon_rows = self.get_amplicon_table(project)
+        layout_headers, layout_rows = self.get_layout_table(project)
 
         return_map = {'project': project,
                 'title': "GenEditID",
@@ -152,6 +233,10 @@ class ProjectViews(object):
                 'target_rows': target_rows,
                 'guide_headers': guide_headers,
                 'guide_rows': guide_rows,
+                'amplicon_headers': amplicon_headers,
+                'amplicon_rows': amplicon_rows,
+                'layout_headers': layout_headers,
+                'layout_rows': layout_rows,
                 'coverageplot': plotter.coverage_plot(),
                 'impactplot': plotter.variant_impact_plot(),
                 'heatmapplot': plotter.heatmap_plot(),
@@ -169,6 +254,8 @@ class ProjectViews(object):
                 project_headers, project_rows = self.get_project_table(project)
                 target_headers, target_rows = self.get_target_table(project)
                 guide_headers, guide_rows = self.get_guide_table(project)
+                amplicon_headers, amplicon_rows = self.get_amplicon_table(project)
+                layout_headers, layout_rows = self.get_layout_table(project)
                 return_map = {'project': project,
                         'title': "GenEditID",
                         'subtitle': "Project: {}".format(project.geid),
@@ -180,6 +267,10 @@ class ProjectViews(object):
                         'target_rows': target_rows,
                         'guide_headers': guide_headers,
                         'guide_rows': guide_rows,
+                        'amplicon_headers': amplicon_headers,
+                        'amplicon_rows': amplicon_rows,
+                        'layout_headers': layout_headers,
+                        'layout_rows': layout_rows,
                         'coverageplot': plotter.coverage_plot(),
                         'impactplot': plotter.variant_impact_plot(),
                         'heatmapplot': plotter.heatmap_plot(),

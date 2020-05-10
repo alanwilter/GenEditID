@@ -18,7 +18,6 @@ from geneditid.model import Target
 from geneditid.model import Guide
 from geneditid.model import GuideMismatch
 from geneditid.model import Amplicon
-from geneditid.model import AmpliconSelection
 from geneditid.model import Primer
 from geneditid.model import Clone
 from geneditid.model import Layout
@@ -360,24 +359,20 @@ class ProjectDataLoader(Loader):
             if not guide:
                 raise LoaderException('Guide {} not found (Amplicon tab, row {})'.format(row.guide_name, i))
             # create the amplicon
-            amplicon = Amplicon(project=self.project, genome=self.genome)
+            amplicon = Amplicon(project=self.project, genome=self.genome, guide=guide)
             amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
             amplicon.chromosome = str(row.chrom)
             amplicon.start = int(row.forward_primer_start)
             amplicon.end = int(row.reverse_primer_end)
-            self.dbsession.add(amplicon)
-            self.log.info('Amplicon {} created'.format(amplicon.get_name))
-            # create link between amplicon and guide
-            selection = AmpliconSelection(guide=guide, amplicon=amplicon)
-            selection.experiment_type = row.experiment_type
-            selection.guide_location = int(row.guide_location)
-            selection.guide_strand = self.to_strand(row.guide_strand, i)
-            selection.is_on_target = bool(row.is_on_target)
+            amplicon.experiment_type = row.experiment_type
+            amplicon.guide_location = int(row.guide_location)
+            amplicon.guide_strand = self.to_strand(row.guide_strand, i)
+            amplicon.is_on_target = bool(row.is_on_target)
             if pandas.notnull(row.score):
-                selection.score = int(row.score)
-            selection.description = self.get_string(row.description, 1024)
-            self.dbsession.add(selection)
-            self.log.info('Amplicon link between amplicon {} and guide {} at {} created'.format(amplicon.get_name, guide.name, selection.guide_location))
+                amplicon.score = int(row.score)
+            amplicon.description = self.get_string(row.description, 1024)
+            self.dbsession.add(amplicon)
+            self.log.info('Amplicon {} created'.format(amplicon.name))
             # check reverse primer coordinnates after forward primer
             if not (int(row.forward_primer_start) < int(row.forward_primer_end) < int(row.reverse_primer_start) < int(row.reverse_primer_end)):
                 raise LoaderException('Forward primer coordinates must be before reverse ones (Amplicon tab, row {})'.format(i))
@@ -388,7 +383,7 @@ class ProjectDataLoader(Loader):
             forward_primer.start = int(row.forward_primer_start)
             forward_primer.end = int(row.forward_primer_end)
             self.dbsession.add(forward_primer)
-            self.log.info('Forward primer {} for amplicon {} created'.format(forward_primer.sequence, amplicon.get_name))
+            self.log.info('Forward primer {} for amplicon {} created'.format(forward_primer.sequence, amplicon.name))
             # create reverse primer
             reverse_primer = Primer(amplicon=amplicon, genome=self.genome)
             reverse_primer.sequence = row.reverse_primer_sequence
@@ -396,7 +391,7 @@ class ProjectDataLoader(Loader):
             reverse_primer.start = int(row.reverse_primer_start)
             reverse_primer.end = int(row.reverse_primer_end)
             self.dbsession.add(reverse_primer)
-            self.log.info('Reverse primer {} for amplicon {} created'.format(reverse_primer.sequence, amplicon.get_name))
+            self.log.info('Reverse primer {} for amplicon {} created'.format(reverse_primer.sequence, amplicon.name))
 
     def load_layout(self):
         sheet = self.xls.parse('Layout')
@@ -414,8 +409,6 @@ class ProjectDataLoader(Loader):
             if not layout:
                 layout = Layout(project=self.project)
                 layout.geid = row.layout_id
-                layout.sequencing_project_id = row.sequencing_project_id
-                layout.sequencing_library_type = row.sequencing_library_type
                 self.dbsession.add(layout)
                 self.log.info('Layout {} in project {} created.'.format(layout.geid, self.project.geid))
             # Empty layout content when no guide_name, nor sequencing_barcode
@@ -461,6 +454,8 @@ class ProjectDataLoader(Loader):
                 layout_content.clone = clone
                 layout_content.row = row.well_position[0]
                 layout_content.column = int(row.well_position[1:])
+                layout_content.sequencing_project_id = self.get_value(row.sequencing_project_id)
+                layout_content.sequencing_library_type = self.get_value(row.sequencing_library_type)
                 layout_content.sequencing_barcode = self.get_value(row.sequencing_barcode)
                 layout_content.sequencing_dna_source = self.get_value(row.sequencing_dna_source)
                 layout_content.sequencing_sample_name = self.get_value(row.sequencing_sample_name)

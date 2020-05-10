@@ -85,7 +85,7 @@ class Target(Base):
     __table_args__ = ( UniqueConstraint('name', 'genome_id', 'project_id', name='unique_target_in_project'),
                      )
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='target_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
         backref=backref('targets', uselist=True, cascade='delete,all'))
@@ -105,11 +105,11 @@ class Guide(Base):
     __table_args__ = ( UniqueConstraint('name', 'genome_id', 'target_id', 'project_id', name='unique_guide_in_target_within_project'),
                      )
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='guide_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='guide_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
         backref=backref('guides', uselist=True, cascade='delete,all'))
-    target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='CASCADE'))
+    target_id = Column(Integer, ForeignKey('target.id', name='guide_target_fk', ondelete='CASCADE'), nullable=False)
     target = relationship(
         Target,
         backref=backref('guides', uselist=True, cascade='delete,all'))
@@ -126,7 +126,7 @@ class Guide(Base):
 class GuideMismatch(Base):
     __tablename__ = 'guide_mismatch'
     id = Column(Integer, primary_key=True)
-    guide_id = Column(Integer, ForeignKey('guide.id', name='guide_mismatch_guide_fk', ondelete='CASCADE'))
+    guide_id = Column(Integer, ForeignKey('guide.id', name='guide_mismatch_guide_fk', ondelete='CASCADE'), nullable=False)
     guide = relationship(
         Guide,
         backref=backref('guide_mismatches', uselist=True, cascade='delete,all'))
@@ -138,33 +138,20 @@ class GuideMismatch(Base):
 class Amplicon(Base):
     __tablename__ = 'amplicon'
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='amplicon_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='amplicon_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
         backref=backref('amplicons', uselist=True, cascade='delete,all'))
     genome_id = Column(Integer, ForeignKey('genome.id', name='amplicon_genome_fk'), nullable=False)
     genome = relationship(Genome)
+    guide_id = Column(Integer, ForeignKey('guide.id', name="amplicon_guide_fk", ondelete='CASCADE'), nullable=False)
+    guide = relationship(
+        Guide,
+        backref=backref('amplicons', uselist=True, cascade='delete,all'))
     dna_feature = Column(Enum('gene', 'precursor', 'non-coding', name='dna_feature'))
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
-
-    @property
-    def get_name(self):
-        return 'chr{}_{}'.format(self.chromosome, self.start)
-
-
-class AmpliconSelection(Base):
-    __tablename__ = 'amplicon_selection'
-    id = Column(Integer, primary_key=True)
-    guide_id = Column(Integer, ForeignKey('guide.id', name="ampliconselection_guide_fk", ondelete='CASCADE'))
-    guide = relationship(
-        Guide,
-        backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
-    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name="ampliconselection_amplicon_fk", ondelete='CASCADE'))
-    amplicon = relationship(
-        Amplicon,
-        backref=backref('amplicon_selections', uselist=True, cascade='delete,all'))
     experiment_type = Column(String(32), nullable=False)
     guide_location = Column(Integer, nullable=False)
     guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
@@ -172,11 +159,30 @@ class AmpliconSelection(Base):
     score = Column(Integer)
     description = Column(String(1024))
 
+    @property
+    def name(self):
+        return '{}_chr{}_{}'.format(self.guide.target.name, self.chromosome, self.start)
+
+    @property
+    def coordinates(self):
+        return 'chr{}:{}-{}'.format(self.chromosome, self.start, self.end)
+
+    @property
+    def fprimer(self):
+        for primer in self.primers:
+            if primer.strand == 'forward':
+                return primer
+
+    @property
+    def rprimer(self):
+        for primer in self.primers:
+            if primer.strand == 'reverse':
+                return primer
 
 class Primer(Base):
     __tablename__ = 'primer'
     id = Column(Integer, primary_key=True)
-    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name='primer_amplicon_fk', ondelete='CASCADE'))
+    amplicon_id = Column(Integer, ForeignKey('amplicon.id', name='primer_amplicon_fk', ondelete='CASCADE'), nullable=False)
     amplicon = relationship(
         Amplicon,
         backref=backref('primers', uselist=True, cascade='delete,all'))
@@ -193,7 +199,7 @@ class Clone(Base):
     __table_args__ = ( UniqueConstraint('name', 'project_id', name='unique_clone_in_project'),
                      )
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='clone_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='clone_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
         backref=backref('clones', uselist=True, cascade='delete,all'))
@@ -207,16 +213,13 @@ class Clone(Base):
 class Layout(Base):
     __tablename__ = 'layout'
     __table_args__ = ( UniqueConstraint('geid', 'project_id', name='unique_layout_in_project'),
-                       UniqueConstraint('sequencing_project_id', 'project_id', name='unique_sequencing_project_id_in_project')
                      )
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey('project.id', name='layout_project_fk', ondelete='CASCADE'))
+    project_id = Column(Integer, ForeignKey('project.id', name='layout_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
         backref=backref('layouts', uselist=True, cascade='delete,all'))
     geid = Column(String(12), nullable=False, index=True)
-    sequencing_project_id = Column(String(12), nullable=True)
-    sequencing_library_type = Column(String(32))
 
 
 class LayoutContent(Base):
@@ -239,15 +242,21 @@ class LayoutContent(Base):
         backref=backref('layout_contents', uselist=True, cascade='delete,all'))
     row = Column(String(1), nullable=False)
     column = Column(Integer, nullable=False)
+    sequencing_project_id = Column(String(12))
+    sequencing_library_type = Column(String(32))
     sequencing_barcode = Column(String(20))
-    sequencing_dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', 'water', name='dna_source'), nullable=True)
-    sequencing_sample_name = Column(String(32), nullable=True)
+    sequencing_dna_source = Column(Enum('fixed cells', 'gDNA', 'non-fixed cells', 'water', name='dna_source'))
+    sequencing_sample_name = Column(String(32))
     content_type = Column(Enum('wild-type', 'knock-out', 'background', 'normalisation', 'sample', 'empty-vector', 'empty', name='content_type'), nullable=False, default='sample')
     is_control = Column(Boolean, nullable=False, default=False)
     replicate_group = Column(Integer, nullable=False, default=0)
 
     def is_empty(self):
         return (self.content_type == 'empty' and self.guide == None)
+
+    @property
+    def position(self):
+        return '{}{}'.format(self.row, self.column)
 
 
 class Plate(Base):
@@ -256,7 +265,7 @@ class Plate(Base):
                        UniqueConstraint('name', 'layout_id', name='unique_plate_name_in_layout')
                      )
     id = Column(Integer, primary_key=True)
-    layout_id = Column(Integer, ForeignKey('layout.id', name='plate_layout_fk', ondelete='CASCADE'))
+    layout_id = Column(Integer, ForeignKey('layout.id', name='plate_layout_fk', ondelete='CASCADE'), nullable=False)
     layout = relationship(
         Layout,
         backref=backref('plates', uselist=True, cascade='delete,all'))
