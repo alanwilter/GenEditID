@@ -1,0 +1,130 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<div metal:use-macro="load: layout.pt">
+  <div id="content" metal:fill-slot="content">
+    <div class="content">
+      <div class="container-fluid">
+        <h1>${title} <small>Project Tracking</small></h1>
+        <p>
+          <ol class="breadcrumb">
+            <li><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</li>
+            <li><a href="${request.route_url('help')}"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Getting started</a></li>
+            <li class="active"></li>
+          </ol>
+        </p>
+
+        <h2>Create new project</h2>
+        <form action="${request.route_url('home')}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-horizontal" role="form">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group required">
+                  <label for="input_project_name" class="col-md-4 control-label">Project name:</label>
+                  <div class="col-md-8">
+                    <input class="form-control" id="input_project_name" name="project_name" placeholder="The name of the project" type="text" required="true">
+                  </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group required">
+                <label for="input_project_type" class="col-md-4 control-label">Project type:</label>
+                <div class="col-md-8">
+                  <select class="form-control" id="input_project_type" name="project_type" type="text">
+                    <option>knock-out</option>
+                    <option>knock-in</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_description" class="col-md-4 control-label">Project description:</label>
+                <div class="col-md-8">
+                  <textarea class="form-control" rows="2" id="input_project_description" name="project_description" placeholder="A brief description of the goals of the project"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_scientist" class="col-md-4 control-label">Scientist:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_scientist" name="project_scientist" placeholder="The name of the scientist" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_group_leader" class="col-md-4 control-label">Group leader:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_group_leader" name="project_group_leader" placeholder="The name of the group leader" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="input_project_group" class="col-md-4 control-label">Group:</label>
+                <div class="col-md-8">
+                  <input class="form-control" id="input_project_group" name="project_group" placeholder="The name of the group" type="text">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                  <button type="submit" name="submit_project" value="Create" class="btn btn-default">Create project</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class='alert alert-danger' tal:condition="error">
+              <p>
+                  Error! ${error}
+              </p>
+          </div>
+          <div class='alert alert-success' tal:condition="info">
+              <p>
+                  Success! ${info}
+              </p>
+          </div>
+        </form>
+
+        <hr/>
+        <h2>Projects</h2>
+        <div id="ProjectData"></div>
+        <table id="project-data" class="table table-bordered table-hover table-condensed">
+            <thead>
+                <th tal:repeat="header column_headers">${header}</th>
+            </thead>
+            <tr tal:repeat="row rows">
+                <td tal:repeat="cell row">${cell}</td>
+            </tr>
+        </table>
+        <hr/>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready (
+    function() {
+        $('#project-data').DataTable ( {
+          "aaSorting": [[0, 'desc']],
+          "columnDefs": [
+            { "targets": [ 0 ],
+              "render": function ( data, type, full, meta ) {
+                return '<a href="' + full[1] + '">' + data + '</a>';
+              }
+            },
+            { "targets": [ 1 ],
+              "visible": false,
+              "searchable": false
+            },
+          ],
+          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+        } );
+    } );
+</script>

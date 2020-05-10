@@ -1,0 +1,44 @@
+################################################################################
+### database
+################################################################################
+
+# Template for "geneditid.yml" and set the URI appropriate for your database.
+
+# Local SQLite database
+DATABASE_URI: "sqlite:///geneditid.sqlite"
+
+# Local Postgres database
+#DATABASE_URI: "postgresql://gene:gene@localhost/geneditid"
+
+# Shared Postgres database on linux server
+#DATABASE_URI: "postgresql://gene:gene@<HOST_URL>/geneditid"
+
+################################################################################
+### reference data folder
+################################################################################
+DATA_FOLDER: "data"
+REF_SUBFOLDER: "reference"
+
+################################################################################
+### project data folder
+################################################################################
+PROJECTS_FOLDER: "PROJECTS"
+FASTQ_SUBFOLDER: "fastq"
+
+################################################################################
+### reference data
+################################################################################
+GENOMES:
+  - 'Homo sapiens [GRCh37]'
+  - 'Homo sapiens [GRCh38]'
+  - 'Mus musculus [GRCm38]'
+
+CELL_LINES:
+  - 'MCF7'
+  - 'T47D'
+  - 'MESC'
+  - 'A549'
+  - 'HUES9'
+  - 'ZRTamR'
+  - 'ZRTamS'
+  - 'HEK293T'

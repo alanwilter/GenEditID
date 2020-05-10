@@ -1,0 +1,3 @@
+[run]
+source = geneditidapp
+omit = geneditidapp/test*

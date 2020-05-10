@@ -1,8 +1,8 @@
 import sqlalchemy
 
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.loader import ProteinAbundanceLoader
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.loader import ProteinAbundanceLoader
 
 import log as logger
 
@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--file", dest="file", action="store", help="The InCell Western file e.g. 'data/20170127_GEP00001/GEP00001_01_ICW.csv'.", required=True)
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_protein_abundance.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'load_protein_abundance.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine

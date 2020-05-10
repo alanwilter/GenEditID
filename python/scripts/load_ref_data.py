@@ -1,33 +1,25 @@
 import os
-import sqlalchemy
-
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.loader import RefLoader
-
 import log as logger
+
+from geneditid.config import cfg
+from geneditid.connect import dbsession
+from geneditid.loader import RefLoader
 
 
 def main():
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_ref_data.log'))
-
-    engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
-    Base.metadata.bind = engine
-    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = DBSession()
-
-    loader = RefLoader(session)
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'load_ref_data.log'))
 
     try:
+        loader = RefLoader(dbsession)
         loader.load_genomes()
         loader.load_celllines()
-        session.commit()
+        dbsession.commit()
     except Exception as e:
         log.exception(e)
-        session.rollback()
+        dbsession.rollback()
     finally:
-        session.close()
+        dbsession.close()
 
 
 if __name__ == '__main__':

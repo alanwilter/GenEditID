@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+<div metal:use-macro="load: layout.pt">
+  <div id="content" metal:fill-slot="content">
+    <div class="content">
+      <div class="container-fluid">
+        <h1>${title} <small>Project Tracking</small></h1>
+        <p>
+          <ol class="breadcrumb">
+            <li><a href="${request.route_url('home')}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</a></li>
+            <li><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Getting started</li>
+            <li class="active"></li>
+          </ol>
+        </p>
+
+        <h2>Getting started</h2>
+        <ol>
+          <li>Create a new project by filling the form on the <a href="${request.route_url('home')}">Home</a> page</li>
+          <li>Go to the project page following the link in the Projects' table on the <a href="${request.route_url('home')}">Home</a> page</li>
+          <li>Create and upload the project's configuration speadsheet after downloading the <a href="${request.route_url('home')}static/GEPXXXXX.xlsx">configuration spreadsheet template</a> on the project page in the Setup tab</li>
+          <li>Add sequencing fastq files into the project data folder on disk</li>
+          <li>Run GenEditID read count analysis tool after merging the reads</li>
+          <li>Visualise the analysis plots and tables on the project page</li>
+        </ol>
+        For more detailed description of the analysis steps, please go to <a target="blank" href="https://geneditid.github.io/manual.html">the online manual of the GenEditID's app</a>.
+      </div>
+    </div>
+  </div>
+</div>

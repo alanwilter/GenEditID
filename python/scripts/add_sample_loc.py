@@ -5,11 +5,11 @@ import sqlalchemy
 import logging
 import sys
 
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.model import ExperimentLayout
-from dnascissors.model import Project
-from dnascissors.model import Well
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.model import Layout
+from geneditid.model import Project
+from geneditid.model import Well
 
 
 class DataExtractor:
@@ -21,8 +21,8 @@ class DataExtractor:
     def get_data(self, data_file):
         results = self.dbsession.query(Well)\
                       .join(Well.well_content)\
-                      .join(Well.experiment_layout)\
-                      .join(ExperimentLayout.project)\
+                      .join(Well.layout)\
+                      .join(Layout.project)\
                       .filter(Project.geid == self.project_geid)\
                       .all()
         # data collection
@@ -56,7 +56,7 @@ class DataExtractor:
                 dna_source = well.sequencing_library_contents[0].dna_source
                 sequencing_barcode = well.sequencing_library_contents[0].sequencing_barcode
             data.append([
-                        well.experiment_layout.geid,
+                        well.layout.geid,
                         '{}{}'.format(well.row, well.column),
                         cell_line_name,
                         clone_name,
@@ -69,7 +69,7 @@ class DataExtractor:
                         intensity_channel_800,
                         well_abundance_ratio
                         ])
-            barcodes.append([well.experiment_layout.geid,
+            barcodes.append([well.layout.geid,
                              '{}{}'.format(well.row, well.column),
                              sequencing_barcode])
         if data:
@@ -104,28 +104,28 @@ def main():
         data = DataExtractor(session, geid)
         data.get_data("expression_data.csv")
 
-        varianid_folder = 'editid_variantid'
+        plots_folder = 'geneditid_plots'
         df_barcodes = pandas.read_csv('barcodes.csv')
 
-        df_variants = pandas.read_csv(os.path.join(varianid_folder, 'variantid.csv'))
-        df_impacts = pandas.read_csv(os.path.join(varianid_folder, 'impacts.csv'))
+        df_variants = pandas.read_csv(os.path.join(plots_folder, 'variantid.csv'))
+        df_impacts = pandas.read_csv(os.path.join(plots_folder, 'impacts.csv'))
 
         df_variants = df_variants.merge(df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
         df_impacts = df_impacts.merge(df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
 
         df_variants = df_variants[['plate_id', 'well', 'sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_reads', 'variant_frequency', 'sequence', 'variant_id', 'variant_type', 'variant_consequence', 'variant_score']]
-        df_variants.to_csv('editid_variantid/variantid_with_plate_location.csv', index=False)
+        df_variants.to_csv('geneditid_plots/variantid_with_plate_location.csv', index=False)
 
         df_impacts = df_impacts[['plate_id', 'well', 'sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
-        df_impacts.to_csv('editid_variantid/impacts_with_plate_location.csv', index=False)
+        df_impacts.to_csv('geneditid_plots/impacts_with_plate_location.csv', index=False)
 
-        for file in glob.glob(os.path.join(varianid_folder, 'koscores_*.csv')):
+        for file in glob.glob(os.path.join(plots_folder, 'koscores_*.csv')):
             if 'with_plate_location' not in file:
                 df_koscores = pandas.read_csv(file)
                 df_koscores = df_koscores.merge(df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
                 df_koscores = df_koscores[['plate_id', 'well', 'sample_id', 'HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency', 'koscore']]
                 output, ext = os.path.splitext(os.path.basename(file))
-                df_koscores.to_csv(os.path.join(varianid_folder, '{}_with_plate_location{}'.format(output, ext)), index=False)
+                df_koscores.to_csv(os.path.join(plots_folder, '{}_with_plate_location{}'.format(output, ext)), index=False)
 
     except Exception as e:
         logging.exception(e)

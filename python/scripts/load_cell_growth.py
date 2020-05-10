@@ -1,8 +1,8 @@
 import sqlalchemy
 
-from dnascissors.config import cfg
-from dnascissors.model import Base
-from dnascissors.loader import CellGrowthLoader
+from geneditid.config import cfg
+from geneditid.model import Base
+from geneditid.loader import CellGrowthLoader
 
 import log as logger
 
@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--clean", dest="clean", action="store_true", default=False, help="Clean database before loading?")
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'load_cell_growth.log'))
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'load_cell_growth.log'))
 
     engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
     Base.metadata.bind = engine

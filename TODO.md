@@ -8,14 +8,20 @@
 
 - Create proper test data
   - [x] select 3 FastQ files
-  - [ ] run all analysis steps on these 3 files only
+  - [x] run all analysis steps on these 3 files only
+  - [x] improve setup for testing
+  - [ ] add fastq files into test data folder
+
+- Add new plots to the WebApp
+  - [x] Make subplot working
+  - [ ] Update WebApp interface to reflect changes
+  - [ ] Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
+  - [ ] Update the plotting scripts to call the code from the WebApp to avoid code duplication
+
+- [ ] Simplify submission spreadsheet and database
+
 
 # Things to do...
-
-- Simplify submission spreadsheet and database
-- Add new plots to the WebApp
-  - Add output of the run_ampli_count tool into a new database table for plotting (add class AmpliCountResult in model.py)
-  - Update the plotting scripts to call the code from the WebApp to avoid code duplication
 
 - Add validation scripts for the parameters chosen for the alignment `pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)`
 - Add validation scripts for variant classification `Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)` `var.effects().top_priority_effect()`
@@ -83,7 +89,7 @@ source ~/GenEditID/venv/bin/activate
   ```
 
 - Extract amplicons and targets coordinates from the database to produce the config file to run `ampli_count`:
-  NB. We are testing with data files from project GEP00009, so we need to create 8 'fake' projects first in the webapp  and then upload the submission sheet of project GEP00009 (re-do steps 1 and 2) to be able to run the script and get sensible data:
+  NB. We are testing with data files from project GEP00009, so we need to create 8 'fake' projects first in the geneditidapp  and then upload the submission sheet of project GEP00009 (re-do steps 1 and 2) to be able to run the script and get sensible data:
   ```
   geneditid_create_amplicount_config --project=GEP00001 --genome=Homo_sapiens.GRCh38.dna.toplevel.fa
   --- Amplicon #1
@@ -122,12 +128,12 @@ source ~/GenEditID/venv/bin/activate
   ```
   Three files analysed in one hour:
   ```
-  2020-04-02 23:15:10,526 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0018.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-02 23:27:24,464 dnascissors              INFO    : FLD0018,255430,39,96494
-  2020-04-02 23:27:24,758 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0046.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-02 23:48:40,345 dnascissors              INFO    : FLD0046,366226,49,118951
-  2020-04-02 23:48:40,571 dnascissors              INFO    : Counting reads in file SLX-15026.FLD0060.000000000-BJWVR.s_1.fqjoin.gz
-  2020-04-03 00:09:30,860 dnascissors              INFO    : FLD0060,313702,52,104464
+  2020-04-02 23:15:10,526 geneditid              INFO    : Counting reads in file SLX-15026.FLD0018.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-02 23:27:24,464 geneditid              INFO    : FLD0018,255430,39,96494
+  2020-04-02 23:27:24,758 geneditid              INFO    : Counting reads in file SLX-15026.FLD0046.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-02 23:48:40,345 geneditid              INFO    : FLD0046,366226,49,118951
+  2020-04-02 23:48:40,571 geneditid              INFO    : Counting reads in file SLX-15026.FLD0060.000000000-BJWVR.s_1.fqjoin.gz
+  2020-04-03 00:09:30,860 geneditid              INFO    : FLD0060,313702,52,104464
   ```
 
 - Check results in `amplicount.csv`
@@ -151,12 +157,12 @@ INFO:pyensembl.sequence_data:Loaded sequence dictionary from /Users/pajanne/Libr
 INFO:pyensembl.sequence_data:Loaded sequence dictionary from /Users/pajanne/Library/Caches/pyensembl/GRCh38/ensembl95/Homo_sapiens.GRCh38.pep.all.fa.gz.pickle
 Creating Amplicon Read Coverage plot for chr16_54931181
 ```
-- Check results in `editid_variantid/variantid.csv` and `editid_variantid/impacts.csv` and plots
-  - `editid_variantid/coverage_chr16_54931181.html`
-  - `editid_variantid/koscores_chr16_54931181.html`
+- Check results in `geneditid_plots/variantid.csv` and `geneditid_plots/impacts.csv` and plots
+  - `geneditid_plots/coverage_chr16_54931181.html`
+  - `geneditid_plots/koscores_chr16_54931181.html`
 
   ```
-  cat editid_variantid/variantid.csv
+  cat geneditid_plots/variantid.csv
   sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,variant_id,variant_type,variant_consequence,variant_score
   FLD0018,chr16_54931181,255430,170277,96494,73610,173,18932,47091,48.8,CCATGCCCGTGTGTGGCCATGTCCTATCCGCAGGGCTACTTGTACCAGCCGTCCGCCTCGCTTGGCGCTCTACTCGTGCCCGGCGTACAGCACCAGCGTCATTTCGGGGCCCCGCACGGATGAGCTCGGCCGCTCTTCTTCGGGCTCCGCGTTCTCGCCCTACGCTGGCTCGACTGCCTTCACGGCGCCCTCGCCGGGCTACAACTCGCACCTCCA,var1,Insertion,FrameShift,48.8
   FLD0018,chr16_54931181,255430,170277,96494,73610,173,18932,17682,18.32,CCATGCCCGTGTGTGCCAATTATGGGACTTACCCACCCAGATTTAGACATAGGTCAGTGGAACTGACCCTAAGAAGAGGCAGCAATATAGGTAAGAATGAAAGCTAAGGCACATCTAACAGCCATCCATGGGTGGGGAGGGCTACAACTCGCACCTCCA,var2,Insertion_Deletion_Mismatch,ComplexFrameShift,16.488
@@ -166,7 +172,7 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   ```
 
   ```
-  cat editid_variantid/impacts.csv
+  cat geneditid_plots/impacts.csv
   sample_id,amplicon_id,impact,impact_frequency
   FLD0018,chr16_54931181,HighImpact,48.8
   FLD0018,chr16_54931181,MediumImpact,18.32
@@ -188,7 +194,7 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   ```
 
 - Visualise plots in your browser
-  - `editid_variantid/heatmap_chr16_54931181.html`
+  - `geneditid_plots/heatmap_chr16_54931181.html`
 
 
 # Issue with large uncompressed genome file needed to identify coordinates of amplicon
@@ -221,3 +227,20 @@ Creating Amplicon Read Coverage plot for chr16_54931181
   ```
   geneditid_create_amplicount_config --project=GEP00009 --genome=/Users/pajanne/workspace/GenEditID/data/reference/Homo_sapiens.GRCh38.dna.toplevel.fa.gz
   ```
+- Install [Git Large File Storage (LFS)](https://git-lfs.github.com/) to push reference files to github
+  ```
+  brew install git-lfs
+  git lfs install
+  git lfs track "*.fa.gz"
+  git lfs track "*.fa.gz.fai"
+  git add .gitattributes
+  git add data/reference/.
+  git commit -m '.....'
+  git push
+  ```
+
+# Dash and Flask
+
+- [Flask](https://flask.palletsprojects.com/en/1.1.x/)
+- [Dash](https://dash.plotly.com/)
+- [How to embed a Dash app into an existing Flask app](https://medium.com/@olegkomarov_77860/how-to-embed-a-dash-app-into-an-existing-flask-app-ea05d7a2210b)

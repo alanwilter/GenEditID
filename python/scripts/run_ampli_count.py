@@ -2,9 +2,12 @@ import os
 import gzip
 import argparse
 import collections
+import log as logger
+
 import pandas as pd
-import scripts.log as logger
 from Bio import SeqIO
+
+from geneditid.config import cfg
 
 
 def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold):
@@ -143,7 +146,7 @@ def main():
     parser.add_argument("--with_seq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", required=False)
     options = parser.parse_args()
 
-    log = logger.get_custom_logger('amplicount.log')
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'amplicount.log'))
 
     if not options.sequences:
         log.info('>>> Getting list of amplicons...')

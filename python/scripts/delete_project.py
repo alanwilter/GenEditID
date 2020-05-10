@@ -1,32 +1,27 @@
 import os
-import sys
-import sqlalchemy
-
-from dnascissors.config import cfg
-from dnascissors.model import Base, Project
-
+import argparse
 import log as logger
 
+from geneditid.config import cfg
+from geneditid.connect import dbsession
+from geneditid.loader import ProjectLoader
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--geid", dest="geid", action="store", help="Project GEP ID e.g. 'GEP00001'", required=True)
+    options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(os.path.dirname(__file__), 'delete_project.log'))
-
-    engine = sqlalchemy.create_engine(cfg['DATABASE_URI'])
-    Base.metadata.bind = engine
-    DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = DBSession()
+    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'delete_project.log'))
 
     try:
-        project = session.query(Project).filter(Project.geid == sys.argv[1]).first()
-        session.delete(project)
-        session.flush()
-        session.commit()
+        project = ProjectLoader(dbsession)
+        project.delete_project(options.geid)
+        dbsession.commit()
     except Exception as e:
         log.exception(e)
-        session.rollback()
+        dbsession.rollback()
     finally:
-        session.close()
+        dbsession.close()
 
 
 if __name__ == '__main__':

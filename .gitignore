@@ -31,4 +31,8 @@ __pycache__
 # File based database
 geneditid.sqlite
 
+# Projects folder
+PROJECTS/
+TESTS/
+
 # Miscellaneous

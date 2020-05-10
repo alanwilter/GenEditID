@@ -3,17 +3,17 @@ import glob
 import os
 import plotly.graph_objs as go
 import plotly.offline as py
-from plotly import tools
+from plotly import subplots
 
 
 def main():
 
     template = pandas.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'templates', 'template_96wellplate.csv'))
-    varianid_folder = 'editid_variantid'
+    plots_folder = 'geneditid_plots'
 
     df_all_koscores = pandas.DataFrame()
 
-    for file in glob.glob(os.path.join(varianid_folder, 'koscores_*_with_plate_location.csv')):
+    for file in glob.glob(os.path.join(plots_folder, 'koscores_*_with_plate_location.csv')):
         amplicon = file.split('koscores_')[1].split('_with_plate_location')[0]
         print(amplicon)
         df_koscores = pandas.read_csv(file)
@@ -43,17 +43,12 @@ def main():
                 name=i,  # i is the plate_id
                 mode='markers',
                 marker=dict(
-                    size='20',  # dot size
+                    size=20,  # dot size
                     color=grouped_data['koscore'].tolist(),  # assign a color based on score
-                    showscale=True,  # if nloop == 1 else False,
+                    showscale=True, 
                     colorscale='Blues',
-                    reversescale=True,
                     cmin=0,  # min value of the colorscale
                     cmax=1,  # max value of the colorscale
-                    # colorbar={  # side color bar custom size, fraction of plot size (otherwise it takes all plot height)
-                    #     'lenmode': "fraction",
-                    #     'len': 0.6
-                    # }
                 ),
                 # hover text
                 text=hovertext,
@@ -65,7 +60,7 @@ def main():
         plotheight = numberofplates*400  # calculation of total plot height, see comment further down
         # create figure
         subplottitles = [i for i, j in df_koscores_groupby]
-        figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in dataplots:
             i += 1
@@ -83,7 +78,7 @@ def main():
         # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
         # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
         figure.layout.update(dict(title='KO scores for {}'.format(amplicon), autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-        py.plot(figure, filename=os.path.join(varianid_folder, 'heatmap_{}.html'.format(amplicon)), auto_open=False, show_link=False, include_plotlyjs=True)
+        py.plot(figure, filename=os.path.join(plots_folder, 'heatmap_{}.html'.format(amplicon)), auto_open=False, show_link=False, include_plotlyjs=True)
 
     # Protein expression heatmap
     protein_file = 'expression_data.csv'
@@ -93,7 +88,7 @@ def main():
         df_protein_expression = df_protein_expression.merge(df_all_koscores, left_on=['plate_id', 'well', 'sample_id'], right_on=['plate_id', 'well', 'sample_id'], how='left')
         df_protein_expression.fillna(value=0, inplace=True)
         df_protein_expression['combined_score'] = df_protein_expression['norm_protein_abundance']*df_protein_expression['koscore']
-        df_protein_expression.to_csv(os.path.join(varianid_folder, 'expression_data_normalised_and_combined.csv'), index=False)
+        df_protein_expression.to_csv(os.path.join(plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
         df_protein_expression_groupby = df_protein_expression.groupby(['plate_id'])
         # construct the list of data plots
         dataplots = []
@@ -172,7 +167,7 @@ def main():
         plotheight = numberofplates*400  # calculation of total plot height, see comment further down
         # create figure for protein expression
         subplottitles = [i for i, j in df_protein_expression_groupby]
-        figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in dataplots:
             i += 1
@@ -190,10 +185,10 @@ def main():
         # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
         # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
         figure.layout.update(dict(title='Protein expression scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-        py.plot(figure, filename=os.path.join(varianid_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+        py.plot(figure, filename=os.path.join(plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
 
         # create figure for combined plot
-        combined_figure = tools.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
         i = 0
         for dataplot in combined_dataplots:
             i += 1
@@ -211,7 +206,7 @@ def main():
         # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
         # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
         combined_figure.layout.update(dict(title='Combined scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-        py.plot(combined_figure, filename=os.path.join(varianid_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+        py.plot(combined_figure, filename=os.path.join(plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
 
 
 if __name__ == '__main__':
