@@ -2,9 +2,11 @@ import os
 import gzip
 import argparse
 import collections
+import log as logger
+
 import pandas as pd
-import scripts.log as logger
 from Bio import SeqIO
+
 from geneditid.config import cfg
 
 

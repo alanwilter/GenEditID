@@ -1,7 +1,10 @@
-from geneditid.config import yml_filepath, cfg
+from geneditid.config import env, yml_filepath, cfg
+
+def test_env():
+    assert env == 'test'
 
 def test_yml_filepath():
-    assert yml_filepath.endswith('geneditid.yml')
+    assert yml_filepath.endswith('geneditid_test.yml')
 
 def test_cfg():
     assert 'DATABASE_URI' in cfg.keys()

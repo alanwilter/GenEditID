@@ -1,11 +1,10 @@
 import os
 import argparse
+import log as logger
 
 from geneditid.config import cfg
 from geneditid.connect import dbsession
 from geneditid.loader import ProjectLoader
-
-import log as logger
 
 def main():
     parser = argparse.ArgumentParser()

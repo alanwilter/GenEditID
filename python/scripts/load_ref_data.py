@@ -1,10 +1,9 @@
 import os
+import log as logger
 
 from geneditid.config import cfg
 from geneditid.connect import dbsession
 from geneditid.loader import RefLoader
-
-import log as logger
 
 
 def main():

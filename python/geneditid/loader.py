@@ -1,3 +1,4 @@
+import os
 import logging
 import datetime
 import csv
@@ -8,6 +9,7 @@ import json
 from sqlalchemy.orm.exc import NoResultFound
 
 from geneditid.config import cfg
+from geneditid.finder import AmpliconFinder
 
 # reference data
 from geneditid.model import Genome
@@ -244,6 +246,11 @@ class ProjectDataLoader(Loader):
             raise LoaderException("Project {} not found".format(project_geid))
         self.xls = pandas.ExcelFile(workbook_file)
         self.genome = None
+        self.finder = AmpliconFinder(self.dbsession, self.project.geid)
+        # create project folder
+        if not os.path.exists(self.project.project_folder):
+            os.makedirs(self.project.project_folder)
+
 
     def load(self):
         project_loader = ProjectLoader(self.dbsession)
@@ -254,6 +261,7 @@ class ProjectDataLoader(Loader):
         self.load_amplicon()
         self.load_layout()
         self.load_plates()
+        self.finder.write_amplicount_config_file()
 
     def check_mandatory_fields(self, sheet_name, sheet, mandatory_fields):
         for field in mandatory_fields:

@@ -54,11 +54,9 @@ setup(
             'main = geneditidapp:main',
         ],
         'console_scripts': [
-            'geneditid_create_amplicount_config = scripts.create_ampli_count_conf:main',
+            'geneditid_run_ampli_find = scripts.run_ampli_find:main',
             'geneditid_run_amplicount = scripts.run_ampli_count:main',
             'geneditid_run_variantid = scripts.run_variant_id:main',
-            'geneditid_add_sample_location = scripts.add_sample_loc:main',
-            'geneditid_plot_scores = scripts.plot_scores:main',
         ],
     },
     classifiers=[

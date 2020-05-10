@@ -19,6 +19,10 @@ class Genome(Base):
     species = Column(String(32), nullable=False, index=True)
     assembly = Column(String(32), nullable=False, index=True)
 
+    @property
+    def fa_file(self):
+        return os.path.join(cfg['DATA_FOLDER'], cfg['REF_SUBFOLDER'], '{}.{}.dna.toplevel.fa.gz'.format(self.species.replace(' ', '_'), self.assembly))
+
 
 class CellLine(Base):
     # Ref from http://web.expasy.org/cellosaurus/
@@ -166,6 +170,12 @@ class Amplicon(Base):
     @property
     def coordinates(self):
         return 'chr{}:{}-{}'.format(self.chromosome, self.start, self.end)
+
+    @property
+    def strand(self):
+        if self.guide_strand == 'reverse':
+            return '-'
+        return '+'
 
     @property
     def fprimer(self):
