@@ -1,7 +1,7 @@
 import os
 import argparse
-import log as logger
 
+import geneditid.log as logger
 from geneditid.config import cfg
 from geneditid.connect import dbsession
 from geneditid.loader import ProjectDataLoader
