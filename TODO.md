@@ -149,7 +149,7 @@ source ~/GenEditID/venv/bin/activate
 
 ## Step 5: Identify variants and plot results
 
-- Run [geneditid_run_variantid](https://github.com/GenEditID/GenEditID/blob/master/python/geneditidtools/run_variant_id.py) script from your project directory:
+- Run [geneditid_run_variantid](https://github.com/GenEditID/GenEditID/blob/master/python/geneditidtools/run_ampli_plots.py) script from your project directory:
 ```
 geneditid_run_variantid
 INFO:pyensembl.sequence_data:Loaded sequence dictionary from /Users/pajanne/Library/Caches/pyensembl/GRCh38/ensembl95/Homo_sapiens.GRCh38.cdna.all.fa.gz.pickle

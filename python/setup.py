@@ -56,7 +56,7 @@ setup(
         'console_scripts': [
             'geneditid_run_ampli_find = geneditidtools.run_ampli_find:main',
             'geneditid_run_amplicount = geneditidtools.run_ampli_count:main',
-            'geneditid_run_variantid = geneditidtools.run_variant_id:main',
+            'geneditid_run_variantid = geneditidtools.run_ampli_plots:main',
         ],
     },
     classifiers=[
