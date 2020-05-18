@@ -1,10 +1,9 @@
 import sqlalchemy
 
+import geneditid.log as logger
 from geneditid.config import cfg
 from geneditid.model import Base
 from geneditid.loader import ProteinAbundanceLoader
-
-import log as logger
 
 
 def main():

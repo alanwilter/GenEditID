@@ -13,10 +13,10 @@ echo 'Copying GenEditID configuraton file'
 cp python/geneditid/geneditid.yml.sample python/geneditid/geneditid.yml
 
 echo 'Creating the GenEditID database and the projects folder'
-python python/scripts/create_db.py
+python python/geneditidtools/create_db.py
 
 echo 'Loading GenEditID reference data'
-python python/scripts/load_ref_data.py
+python python/geneditidtools/load_ref_data.py
 
 echo 'Installing Homo Sapiens reference genome'
 pyensembl install --release 95 --species homo_sapiens

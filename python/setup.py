@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.1'
+version = '0.2'
 
 print("""
 -----------------------------------
@@ -54,9 +54,9 @@ setup(
             'main = geneditidapp:main',
         ],
         'console_scripts': [
-            'geneditid_run_ampli_find = scripts.run_ampli_find:main',
-            'geneditid_run_amplicount = scripts.run_ampli_count:main',
-            'geneditid_run_variantid = scripts.run_variant_id:main',
+            'geneditid_run_ampli_find = geneditidtools.run_ampli_find:main',
+            'geneditid_run_amplicount = geneditidtools.run_ampli_count:main',
+            'geneditid_run_variantid = geneditidtools.run_variant_id:main',
         ],
     },
     classifiers=[

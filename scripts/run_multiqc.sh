@@ -8,6 +8,6 @@ echo 'Running MultiQC'
 
 mkdir multiqc
 source ~/venv-multiqc/bin/activate
-multiqc --verbose --dirs --export --outdir multiqc/ fastqc/*.fqjoin_fastqc.zip bam/*.bwamem.homo_sapiens.alignment_metrics.txt
+multiqc --verbose --dirs --export --outdir multiqc/ fastqc/*.fqjoin_fastqc.zip
 
 echo 'Job done'
