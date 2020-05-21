@@ -146,7 +146,7 @@ def main():
     parser.add_argument("--with_seq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", required=False)
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'amplicount.log'))
+    log = logger.get_custom_logger('amplicount.log')
 
     if not options.sequences:
         log.info('>>> Getting list of amplicons...')

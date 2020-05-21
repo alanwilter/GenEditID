@@ -85,6 +85,9 @@ class Plotter:
             return False
         if not os.path.exists(os.path.join(self.project_folder, 'amplicount.csv')):
             return False
+        else:
+            if os.stat(os.path.join(self.project_folder, 'amplicount.csv')).st_size == 0:
+                return False
         return True
 
 
