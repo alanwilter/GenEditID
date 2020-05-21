@@ -138,7 +138,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", dest="config", action="store", help="The 4 columns input config file: 'id,fprimer,rprimer,amplicon'", default='amplicount_config.csv', required=False)
-    parser.add_argument("--fastqdir", dest="fastq_dir", action="store", help="Fastq file directory", required=True)
+    parser.add_argument("--fastqdir", dest="fastq_dir", action="store", help="Fastq file directory", default='fastq', required=False)
     parser.add_argument("--fastqext", dest="fastq_extension", action="store", help="Fastq file extension", default='.fqjoin.gz', required=False)
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
