@@ -185,22 +185,25 @@ def main():
         # count reads for target sequences provided
         log.info('>>> Getting list of target sequences...')
         targets = pd.read_csv(options.sequences)
-        for i, target in targets.iterrows():
-            log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
+        if targets.empty:
+            log.warning('No target found in file {}'.format(options.sequences))
+        else:
+            for i, target in targets.iterrows():
+                log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
 
-        log.info('>>> Counting reads per target sequences...')
-        log.info('FastQ file directory: {}'.format(options.fastq_dir))
-        log.info('FastQ extension: {}'.format(options.fastq_extension))
-        log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-        # count reads associated with each target sequence
-        count_reads_for_target_sequences(log,
-                                         options.output,
-                                         options.fastq_dir,
-                                         options.fastq_extension,
-                                         targets,
-                                         options.quality_threshold)
+            log.info('>>> Counting reads per target sequences...')
+            log.info('FastQ file directory: {}'.format(options.fastq_dir))
+            log.info('FastQ extension: {}'.format(options.fastq_extension))
+            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
+            # count reads associated with each target sequence
+            count_reads_for_target_sequences(log,
+                                             options.output,
+                                             options.fastq_dir,
+                                             options.fastq_extension,
+                                             targets,
+                                             options.quality_threshold)
 
-        log.info('Done.')
+            log.info('Done.')
 
 if __name__ == '__main__':
     main()
