@@ -151,32 +151,35 @@ def main():
     if not options.sequences:
         log.info('>>> Getting list of amplicons...')
         amplicons = pd.read_csv(options.config)
-        for i, amplicon in amplicons.iterrows():
-            log.info('Amplicon: {}'.format(amplicon['id']))
-            log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
-            log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
-            log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
-            log.info('----------')
+        if amplicons.empty:
+            log.warning('No amplicon found in file {}'.format(options.config))
+        else:
+            for i, amplicon in amplicons.iterrows():
+                log.info('Amplicon: {}'.format(amplicon['id']))
+                log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
+                log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
+                log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
+                log.info('----------')
 
-        log.info('>>> Counting reads per variant per amplicon...')
-        log.info('FastQ file directory: {}'.format(options.fastq_dir))
-        log.info('FastQ extension: {}'.format(options.fastq_extension))
-        log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-        log.info('Read abundance Threshold: {}'.format(options.abundance_threshold))
-        log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
-        log.info('Report only variants with amplicon read counts which are above the read count threshold for this amplicon.')
-        log.info('and report only variants with variant read counts which are above the frequency threshold for this amplicon.')
+            log.info('>>> Counting reads per variant per amplicon...')
+            log.info('FastQ file directory: {}'.format(options.fastq_dir))
+            log.info('FastQ extension: {}'.format(options.fastq_extension))
+            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
+            log.info('Read abundance Threshold: {}'.format(options.abundance_threshold))
+            log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
+            log.info('Report only variants with amplicon read counts which are above the read count threshold for this amplicon.')
+            log.info('and report only variants with variant read counts which are above the frequency threshold for this amplicon.')
 
-        # count reads associated with each variant for each amplicon
-        count_reads(log,
-                    options.output,
-                    options.fastq_dir,
-                    options.fastq_extension,
-                    amplicons,
-                    options.quality_threshold,
-                    options.abundance_threshold)
+            # count reads associated with each variant for each amplicon
+            count_reads(log,
+                        options.output,
+                        options.fastq_dir,
+                        options.fastq_extension,
+                        amplicons,
+                        options.quality_threshold,
+                        options.abundance_threshold)
 
-        log.info('Done.')
+            log.info('Done.')
 
     else:
         # count reads for target sequences provided
