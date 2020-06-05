@@ -42,7 +42,7 @@ LOGGING = {
 def get_custom_logger(logfile=None):
     if logfile:
         logdir = os.path.dirname(logfile)
-        if not logdir:
+        if logdir:
             if not os.path.exists(logdir):
                 os.makedirs(logdir)
         LOGGING['handlers']['info_file']['filename'] = logfile

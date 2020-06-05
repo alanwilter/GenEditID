@@ -15,5 +15,6 @@ with open(yml_filepath, 'r') as yml_file:
         cfg['DATABASE_URI'] = 'sqlite:///{}'.format(db_path)
 
 # create projects folder
-if not os.path.exists(cfg['PROJECTS_FOLDER']):
-    os.makedirs(cfg['PROJECTS_FOLDER'])
+projects_path = os.path.join(os.path.dirname(__file__), '..', '..', cfg['PROJECTS_FOLDER'])
+if not os.path.exists(projects_path):
+    os.makedirs(projects_path)

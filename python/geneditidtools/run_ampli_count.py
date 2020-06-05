@@ -138,7 +138,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", dest="config", action="store", help="The 4 columns input config file: 'id,fprimer,rprimer,amplicon'", default='amplicount_config.csv', required=False)
-    parser.add_argument("--fastqdir", dest="fastq_dir", action="store", help="Fastq file directory", required=True)
+    parser.add_argument("--fastqdir", dest="fastq_dir", action="store", help="Fastq file directory", default='fastq', required=False)
     parser.add_argument("--fastqext", dest="fastq_extension", action="store", help="Fastq file extension", default='.fqjoin.gz', required=False)
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
@@ -146,58 +146,64 @@ def main():
     parser.add_argument("--with_seq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", required=False)
     options = parser.parse_args()
 
-    log = logger.get_custom_logger(os.path.join(cfg['PROJECTS_FOLDER'], 'amplicount.log'))
+    log = logger.get_custom_logger('amplicount.log')
 
     if not options.sequences:
         log.info('>>> Getting list of amplicons...')
         amplicons = pd.read_csv(options.config)
-        for i, amplicon in amplicons.iterrows():
-            log.info('Amplicon: {}'.format(amplicon['id']))
-            log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
-            log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
-            log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
-            log.info('----------')
+        if amplicons.empty:
+            log.warning('No amplicon found in file {}'.format(options.config))
+        else:
+            for i, amplicon in amplicons.iterrows():
+                log.info('Amplicon: {}'.format(amplicon['id']))
+                log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
+                log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
+                log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
+                log.info('----------')
 
-        log.info('>>> Counting reads per variant per amplicon...')
-        log.info('FastQ file directory: {}'.format(options.fastq_dir))
-        log.info('FastQ extension: {}'.format(options.fastq_extension))
-        log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-        log.info('Read abundance Threshold: {}'.format(options.abundance_threshold))
-        log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
-        log.info('Report only variants with amplicon read counts which are above the read count threshold for this amplicon.')
-        log.info('and report only variants with variant read counts which are above the frequency threshold for this amplicon.')
+            log.info('>>> Counting reads per variant per amplicon...')
+            log.info('FastQ file directory: {}'.format(options.fastq_dir))
+            log.info('FastQ extension: {}'.format(options.fastq_extension))
+            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
+            log.info('Read abundance Threshold: {}'.format(options.abundance_threshold))
+            log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
+            log.info('Report only variants with amplicon read counts which are above the read count threshold for this amplicon.')
+            log.info('and report only variants with variant read counts which are above the frequency threshold for this amplicon.')
 
-        # count reads associated with each variant for each amplicon
-        count_reads(log,
-                    options.output,
-                    options.fastq_dir,
-                    options.fastq_extension,
-                    amplicons,
-                    options.quality_threshold,
-                    options.abundance_threshold)
+            # count reads associated with each variant for each amplicon
+            count_reads(log,
+                        options.output,
+                        options.fastq_dir,
+                        options.fastq_extension,
+                        amplicons,
+                        options.quality_threshold,
+                        options.abundance_threshold)
 
-        log.info('Done.')
+            log.info('Done.')
 
     else:
         # count reads for target sequences provided
         log.info('>>> Getting list of target sequences...')
         targets = pd.read_csv(options.sequences)
-        for i, target in targets.iterrows():
-            log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
+        if targets.empty:
+            log.warning('No target found in file {}'.format(options.sequences))
+        else:
+            for i, target in targets.iterrows():
+                log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
 
-        log.info('>>> Counting reads per target sequences...')
-        log.info('FastQ file directory: {}'.format(options.fastq_dir))
-        log.info('FastQ extension: {}'.format(options.fastq_extension))
-        log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-        # count reads associated with each target sequence
-        count_reads_for_target_sequences(log,
-                                         options.output,
-                                         options.fastq_dir,
-                                         options.fastq_extension,
-                                         targets,
-                                         options.quality_threshold)
+            log.info('>>> Counting reads per target sequences...')
+            log.info('FastQ file directory: {}'.format(options.fastq_dir))
+            log.info('FastQ extension: {}'.format(options.fastq_extension))
+            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
+            # count reads associated with each target sequence
+            count_reads_for_target_sequences(log,
+                                             options.output,
+                                             options.fastq_dir,
+                                             options.fastq_extension,
+                                             targets,
+                                             options.quality_threshold)
 
-        log.info('Done.')
+            log.info('Done.')
 
 if __name__ == '__main__':
     main()

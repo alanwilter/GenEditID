@@ -35,7 +35,7 @@ class Plotter:
             os.mkdir(self.plots_folder)
 
         # Consequence configuration
-        consequence_config = pandas.read_csv(os.path.join('python', 'geneditidtools', 'consequence.csv'))
+        consequence_config = pandas.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'consequences.csv'))
 
         consequences = consequence_config[['name', 'weight']].copy()
         self.CONSEQUENCE_WEIGHTING = consequences.set_index('name').transpose().to_dict('records')[0]
@@ -85,6 +85,9 @@ class Plotter:
             return False
         if not os.path.exists(os.path.join(self.project_folder, 'amplicount.csv')):
             return False
+        else:
+            if os.stat(os.path.join(self.project_folder, 'amplicount.csv')).st_size == 0:
+                return False
         return True
 
 
