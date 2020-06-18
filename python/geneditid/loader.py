@@ -457,21 +457,21 @@ class ProjectDataLoader(Loader):
 
     def load_plates(self):
         sheet = self.xls.parse('Plate')
-        mandatory_fields = ['layout_geid',
+        mandatory_fields = ['layout_id',
                             'plate_name']
         if not sheet.empty:
             self.check_mandatory_fields('Plate', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
             layout = self.dbsession.query(Layout)\
-                                   .filter(Layout.geid == row.layout_geid).first()
+                                   .filter(Layout.geid == row.layout_id).first()
             if not layout:
-                raise LoaderException('Layout {} not found (Plate tab, row {})'.format(row.layout_geid, i))
+                raise LoaderException('Layout {} not found (Plate tab, row {})'.format(row.layout_id, i))
             plate = Plate(layout=layout)
             plate.name = row.plate_name
             plate.barcode = row.plate_barcode
-            plate.description = row.description
+            plate.description = row.plate_description
             self.dbsession.add(plate)
-            self.log.info('Plate {} in layout {} created'.format(plate.plate_name, plate.layout.geid))
+            self.log.info('Plate {} in layout {} created'.format(plate.name, plate.layout.geid))
 
 
 # --------------------------------------------------------------------------------
