@@ -33,6 +33,6 @@ geneditid.sqlite
 
 # Projects folder
 PROJECTS/
-TESTS/
+TEST_PROJECTS/
 
 # Miscellaneous

@@ -22,7 +22,7 @@ REF_SUBFOLDER: "reference"
 ################################################################################
 ### project data folder
 ################################################################################
-PROJECTS_FOLDER: "TESTS"
+PROJECTS_FOLDER: "TEST_PROJECTS"
 FASTQ_SUBFOLDER: "fastq"
 
 ################################################################################
@@ -32,13 +32,3 @@ GENOMES:
   - 'Homo sapiens [GRCh37]'
   - 'Homo sapiens [GRCh38]'
   - 'Mus musculus [GRCm38]'
-
-CELL_LINES:
-  - 'MCF7'
-  - 'T47D'
-  - 'MESC'
-  - 'A549'
-  - 'HUES9'
-  - 'ZRTamR'
-  - 'ZRTamS'
-  - 'HEK293T'

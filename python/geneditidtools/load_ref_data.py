@@ -13,7 +13,6 @@ def main():
     try:
         loader = RefLoader(dbsession)
         loader.load_genomes()
-        loader.load_celllines()
         dbsession.commit()
     except Exception as e:
         log.exception(e)

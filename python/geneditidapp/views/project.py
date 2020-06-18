@@ -138,7 +138,6 @@ class ProjectViews(object):
             "guide name",
             "experiment type",
             "guide location",
-            "guide strand",
             "is on target?",
             "DNA feature",
             "chromosome",
@@ -155,7 +154,6 @@ class ProjectViews(object):
             row.append(amplicon.guide.name)
             row.append(amplicon.experiment_type)
             row.append(amplicon.guide_location)
-            row.append(amplicon.guide_strand)
             row.append(amplicon.is_on_target)
             row.append(amplicon.dna_feature)
             row.append(amplicon.chromosome)
@@ -197,7 +195,7 @@ class ProjectViews(object):
                 row.append(content.sequencing_sample_name)
                 row.append(content.sequencing_library_type)
                 if content.clone:
-                    row.append(content.clone.cell_line.name)
+                    row.append(content.clone.cell_line_name)
                     row.append(content.clone.name)
                     row.append(content.clone.cell_pool)
                 else:

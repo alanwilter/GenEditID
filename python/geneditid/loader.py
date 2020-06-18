@@ -13,7 +13,6 @@ from geneditid.finder import AmpliconFinder
 
 # reference data
 from geneditid.model import Genome
-from geneditid.model import CellLine
 # project data
 from geneditid.model import Project
 from geneditid.model import Target
@@ -162,8 +161,6 @@ class RefLoader(Loader):
 
     GENOMES = cfg['GENOMES']
 
-    CELL_LINES = cfg['CELL_LINES']
-
     def __init__(self, dbsession):
         self.log = logging.getLogger(__name__)
         self.dbsession = dbsession
@@ -178,15 +175,6 @@ class RefLoader(Loader):
                 genome = Genome(species=species, assembly=assembly)
                 self.dbsession.add(genome)
                 self.log.info('Created genome {}'.format(genome.assembly))
-
-    def load_celllines(self):
-        for cell_line_name in self.CELL_LINES:
-            # Find or create cell line
-            cell_line = self.dbsession.query(CellLine).filter(CellLine.name == cell_line_name).first()
-            if not cell_line:
-                cell_line = CellLine(name=cell_line_name)
-                self.dbsession.add(cell_line)
-                self.log.info('Created cell line {}'.format(cell_line.name))
 
 
 # --------------------------------------------------------------------------------
@@ -348,7 +336,6 @@ class ProjectDataLoader(Loader):
         mandatory_fields = ['guide_name',
                             'experiment_type',
                             'guide_location',
-                            'guide_strand',
                             'is_on_target',
                             'dna_feature',
                             'chrom',
@@ -374,7 +361,6 @@ class ProjectDataLoader(Loader):
             amplicon.end = int(row.reverse_primer_end)
             amplicon.experiment_type = row.experiment_type
             amplicon.guide_location = int(row.guide_location)
-            amplicon.guide_strand = self.to_strand(row.guide_strand, i)
             amplicon.is_on_target = bool(row.is_on_target)
             if pandas.notnull(row.score):
                 amplicon.score = int(row.score)
@@ -441,22 +427,18 @@ class ProjectDataLoader(Loader):
                 # Clone
                 clone = None
                 if self.get_value(row.clone_name):
-                    cell_line = None
-                    if self.get_value(row.cell_line_name):
-                        cell_line = self.dbsession.query(CellLine).filter(CellLine.name == row.cell_line_name).first()
-                        if not cell_line:
-                            raise LoaderException('Cell line {} not found (Layout tab, row {})'.format(row.cell_line_name, i))
                     clone = self.dbsession.query(Clone).filter(Clone.name == str(row.clone_name))\
                                                        .filter(Clone.cell_pool == self.get_string(row.cell_pool))\
-                                                       .filter(Clone.cell_line == cell_line)\
+                                                       .filter(Clone.cell_line_name == str(row.cell_line_name))\
                                                        .filter(Clone.project == self.project)\
                                                        .first()
                     if not clone:
-                        clone = Clone(cell_line=cell_line, project=self.project)
+                        clone = Clone(project=self.project)
+                        clone.cell_line_name = str(row.cell_line_name)
                         clone.name = str(row.clone_name)
                         clone.cell_pool=self.get_string(row.cell_pool)
                         self.dbsession.add(clone)
-                        self.log.info('Clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line.name, clone.cell_pool))
+                        self.log.info('Clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line_name, clone.cell_pool))
                 # Layout content
                 layout_content = LayoutContent(layout=layout, guide=guide)
                 layout_content.clone = clone

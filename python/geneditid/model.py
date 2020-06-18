@@ -24,16 +24,6 @@ class Genome(Base):
         return os.path.join(cfg['DATA_FOLDER'], cfg['REF_SUBFOLDER'], '{}.{}.dna.toplevel.fa.gz'.format(self.species.replace(' ', '_'), self.assembly))
 
 
-class CellLine(Base):
-    # Ref from http://web.expasy.org/cellosaurus/
-    # Data ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
-    __tablename__ = 'cell_line'
-    __table_args__ = ( UniqueConstraint('name', name='cell_line_name'),
-                     )
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False, index=True)
-
-
 class Project(Base):
     __tablename__ = 'project'
     __table_args__ = ( UniqueConstraint('geid', name='unique_project_geid'),
@@ -156,9 +146,8 @@ class Amplicon(Base):
     chromosome = Column(String(32), nullable=False, index=True)
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
-    experiment_type = Column(String(32), nullable=False)
+    experiment_type = Column(Enum('knock-in', 'knock-out', name='experiment_type'), nullable=False)
     guide_location = Column(Integer, nullable=False)
-    guide_strand = Column(Enum('forward', 'reverse', name='strand'), nullable=False)
     is_on_target = Column(Boolean, nullable=False)
     score = Column(Integer)
     description = Column(String(1024))
@@ -173,7 +162,7 @@ class Amplicon(Base):
 
     @property
     def strand(self):
-        if self.guide_strand == 'reverse':
+        if self.guide.target.strand == 'reverse':
             return '-'
         return '+'
 
@@ -213,8 +202,7 @@ class Clone(Base):
     project = relationship(
         Project,
         backref=backref('clones', uselist=True, cascade='delete,all'))
-    cell_line_id = Column(Integer, ForeignKey('cell_line.id', name='clone_cell_line_fk'))
-    cell_line = relationship(CellLine)
+    cell_line_name = Column(String(32), index=True)
     name = Column(String(32), nullable=False, index=True)
     cell_pool = Column(String(32))
     description = Column(String(1024))

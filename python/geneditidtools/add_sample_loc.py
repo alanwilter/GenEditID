@@ -50,8 +50,7 @@ class DataExtractor:
                     guide_name = well.well_content.guides[0].name
                 if well.well_content.clone:
                     clone_name = well.well_content.clone.name
-                    if well.well_content.clone.cell_line:
-                        cell_line_name = well.well_content.clone.cell_line.name
+                    cell_line_name = well.well_content.clone.cell_line_name
             if well.sequencing_library_contents:
                 dna_source = well.sequencing_library_contents[0].dna_source
                 sequencing_barcode = well.sequencing_library_contents[0].sequencing_barcode
