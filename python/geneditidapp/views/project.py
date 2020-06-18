@@ -17,6 +17,7 @@ from pyramid.view import view_config
 from json import JSONEncoder
 from sqlalchemy.exc import DBAPIError
 
+from geneditid.finder import FinderException
 from geneditid.loader import ExistingEntityException
 from geneditid.loader import LoaderException
 from geneditid.loader import ProjectDataLoader
@@ -274,6 +275,10 @@ class ProjectViews(object):
                         'heatmapplot': plotter.heatmap_plot(),
                     }
                 return HTTPFound(self.request.route_url('project', gepid=project.geid))
+            except FinderException as e:
+                self.dbsession.rollback()
+                error = "Unexpected finder error: {}".format(e)
+                self.logger.error(error)
             except LoaderException as e:
                 self.dbsession.rollback()
                 error = "Unexpected loader error: {}".format(e)
