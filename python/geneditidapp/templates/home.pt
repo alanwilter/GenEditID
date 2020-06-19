@@ -28,17 +28,6 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-group required">
-                <label for="input_project_type" class="col-md-4 control-label">Project type:</label>
-                <div class="col-md-8">
-                  <select class="form-control" id="input_project_type" name="project_type" type="text">
-                    <option>knock-out</option>
-                    <option>knock-in</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
               <div class="form-group">
                 <label for="input_project_description" class="col-md-4 control-label">Project description:</label>
                 <div class="col-md-8">

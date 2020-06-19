@@ -55,7 +55,6 @@ class ProjectViews(object):
         headers = [
             "project identifier",
             "name",
-            "type",
             "creation date",
             "data location",
             "sequencing data",
@@ -68,7 +67,6 @@ class ProjectViews(object):
             ]
         rows = [[project.geid,
                  project.name,
-                 project.project_type,
                  project.start_date,
                  project.project_folder,
                  project.is_sequencing_data_available,

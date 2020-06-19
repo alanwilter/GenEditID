@@ -16,7 +16,7 @@ class TestProjectLoader:
 
     def test_create_project(self):
         project_loader = ProjectLoader(dbsession)
-        project_loader.create_project('pytest project', 'knock-out')
+        project_loader.create_project('pytest project')
         dbsession.commit()
         last_project = dbsession.query(Project).order_by(Project.id.desc()).first()
         assert last_project.name == project_loader.project.name
@@ -27,7 +27,7 @@ class TestProjectLoader:
 
     def test_delete_project(self):
         project_loader = ProjectLoader(dbsession)
-        project_loader.create_project('pytest project', 'knock-out')
+        project_loader.create_project('pytest project')
         project_geid_todelete = project_loader.project_geid
         dbsession.commit()
         last_project = dbsession.query(Project).order_by(Project.id.desc()).first()

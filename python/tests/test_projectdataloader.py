@@ -17,7 +17,7 @@ from geneditid.model import Primer
 class TestProjectDataLoader:
     def setup_method(self):
         project_loader = ProjectLoader(dbsession)
-        project_loader.create_project('pytest', 'knock-out')
+        project_loader.create_project('pytest')
         dbsession.commit()
         self.project = project_loader.project
 

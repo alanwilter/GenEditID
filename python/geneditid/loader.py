@@ -195,12 +195,11 @@ class ProjectLoader(Loader):
         else:
             self.project_geid = "GEP00001"
 
-    def create_project(self, name, project_type):
+    def create_project(self, name):
         self.set_next_project_geid()
         project = Project()
         project.geid = self.project_geid
         project.name = 'pytest project'
-        project.project_type = 'knock-out'
         project.start_date = datetime.date.today()
         self.dbsession.add(project)
         self.project = project
