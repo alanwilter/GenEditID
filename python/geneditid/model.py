@@ -38,7 +38,6 @@ class Project(Base):
     affiliation = Column(String(64))
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
-    project_type = Column(Enum('knock-in', 'knock-out', name='project_type'), nullable=False)
     description = Column(String(1024))
     comments = Column(String(1024))
 

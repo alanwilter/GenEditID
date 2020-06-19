@@ -44,7 +44,6 @@ class HomeViews(object):
                 rows.append([project.geid,
                              "project/{}".format(project.geid),
                              project.name,
-                             project.project_type,
                              project.start_date,
                              project.project_folder,
                              project.is_sequencing_data_available,
@@ -65,7 +64,6 @@ class HomeViews(object):
                     project = Project()
                     project.geid = next_geid
                     project.name = fields['project_name']
-                    project.project_type = fields['project_type']
                     project.start_date = datetime.date.today()
                     project.scientist = fields['project_scientist']
                     project.group = fields['project_group']
@@ -96,7 +94,6 @@ class HomeViews(object):
                         rows.append([project.geid,
                                      "project/{}".format(project.geid),
                                      project.name,
-                                     project.project_type,
                                      project.start_date,
                                      project.project_folder,
                                      project.is_sequencing_data_available,
