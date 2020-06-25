@@ -27,7 +27,6 @@ class HomeViews(object):
                       'column_headers': ["project identifier",
                                          "project link",
                                          "name",
-                                         "type",
                                          "creation date",
                                          "data location",
                                          "sequencing data",
