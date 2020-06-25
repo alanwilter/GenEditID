@@ -358,7 +358,7 @@ class ProjectDataLoader(Loader):
             amplicon.chromosome = str(row.chrom)
             amplicon.start = int(row.forward_primer_start)
             amplicon.end = int(row.reverse_primer_end)
-            amplicon.experiment_type = row.experiment_type
+            amplicon.experiment_type = row.experiment_type.lower()
             amplicon.guide_location = int(row.guide_location)
             amplicon.is_on_target = bool(row.is_on_target)
             if pandas.notnull(row.score):
@@ -366,23 +366,23 @@ class ProjectDataLoader(Loader):
             amplicon.description = self.get_string(row.description, 1024)
             self.dbsession.add(amplicon)
             self.log.info('Amplicon {} created'.format(amplicon.name))
-            # check reverse primer coordinnates after forward primer
-            if not (int(row.forward_primer_start) < int(row.forward_primer_end) < int(row.reverse_primer_start) < int(row.reverse_primer_end)):
-                raise LoaderException('Forward primer coordinates must be before reverse ones (Amplicon tab, row {})'.format(i))
+            # re-order primer coordinates: reverse primer coordinnates after forward primer
+            primer_coords = [int(row.forward_primer_start), int(row.forward_primer_end), int(row.reverse_primer_start), int(row.reverse_primer_end)]
+            primer_coords.sort()
             # create forward primer
             forward_primer = Primer(amplicon=amplicon, genome=self.genome)
             forward_primer.sequence = row.forward_primer_sequence
             forward_primer.strand = 'forward'
-            forward_primer.start = int(row.forward_primer_start)
-            forward_primer.end = int(row.forward_primer_end)
+            forward_primer.start = primer_coords[0]
+            forward_primer.end = primer_coords[1]
             self.dbsession.add(forward_primer)
             self.log.info('Forward primer {} for amplicon {} created'.format(forward_primer.sequence, amplicon.name))
             # create reverse primer
             reverse_primer = Primer(amplicon=amplicon, genome=self.genome)
             reverse_primer.sequence = row.reverse_primer_sequence
             reverse_primer.strand = 'reverse'
-            reverse_primer.start = int(row.reverse_primer_start)
-            reverse_primer.end = int(row.reverse_primer_end)
+            reverse_primer.start = primer_coords[2]
+            reverse_primer.end = primer_coords[3]
             self.dbsession.add(reverse_primer)
             self.log.info('Reverse primer {} for amplicon {} created'.format(reverse_primer.sequence, amplicon.name))
 
@@ -462,11 +462,22 @@ class ProjectDataLoader(Loader):
             self.check_mandatory_fields('Plate', sheet, mandatory_fields)
         for i, row in enumerate(sheet.itertuples(), 1):
             layout = self.dbsession.query(Layout)\
-                                   .filter(Layout.geid == row.layout_id).first()
+                                   .filter(Layout.geid == row.layout_id)\
+                                   .filter(Layout.project == self.project)\
+                                   .first()
             if not layout:
                 raise LoaderException('Layout {} not found (Plate tab, row {})'.format(row.layout_id, i))
+            check_plate = self.dbsession.query(Plate)\
+                                        .filter(Plate.layout == layout)\
+                                        .filter(Plate.name == row.plate_name)\
+                                        .first()
+            if check_plate:
+                raise LoaderException('Plate {} already exists for this layout {}, please assign a unique value (Plate tab, row {})'.format(row.plate_name, row.layout_id, i))
             plate = Plate(layout=layout)
             plate.name = row.plate_name
+            plate_barcode = self.dbsession.query(Plate).filter(Plate.barcode == row.plate_barcode).first()
+            if plate_barcode:
+                raise LoaderException('Plate barcode {} already exists, please assign a unique value (Plate tab, row {})'.format(row.plate_barcode, i))
             plate.barcode = row.plate_barcode
             plate.description = row.plate_description
             self.dbsession.add(plate)
