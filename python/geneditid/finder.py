@@ -99,9 +99,9 @@ class AmpliconFinder():
         if fprimer_loc == -1 or rprimer_loc == -1:
             raise FinderException('Primers (forward_primer: {}, reverse_primer: {}) not found for amplicon {} (forward_primer_start: {}, reverse_primer_start: {}). Check your primer sequences, or try with a guide location different than {} to search within a different genomic interval than [{}:{}]. If the primer sequence are more than 1,000bp from the cut site each way, they will not be found.'.format(submitted_fprimer_seq.upper(), submitted_rprimer_seq.upper(), amplicon_name, fprimer_loc, rprimer_loc, guide_loc, start, end))
         if not submitted_fprimer_seq == fprimer_seq:
-            msg += 'Forward primer sequence different than the one submitted! [submitted: {}, found: {}]\n'.format(submitted_fprimer_seq, fprimer_seq)
+            msg += 'Forward primer found {} different than one submitted {} '.format(fprimer_seq, submitted_fprimer_seq)
         if not submitted_rprimer_seq == rprimer_seq:
-            msg += 'Reverse primer sequence different than the one submitted! [submitted: {}, found: {}]\n'.format(submitted_rprimer_seq, rprimer_seq)
+            msg += 'Reverse primer found {} different than one submitted {}'.format(rprimer_seq, submitted_rprimer_seq)
 
         amplicon = {'fprimer_loc': fprimer_loc,
                     'fprimer_seq': fprimer_seq,
