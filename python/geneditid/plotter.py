@@ -15,6 +15,9 @@ from plotly import subplots
 
 from geneditid.config import cfg
 from geneditid.model import Base
+from geneditid.model import LayoutContent
+from geneditid.model import Layout
+from geneditid.model import Project
 
 
 class Plotter:
@@ -46,6 +49,9 @@ class Plotter:
         impact = consequence_config[['category', 'weight']].copy()
         impact.drop_duplicates(inplace=True)
         self.IMPACT_WEIGHTING = impact.set_index('category').transpose().to_dict('records')[0]
+
+        # barcodes information
+        self.df_barcodes = self.get_barcodes()
 
         # Load amplicount files (configuration and variants) into pandas dataframe for analysis and ploting
         if self.amplicount_data_exists():
@@ -79,6 +85,30 @@ class Plotter:
                 self.df_amplicons.drop_duplicates(inplace=True)
 
 
+    def get_barcodes(self):
+        results = self.dbsession.query(LayoutContent)\
+                      .join(LayoutContent.layout)\
+                      .join(Layout.project)\
+                      .filter(Project.geid == self.project_geid)\
+                      .all()
+        barcodes = []
+        for i, well in enumerate(results, start=1):
+            sequencing_barcode = 'no-barcode'
+            if well.sequencing_barcode:
+                sequencing_barcode = well.sequencing_barcode
+            barcodes.append([well.layout.geid,
+                             '{}{}'.format(well.row, well.column),
+                             sequencing_barcode])
+
+        if barcodes:
+            # convert to pandas dataframe and add column names
+            df = pandas.DataFrame(barcodes)
+            column_names = ['plate_id', 'well', 'sequencing_barcode']
+            df = df.rename(columns=dict(enumerate(column_names)))
+            df.to_csv(os.path.join(self.project_folder, 'barcodes.csv'), index=False)
+            return df
+
+
     # Check if amplicount data exists
     def amplicount_data_exists(self):
         if not os.path.exists(os.path.join(self.project_folder, 'amplicount_config.csv')):
@@ -97,6 +127,7 @@ class Plotter:
             if not self.df_variants.empty:
                 for col in ['variant_frequency', 'sample_id', 'sequence', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
                     if col not in self.df_variants.columns:
+                        self.log.debug('Missing column {} in amplicount.csv'.format(col))
                         return False
                 return True
         except Exception:
@@ -254,7 +285,7 @@ class Plotter:
                               )
                 fig.append_trace(trace, i+1, 1)
 
-        fig.update_layout(barmode='stack', height=800*len(self.amplicons), width=1200,)
+        fig.update_layout(barmode='stack', height=1200*len(self.amplicons), width=1200, font=dict(size=8),)
         fig.update_xaxes({'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]})
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
         fig.write_html(file=os.path.join(self.plots_folder, coverage_file), auto_play=False)
@@ -294,7 +325,6 @@ class Plotter:
 
         # Loop over all amplicons
         for i, amplicon in self.amplicons.iterrows():
-            data = []
             df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
             pivot_df_impacts_per_amplicon = df_impacts_per_amplicon.pivot(index='sample_id', columns='impact', values='impact_frequency').reset_index()
             pivot_df_impacts_per_amplicon.fillna(value=0, inplace=True)
@@ -305,6 +335,12 @@ class Plotter:
             pivot_df_impacts_per_amplicon['koscore'] = pivot_df_impacts_per_amplicon.apply(self.calculate_score, axis=1)
             pivot_df_impacts_per_amplicon.sort_values(by=['koscore'], ascending=[True], inplace=True)
             pivot_df_impacts_per_amplicon.to_csv(os.path.join(self.plots_folder, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
+            # add barcodes
+            df_koscores = pivot_df_impacts_per_amplicon.copy()
+            df_koscores = df_koscores.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_koscores = df_koscores[['plate_id', 'well', 'sample_id', 'HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency', 'koscore']]
+            df_koscores.to_csv(os.path.join(self.plots_folder, 'koscores_{}_with_plate_location.csv'.format(amplicon['amplicon_id'])), index=False)
+
 
             # Only show legend once
             showlegend=False
@@ -321,7 +357,7 @@ class Plotter:
                               )
                 fig.append_trace(trace, i+1, 1)
 
-        fig.update_layout(barmode='stack', height=800*len(self.amplicons), width=1200,)
+        fig.update_layout(barmode='stack', height=1200*len(self.amplicons), width=1200, font=dict(size=8),)
         fig.update_xaxes({'title': 'frequency'})
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
         fig.write_html(file=os.path.join(self.plots_folder, impact_file), auto_play=False)
@@ -332,15 +368,12 @@ class Plotter:
         if not self.df_variants_is_valid():
             return
 
-        # TODO: Currently reading data from file - Need to get the data from database
         template = pandas.read_csv(os.path.join('data', 'templates', 'template_96wellplate.csv'))
-        plots_folder = os.path.join('data', 'GEP00001', 'editid_variantid')
 
         df_all_koscores = pandas.DataFrame()
 
-        for file in glob.glob(os.path.join(plots_folder, 'koscores_*_with_plate_location.csv')):
+        for file in glob.glob(os.path.join(self.plots_folder, 'koscores_*_with_plate_location.csv')):
             amplicon = file.split('koscores_')[1].split('_with_plate_location')[0]
-            print(amplicon)
             df_koscores = pandas.read_csv(file)
             df_all_koscores = df_all_koscores.append(df_koscores, ignore_index=True)
             # group by plate layout
@@ -406,7 +439,7 @@ class Plotter:
             output_type = "file"
             if not heatmap_file:
                 output_type = "div"
-                heatmap_file = 'heatmap_{}.html'.format(amplicon)
+                heatmap_file = os.path.join(self.plots_folder, 'heatmap_{}.html'.format(amplicon))
             return py.plot(figure, filename=heatmap_file, auto_open=False, show_link=False, include_plotlyjs=self.include_js, output_type=output_type)
 
         # Protein expression heatmap
@@ -417,7 +450,7 @@ class Plotter:
             df_protein_expression = df_protein_expression.merge(df_all_koscores, left_on=['plate_id', 'well', 'sample_id'], right_on=['plate_id', 'well', 'sample_id'], how='left')
             df_protein_expression.fillna(value=0, inplace=True)
             df_protein_expression['combined_score'] = df_protein_expression['norm_protein_abundance']*df_protein_expression['koscore']
-            df_protein_expression.to_csv(os.path.join(plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
+            df_protein_expression.to_csv(os.path.join(self.plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
             df_protein_expression_groupby = df_protein_expression.groupby(['plate_id'])
             # construct the list of data plots
             dataplots = []
@@ -504,7 +537,7 @@ class Plotter:
             # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
             # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
             figure.layout.update(dict(title='Protein expression scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(figure, filename=os.path.join(plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+            py.plot(figure, filename=os.path.join(self.plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
 
             # create figure for combined plot
             combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
@@ -525,4 +558,4 @@ class Plotter:
             # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
             # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
             combined_figure.layout.update(dict(title='Combined scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(combined_figure, filename=os.path.join(plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+            py.plot(combined_figure, filename=os.path.join(self.plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
