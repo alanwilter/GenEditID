@@ -57,56 +57,60 @@ class AmpliconFinder():
 
 
     def find_primer(self, sequence, primer_seq):
-        primer_seq_ori = primer_seq
         primer_loc = sequence.find(primer_seq)
         if primer_loc == -1:
             primer_seq = str(Seq(primer_seq).reverse_complement())
             primer_loc = sequence.find(primer_seq)
-        return primer_loc, primer_seq, primer_seq_ori
-
-
-    def get_primer_pair(self, sequence, fprimer_seq, rprimer_seq):
-        fprimer_loc, fprimer_seq, fprimer_seq_ori = self.find_primer(sequence, fprimer_seq)
-        rprimer_loc, rprimer_seq, rprimer_seq_ori = self.find_primer(sequence, rprimer_seq)
-        return fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq
+        return primer_loc, primer_seq
 
 
     def find_amplicon_sequence(self, refgenome, amplicon_name, guide_loc, chr, fprimer_seq, rprimer_seq):
         self.log.info("Search amplicon sequence +/- 1000bp around guide location {} on chrom {}".format(guide_loc, chr))
-        start = guide_loc - 1000
-        end = guide_loc + 1000
+        start = guide_loc - 1100
+        end = guide_loc + 1100
         if os.path.exists(refgenome + '.fai'):
             self.log.info('fai file for {} already exists, there is no need to rebuild indexes'.format(refgenome))
             sequence = Fasta(refgenome, rebuild=False, build_index=False, read_ahead=10000)['{}'.format(chr)][start:end].seq
         else:
             self.log.info('fai file for {} do not exist, it will take a while to generate it'.format(refgenome))
             sequence = Fasta(refgenome, read_ahead=10000)['{}'.format(chr)][start:end].seq
-
+        self.log.info(sequence)
         submitted_fprimer_seq = fprimer_seq
         submitted_rprimer_seq = rprimer_seq
 
-        fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq = self.get_primer_pair(sequence, fprimer_seq, rprimer_seq)
+        fprimer_loc, fprimer_seq = self.find_primer(sequence, fprimer_seq)
+        rprimer_loc, rprimer_seq = self.find_primer(sequence, rprimer_seq)
+
+        if fprimer_loc == -1 or rprimer_loc == -1:
+            raise FinderException('Primers (forward_primer: {}, reverse_primer: {}) not found for amplicon {} (forward_primer_start: {}, reverse_primer_start: {}). Check your primer sequences, or try with a guide location different than {} to search within a different genomic interval than [{}:{}]. If the primer sequences are more than 1,000bp from the cut site each way, they will not be found.'.format(submitted_fprimer_seq.upper(), submitted_rprimer_seq.upper(), amplicon_name, fprimer_loc, rprimer_loc, guide_loc, start, end))
 
         if fprimer_loc > rprimer_loc:
-            fprimer_loc, fprimer_seq, rprimer_loc, rprimer_seq = self.get_primer_pair(sequence, rprimer_seq, fprimer_seq)
+            # swap primers
+            final_fprimer_loc = rprimer_loc
+            final_fprimer_seq = rprimer_seq
+            final_rprimer_loc = fprimer_loc
+            final_rprimer_seq = fprimer_seq
+        else:
+            final_fprimer_loc = fprimer_loc
+            final_fprimer_seq = fprimer_seq
+            final_rprimer_loc = rprimer_loc
+            final_rprimer_seq = rprimer_seq
 
-        amplicon_seq = sequence[fprimer_loc:(rprimer_loc + len(rprimer_seq))]
-        amplicon_start = int(start) + fprimer_loc + 1
-        amplicon_end = int(start) + (rprimer_loc + len(rprimer_seq))
+        amplicon_seq = sequence[final_fprimer_loc:(final_rprimer_loc + len(final_rprimer_seq))]
+        amplicon_start = int(start) + final_fprimer_loc + 1
+        amplicon_end = int(start) + (final_rprimer_loc + len(final_rprimer_seq))
         amplicon_coord = "chr{}:{}-{}".format(chr, amplicon_start, amplicon_end)
 
         msg = ''
-        if fprimer_loc == -1 or rprimer_loc == -1:
-            raise FinderException('Primers (forward_primer: {}, reverse_primer: {}) not found for amplicon {} (forward_primer_start: {}, reverse_primer_start: {}). Check your primer sequences, or try with a guide location different than {} to search within a different genomic interval than [{}:{}]. If the primer sequence are more than 1,000bp from the cut site each way, they will not be found.'.format(submitted_fprimer_seq.upper(), submitted_rprimer_seq.upper(), amplicon_name, fprimer_loc, rprimer_loc, guide_loc, start, end))
-        if not submitted_fprimer_seq == fprimer_seq:
-            msg += 'Forward primer found {} different than one submitted {} '.format(fprimer_seq, submitted_fprimer_seq)
-        if not submitted_rprimer_seq == rprimer_seq:
-            msg += 'Reverse primer found {} different than one submitted {}'.format(rprimer_seq, submitted_rprimer_seq)
+        if not submitted_fprimer_seq == final_fprimer_seq:
+            msg += 'Forward primer found {} different than one submitted {} '.format(final_fprimer_seq, submitted_fprimer_seq)
+        if not submitted_rprimer_seq == final_rprimer_seq:
+            msg += 'Reverse primer found {} different than one submitted {}'.format(final_rprimer_seq, submitted_rprimer_seq)
 
-        amplicon = {'fprimer_loc': fprimer_loc,
-                    'fprimer_seq': fprimer_seq,
-                    'rprimer_loc': rprimer_loc,
-                    'rprimer_seq': rprimer_seq,
+        amplicon = {'fprimer_loc': final_fprimer_loc,
+                    'fprimer_seq': final_fprimer_seq,
+                    'rprimer_loc': final_rprimer_loc,
+                    'rprimer_seq': final_rprimer_seq,
                     'seq': amplicon_seq,
                     'start': amplicon_start,
                     'end': amplicon_end,

@@ -144,14 +144,17 @@ class Loader:
             return 'empty'
 
     def get_gene_id(self, gene_symbol, species='homo_sapiens'):
-        species = species.lower().replace(' ', '_')
-        url = ("https://rest.ensembl.org/xrefs/symbol/{}/{}?").format(species, gene_symbol)
-        r = requests.get(url, headers={"Content-Type": "application/json"})
-        gene = json.loads(r.text)
-        if gene:
-            return gene[0]['id']
-        else:
-            return gene_symbol
+        return gene_symbol
+        # code used to retrive gene_id from ensembl
+        # issue with ensembl on 10/07/2020 unable to make it work again
+        # species = species.lower().replace(' ', '_')
+        # url = ("https://rest.ensembl.org/xrefs/symbol/{}/{}?").format(species, gene_symbol)
+        # r = requests.get(url, headers={"Content-Type": "application/json"})
+        # gene = json.loads(r.text)
+        # if gene:
+        #     return gene[0]['id']
+        # else:
+        #     return gene_symbol
 
 
 # --------------------------------------------------------------------------------
@@ -237,6 +240,10 @@ class ProjectDataLoader(Loader):
         # create project folder
         if not os.path.exists(self.project.project_folder):
             os.makedirs(self.project.project_folder)
+        # rename amplicount.csv if exists
+        if os.path.exists(os.path.join(self.project.project_folder, 'amplicount.csv')):
+            nb_files = len(glob.glob(os.path.join(self.project.project_folder, 'amplicount.csv.*')))
+            os.rename(os.path.join(self.project.project_folder, 'amplicount.csv'), os.path.join(self.project.project_folder, 'amplicount.csv.{}'.format(nb_files + 1)))
 
 
     def load(self):
@@ -274,6 +281,7 @@ class ProjectDataLoader(Loader):
             target = Target(project=self.project, genome=self.genome)
             target.name = row.target_name
             target.gene_id = self.get_gene_id(row.target_gene_id, self.genome.species)
+            self.log.debug('Target gene_id {}'.format(target.gene_id))
             target.chromosome = str(row.target_chrom)
             target.start = int(row.target_start)
             target.end = int(row.target_end)
@@ -369,9 +377,10 @@ class ProjectDataLoader(Loader):
             # re-order primer coordinates: reverse primer coordinnates after forward primer
             primer_coords = [int(row.forward_primer_start), int(row.forward_primer_end), int(row.reverse_primer_start), int(row.reverse_primer_end)]
             primer_coords.sort()
+            # TODO swap sequences when order different than submitted
             # create forward primer
             forward_primer = Primer(amplicon=amplicon, genome=self.genome)
-            forward_primer.sequence = row.forward_primer_sequence
+            forward_primer.sequence = row.forward_primer_sequence.upper()
             forward_primer.strand = 'forward'
             forward_primer.start = primer_coords[0]
             forward_primer.end = primer_coords[1]
@@ -379,7 +388,7 @@ class ProjectDataLoader(Loader):
             self.log.info('Forward primer {} for amplicon {} created'.format(forward_primer.sequence, amplicon.name))
             # create reverse primer
             reverse_primer = Primer(amplicon=amplicon, genome=self.genome)
-            reverse_primer.sequence = row.reverse_primer_sequence
+            reverse_primer.sequence = row.reverse_primer_sequence.upper()
             reverse_primer.strand = 'reverse'
             reverse_primer.start = primer_coords[2]
             reverse_primer.end = primer_coords[3]
