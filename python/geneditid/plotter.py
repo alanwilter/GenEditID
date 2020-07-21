@@ -163,89 +163,93 @@ class Plotter:
 
     # Pairwise alignment to classify variant
     def classify_variants(self):
-        with open(os.path.join(self.plots_folder, 'variantid.out'), 'w') as out:
-            for i, variant in self.variants.iterrows():
-                # get reference sequence
-                amplicon_id = variant['amplicon_id']
-                df_ref_sequence = self.df_config[(self.df_config['id'] == amplicon_id)]
-                ref_sequence = df_ref_sequence.iloc[0]['amplicon']
-                variant_id = 'var{}'.format(i + 1)
-                data = []
-                top_effect_types = set()
-                top_effect_consequences = set()
-                top_effect_scores = []
-                if variant['sequence'] == ref_sequence:
-                    type = 'WildType'
-                    top_effect_types.add(type)
-                    top_effect_consequences.add(type)
-                    top_effect_scores.append(0)
-                    coord = self.df_config[(self.df_config['id'] == amplicon_id)].iloc[0]['coord']
-                    out.write(">{}_{}_{}_{}\n{}\n".format(amplicon_id, variant_id, type, coord, ref_sequence))
-                else:
-                    alignments = pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)
-                    ibase_start = 0
-                    ibase_stop = 0
-                    variant_results = []
-                    for ibase in range(1, len(alignments[0][0])-1):
-                        chr, ref_start = amplicon_id.split('_')
-                        contig = chr[3:]
-                        top_effect_consequence = ''
-                        top_effect_type = ''
-                        # looking for mismatch
-                        if not alignments[0][0][ibase] == alignments[0][1][ibase]:
-                            if not alignments[0][0][ibase] == '-' and not alignments[0][1][ibase] == '-':
-                                start = int(ref_start)+ibase
-                                ref = "{}".format(alignments[0][0][ibase])
-                                alt = "{}".format(alignments[0][1][ibase])
+        if not os.path.exists(os.path.join(self.plots_folder, 'variantid.csv')):
+            with open(os.path.join(self.plots_folder, 'variantid.out'), 'w') as out:
+                for i, variant in self.variants.iterrows():
+                    # get reference sequence
+                    amplicon_id = variant['amplicon_id']
+                    df_ref_sequence = self.df_config[(self.df_config['id'] == amplicon_id)]
+                    ref_sequence = df_ref_sequence.iloc[0]['amplicon']
+                    variant_id = 'var{}'.format(i + 1)
+                    data = []
+                    top_effect_types = set()
+                    top_effect_consequences = set()
+                    top_effect_scores = []
+                    if variant['sequence'] == ref_sequence:
+                        type = 'WildType'
+                        top_effect_types.add(type)
+                        top_effect_consequences.add(type)
+                        top_effect_scores.append(0)
+                        coord = self.df_config[(self.df_config['id'] == amplicon_id)].iloc[0]['coord']
+                        out.write(">{}_{}_{}_{}\n{}\n".format(amplicon_id, variant_id, type, coord, ref_sequence))
+                    else:
+                        alignments = pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)
+                        ibase_start = 0
+                        ibase_stop = 0
+                        variant_results = []
+                        for ibase in range(1, len(alignments[0][0])-1):
+                            chr, ref_start = amplicon_id.split('_')
+                            contig = chr[3:]
+                            top_effect_consequence = ''
+                            top_effect_type = ''
+                            # looking for mismatch
+                            if not alignments[0][0][ibase] == alignments[0][1][ibase]:
+                                if not alignments[0][0][ibase] == '-' and not alignments[0][1][ibase] == '-':
+                                    start = int(ref_start)+ibase
+                                    ref = "{}".format(alignments[0][0][ibase])
+                                    alt = "{}".format(alignments[0][1][ibase])
+                                    top_effect_type, top_effect_consequence, score = self.get_variant_classification(contig, start, ref, alt)
+                                    variant_results.append('{}\t{}\t{}\t{}\t{}'.format(contig, start, ref, alt, top_effect_consequence))
+                                    top_effect_types.add(top_effect_type)
+                                    top_effect_consequences.add(top_effect_consequence)
+                                    top_effect_scores.append(score)
+                            # looking for insertion and deletion
+                            if alignments[0][0][ibase] == '-' or alignments[0][1][ibase] == '-':
+                                if not alignments[0][0][ibase-1] == '-' and not alignments[0][1][ibase-1] == '-':
+                                    ibase_start = ibase - 1
+                            if ibase_start:
+                                if not alignments[0][0][ibase+1] == '-' and not alignments[0][1][ibase+1] == '-':
+                                    ibase_stop = ibase + 1
+                            if ibase_start and ibase_stop:
+                                start = int(ref_start)+ibase_start
+                                ref = "{}".format(alignments[0][0][ibase_start:ibase_stop].replace('-', ''))
+                                alt = "{}".format(alignments[0][1][ibase_start:ibase_stop].replace('-', ''))
                                 top_effect_type, top_effect_consequence, score = self.get_variant_classification(contig, start, ref, alt)
                                 variant_results.append('{}\t{}\t{}\t{}\t{}'.format(contig, start, ref, alt, top_effect_consequence))
                                 top_effect_types.add(top_effect_type)
                                 top_effect_consequences.add(top_effect_consequence)
                                 top_effect_scores.append(score)
-                        # looking for insertion and deletion
-                        if alignments[0][0][ibase] == '-' or alignments[0][1][ibase] == '-':
-                            if not alignments[0][0][ibase-1] == '-' and not alignments[0][1][ibase-1] == '-':
-                                ibase_start = ibase - 1
-                        if ibase_start:
-                            if not alignments[0][0][ibase+1] == '-' and not alignments[0][1][ibase+1] == '-':
-                                ibase_stop = ibase + 1
-                        if ibase_start and ibase_stop:
-                            start = int(ref_start)+ibase_start
-                            ref = "{}".format(alignments[0][0][ibase_start:ibase_stop].replace('-', ''))
-                            alt = "{}".format(alignments[0][1][ibase_start:ibase_stop].replace('-', ''))
-                            top_effect_type, top_effect_consequence, score = self.get_variant_classification(contig, start, ref, alt)
-                            variant_results.append('{}\t{}\t{}\t{}\t{}'.format(contig, start, ref, alt, top_effect_consequence))
-                            top_effect_types.add(top_effect_type)
-                            top_effect_consequences.add(top_effect_consequence)
-                            top_effect_scores.append(score)
-                            ibase_start = 0
-                            ibase_stop = 0
-                if len(top_effect_consequences) > 1:
-                    if 'FrameShift' in top_effect_consequences:
-                        top_effect_consequence = 'ComplexFrameShift'
-                        score = self.CONSEQUENCE_WEIGHTING.get(top_effect_consequence, 0)
+                                ibase_start = 0
+                                ibase_stop = 0
+                    if len(top_effect_consequences) > 1:
+                        if 'FrameShift' in top_effect_consequences:
+                            top_effect_consequence = 'ComplexFrameShift'
+                            score = self.CONSEQUENCE_WEIGHTING.get(top_effect_consequence, 0)
+                        else:
+                            top_effect_consequence = 'Complex'
+                            score = self.CONSEQUENCE_WEIGHTING.get(top_effect_consequence, 0)
                     else:
-                        top_effect_consequence = 'Complex'
-                        score = self.CONSEQUENCE_WEIGHTING.get(top_effect_consequence, 0)
-                else:
-                    top_effect_consequence = ''.join(top_effect_consequences)
-                    score = top_effect_scores[0]
-                name = '{}_{}'.format(variant_id, ','.join(top_effect_consequences))
-                out.write(">{}_{}\n{}\n".format(amplicon_id, name, variant['sequence']))
-                out.write(pairwise2.format_alignment(*alignments[0]))
-                out.write('CHROM\tPOS\tREF\tALT\tTOP_EFFECT\n')
-                out.write('{}\n'.format('\n'.join(variant_results)))
-                self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_id'] = variant_id
-                self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_type'] = '_'.join(top_effect_types)
-                self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_consequence'] = top_effect_consequence
-                self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_score'] = score*self.df_variants['variant_frequency']
-                out.write('\n')
+                        top_effect_consequence = ''.join(top_effect_consequences)
+                        score = top_effect_scores[0]
+                    name = '{}_{}'.format(variant_id, ','.join(top_effect_consequences))
+                    out.write(">{}_{}\n{}\n".format(amplicon_id, name, variant['sequence']))
+                    out.write(pairwise2.format_alignment(*alignments[0]))
+                    out.write('CHROM\tPOS\tREF\tALT\tTOP_EFFECT\n')
+                    out.write('{}\n'.format('\n'.join(variant_results)))
+                    self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_id'] = variant_id
+                    self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_type'] = '_'.join(top_effect_types)
+                    self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_consequence'] = top_effect_consequence
+                    self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_score'] = score*self.df_variants['variant_frequency']
+                    out.write('\n')
 
-        self.df_variants.drop_duplicates(inplace=True)
-        self.df_variants.to_csv(os.path.join(self.plots_folder, 'variantid.csv'), index=False)
+            self.df_variants.drop_duplicates(inplace=True)
+            self.df_variants.to_csv(os.path.join(self.plots_folder, 'variantid.csv'), index=False)
+        else:
+            self.df_variants = pandas.read_csv(os.path.join(self.plots_folder, 'variantid.csv'))
 
 
-    def coverage_plot(self, coverage_file='coverage.html'):
+
+    def coverage_plot(self, plot_file='coverage.html'):
         if not self.df_variants_is_valid():
             return
 
@@ -288,11 +292,11 @@ class Plotter:
         fig.update_layout(barmode='stack', height=1200*len(self.amplicons), width=1200, font=dict(size=8),)
         fig.update_xaxes({'title': 'number of reads', 'type': 'log', 'range': [0, math.log10(MAX_READS)]})
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
-        fig.write_html(file=os.path.join(self.plots_folder, coverage_file), auto_play=False)
+        fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
-    def variant_impact_plot(self, impact_file='koscores.html'):
+    def variant_impact_plot(self, plot_file='impacts.html'):
         if not self.df_variants_is_valid():
             return
 
@@ -323,6 +327,9 @@ class Plotter:
         # Initialize figure with subplots
         fig = subplots.make_subplots(rows=len(self.amplicons), cols=1, subplot_titles=titles)
 
+        # list of koscore dataframe for all amplicons
+        all_df_koscores = []
+
         # Loop over all amplicons
         for i, amplicon in self.amplicons.iterrows():
             df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
@@ -334,13 +341,12 @@ class Plotter:
                     pivot_df_impacts_per_amplicon[name] = 0
             pivot_df_impacts_per_amplicon['koscore'] = pivot_df_impacts_per_amplicon.apply(self.calculate_score, axis=1)
             pivot_df_impacts_per_amplicon.sort_values(by=['koscore'], ascending=[True], inplace=True)
-            pivot_df_impacts_per_amplicon.to_csv(os.path.join(self.plots_folder, 'koscores_{}.csv'.format(amplicon['amplicon_id'])), index=False)
             # add barcodes
             df_koscores = pivot_df_impacts_per_amplicon.copy()
             df_koscores = df_koscores.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
             df_koscores = df_koscores[['plate_id', 'well', 'sample_id', 'HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency', 'koscore']]
-            df_koscores.to_csv(os.path.join(self.plots_folder, 'koscores_{}_with_plate_location.csv'.format(amplicon['amplicon_id'])), index=False)
-
+            df_koscores.insert(0, 'amplicon_id', amplicon['amplicon_id'])
+            all_df_koscores.append(df_koscores)
 
             # Only show legend once
             showlegend=False
@@ -360,50 +366,68 @@ class Plotter:
         fig.update_layout(barmode='stack', height=1200*len(self.amplicons), width=1200, font=dict(size=8),)
         fig.update_xaxes({'title': 'frequency'})
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
-        fig.write_html(file=os.path.join(self.plots_folder, impact_file), auto_play=False)
+        fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
+        df_all_koscores = pandas.concat(all_df_koscores, ignore_index=True)
+        df_all_koscores.to_csv(os.path.join(self.plots_folder, 'koscores.csv'), index=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
-    def heatmap_plot(self, heatmap_file=None):
+    def heatmap_plot(self, plot_file='koscores.html'):
         if not self.df_variants_is_valid():
+            return
+        if not os.path.exists(os.path.join(self.plots_folder, 'koscores.csv')):
             return
 
         template = pandas.read_csv(os.path.join('data', 'templates', 'template_96wellplate.csv'))
 
-        df_all_koscores = pandas.DataFrame()
+        df_all_koscores = pandas.read_csv(os.path.join(self.plots_folder, 'koscores.csv'))
 
-        for file in glob.glob(os.path.join(self.plots_folder, 'koscores_*_with_plate_location.csv')):
-            amplicon = file.split('koscores_')[1].split('_with_plate_location')[0]
-            df_koscores = pandas.read_csv(file)
-            df_all_koscores = df_all_koscores.append(df_koscores, ignore_index=True)
-            # group by plate layout
-            df_koscores_groupby = df_koscores.groupby(['plate_id'])
-            # construct the list of data plots
-            dataplots = []
-            nloop = 0
-            for i, grouped_data in df_koscores_groupby:
-                grouped_data = grouped_data.merge(template, left_on='well', right_on='ref_well', how='right')
-                grouped_data = grouped_data[['plate_id', 'sample_id', 'koscore', 'ref_well']].copy()
-                grouped_data.fillna(value={'plate_id': i, 'sample_id': 'no-sample', 'koscore': 0}, inplace=True)
-                grouped_data['row'] = grouped_data['ref_well'].str[1:]
-                grouped_data['row'] = grouped_data['row'].astype(int)
-                grouped_data['column'] = grouped_data['ref_well'].str[0]
-                grouped_data.sort_values(by=['column', 'row'], ascending=[True, True], inplace=True)
-                nloop += 1  # by default, one scale is created per each trace.
+        # plates
+        plates = list(set(df_all_koscores['plate_id']))
+        plates.sort()
+
+        # amplicons
+        amplicons = list(set(df_all_koscores['amplicon_id']))
+        amplicons.sort()
+
+        # calculate total plot size
+        plotheight = len(plates)*400
+        plotwidth = len(amplicons)*600
+
+        # Plot titles
+        titles = []
+        for plate in plates:
+            for amplicon in amplicons:
+                titles.append('KO scores for {} on {}'.format(amplicon, plate))
+
+        # Initialize figure with subplots
+        fig = subplots.make_subplots(rows=len(plates), cols=len(amplicons), subplot_titles=titles, print_grid=False)
+
+        # Loop over all amplicons and plates
+        for i, amplicon in enumerate(amplicons, start=1):
+            for j, plate in enumerate(plates, start=1):
+                df_koscores_on_plate = df_all_koscores[(df_all_koscores['amplicon_id'] == amplicon) & (df_all_koscores['plate_id'] == plate)]
+                df_koscores_on_plate = df_koscores_on_plate.merge(template, left_on='well', right_on='ref_well', how='right')
+                df_koscores_on_plate = df_koscores_on_plate[['plate_id', 'sample_id', 'koscore', 'ref_well']].copy()
+                df_koscores_on_plate.fillna(value={'plate_id': plate, 'sample_id': 'no-sample', 'koscore': 0}, inplace=True)
+                df_koscores_on_plate['row'] = df_koscores_on_plate['ref_well'].str[1:]
+                df_koscores_on_plate['row'] = df_koscores_on_plate['row'].astype(int)
+                df_koscores_on_plate['column'] = df_koscores_on_plate['ref_well'].str[0]
+                df_koscores_on_plate.sort_values(by=['column', 'row'], ascending=[True, True], inplace=True)
                 # create hover text to add to the scatter data structure
                 hovertext = []
-                for index, rows in grouped_data.iterrows():
+                for index, rows in df_koscores_on_plate.iterrows():
                     hovertext.append('{}, {}, KOscore={}'.format(rows.ref_well, rows.sample_id, rows.koscore))
                 # create scatter plot data structure
-                scatter = go.Scatter(
-                    x=grouped_data['row'].tolist(),
-                    y=grouped_data['column'].tolist(),
-                    name=i,  # i is the plate_id
+                trace = go.Scatter(
+                    x=df_koscores_on_plate['row'].tolist(),
+                    y=df_koscores_on_plate['column'].tolist(),
+                    name=plate,
                     mode='markers',
                     marker=dict(
                         size=20,  # dot size
-                        color=grouped_data['koscore'].tolist(),  # assign a color based on score
-                        showscale=True,  # if nloop == 1 else False,
+                        color=df_koscores_on_plate['koscore'].tolist(),  # assign a color based on score
+                        showscale=True,
                         colorscale='Blues',
                         cmin=0,  # min value of the colorscale
                         cmax=1,  # max value of the colorscale
@@ -412,150 +436,140 @@ class Plotter:
                     text=hovertext,
                     hoverinfo='text'
                 )
-                dataplots.append(scatter)
-            # create plot layout in a grid of two columns and n rows
-            numberofplates = len(set(df_koscores['plate_id']))
-            plotheight = numberofplates*400  # calculation of total plot height, see comment further down
-            # create figure
-            subplottitles = [i for i, j in df_koscores_groupby]
-            figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
-            i = 0
-            for dataplot in dataplots:
-                i += 1
-                figure.append_trace(dataplot, i, 1)
-            # update layout construction. In the scatter subplots, each plot has an independent axis
-            # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
-            for i in figure.layout:
-                if i.find('xaxis') == 0:
-                    figure.layout[i].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
-                    figure.layout[i].update({'type': 'category'})
-                elif i.find('yaxis') == 0:
-                    figure.layout[i].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
-                    figure.layout[i].update({'type': 'category'})
-                    figure.layout[i].update({'type': 'category'})
-            # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
-            # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
-            figure.layout.update(dict(title='KO scores for {}'.format(amplicon), autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            output_type = "file"
-            if not heatmap_file:
-                output_type = "div"
-                heatmap_file = os.path.join(self.plots_folder, 'heatmap_{}.html'.format(amplicon))
-            return py.plot(figure, filename=heatmap_file, auto_open=False, show_link=False, include_plotlyjs=self.include_js, output_type=output_type)
+                fig.append_trace(trace, j, i)
+                # Update plot layout construction to be in a grid of two columns and n rows
+                # In the scatter subplots, each plot has an independent axis
+                # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
+                for l in fig.layout:
+                    if l.find('xaxis') == 0:
+                        fig.layout[l].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
+                        fig.layout[l].update({'type': 'category'})
+                    elif l.find('yaxis') == 0:
+                        fig.layout[l].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
+                        fig.layout[l].update({'type': 'category'})
+                        fig.layout[l].update({'type': 'category'})
+                # with this layout.update below, width and height are set in the plot
+                # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
+        fig.layout.update(dict(autosize=False, width=plotwidth, height=plotheight, hovermode='closest', showlegend=False))
+        fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
+        return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
-        # Protein expression heatmap
-        protein_file = os.path.join('data', 'GEP00001', 'expression_data.csv')
-        if os.path.exists(protein_file):
-            df_protein_expression = pandas.read_csv(protein_file)
-            df_protein_expression['norm_protein_abundance'] = 1 - (df_protein_expression['protein_abundance'] - df_protein_expression['protein_abundance'].min())/(df_protein_expression['protein_abundance'].max() - df_protein_expression['protein_abundance'].min())
-            df_protein_expression = df_protein_expression.merge(df_all_koscores, left_on=['plate_id', 'well', 'sample_id'], right_on=['plate_id', 'well', 'sample_id'], how='left')
-            df_protein_expression.fillna(value=0, inplace=True)
-            df_protein_expression['combined_score'] = df_protein_expression['norm_protein_abundance']*df_protein_expression['koscore']
-            df_protein_expression.to_csv(os.path.join(self.plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
-            df_protein_expression_groupby = df_protein_expression.groupby(['plate_id'])
-            # construct the list of data plots
-            dataplots = []
-            combined_dataplots = []
-            nloop = 0
-            for i, grouped_data in df_protein_expression_groupby:
-                grouped_data = grouped_data.merge(template, left_on='well', right_on='ref_well', how='right')
-                grouped_data = grouped_data[['plate_id', 'sample_id', 'norm_protein_abundance', 'ref_well', 'combined_score']].copy()
-                grouped_data.fillna(value={'plate_id': i, 'sample_id': 'no-sample', 'norm_protein_abundance': 0, 'combined_score': 0}, inplace=True)
-                grouped_data['row'] = grouped_data['ref_well'].str[1:]
-                grouped_data['row'] = grouped_data['row'].astype(int)
-                grouped_data['column'] = grouped_data['ref_well'].str[0]
-                grouped_data.sort_values(by=['column', 'row'], ascending=[True, True], inplace=True)
-                nloop += 1  # by default, one scale is created per each trace.
-                # create hover text to add to the scatter data structure
-                hovertext = []
-                for index, rows in grouped_data.iterrows():
-                    hovertext.append('{}, {}, protein={}'.format(rows.ref_well, rows.sample_id, rows.norm_protein_abundance))
-                # create scatter plot data structure for protein expression
-                scatter = go.Scatter(
-                    x=grouped_data['row'].tolist(),
-                    y=grouped_data['column'].tolist(),
-                    name=i,  # i is the plate_id
-                    mode='markers',
-                    marker=dict(
-                        size=20,  # dot size
-                        color=grouped_data['norm_protein_abundance'].tolist(),  # assign a color based on score
-                        showscale=True, # if nloop == 1 else False,
-                        colorscale='Greens',
-                        cmin=0,  # min value of the colorscale
-                        cmax=1,  # max value of the colorscale
-                    ),
-                    # hover text
-                    text=hovertext,
-                    hoverinfo='text'
-                )
-                dataplots.append(scatter)
 
-                # create scatter plot data structure for combined scores
-                # create hover text to add to the scatter data structure
-                hovertext = []
-                for index, rows in grouped_data.iterrows():
-                    hovertext.append('{}, {}, score={}'.format(rows.ref_well, rows.sample_id, rows.combined_score))
-                # create plot
-                scatter = go.Scatter(
-                    x=grouped_data['row'].tolist(),
-                    y=grouped_data['column'].tolist(),
-                    name=i,  # i is the plate_id
-                    mode='markers',
-                    marker=dict(
-                        size=20,  # dot size
-                        color=grouped_data['combined_score'].tolist(),  # assign a color based on score
-                        showscale=True, # if nloop == 1 else False,
-                        colorscale='Reds',
-                        cmin=0,  # min value of the colorscale
-                        cmax=1,  # max value of the colorscale
-                    ),
-                    # hover text
-                    text=hovertext,
-                    hoverinfo='text'
-                )
-                combined_dataplots.append(scatter)
-
-            # create plot layout in a grid of two columns and n rows
-            numberofplates = len(set(df_protein_expression['plate_id']))
-            plotheight = numberofplates*400  # calculation of total plot height, see comment further down
-            # create figure for protein expression
-            subplottitles = [i for i, j in df_protein_expression_groupby]
-            figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
-            i = 0
-            for dataplot in dataplots:
-                i += 1
-                figure.append_trace(dataplot, i, 1)
-            # update layout construction. In the scatter subplots, each plot has an independent axis
-            # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
-            for i in figure.layout:
-                if i.find('xaxis') == 0:
-                    figure.layout[i].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
-                    figure.layout[i].update({'type': 'category'})
-                elif i.find('yaxis') == 0:
-                    figure.layout[i].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
-                    figure.layout[i].update({'type': 'category'})
-                    figure.layout[i].update({'type': 'category'})
-            # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
-            # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
-            figure.layout.update(dict(title='Protein expression scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(figure, filename=os.path.join(self.plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
-
-            # create figure for combined plot
-            combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
-            i = 0
-            for dataplot in combined_dataplots:
-                i += 1
-                combined_figure.append_trace(dataplot, i, 1)
-            # update layout construction. In the scatter subplots, each plot has an independent axis
-            # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
-            for i in combined_figure.layout:
-                if i.find('xaxis') == 0:
-                    combined_figure.layout[i].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
-                    combined_figure.layout[i].update({'type': 'category'})
-                elif i.find('yaxis') == 0:
-                    combined_figure.layout[i].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
-                    combined_figure.layout[i].update({'type': 'category'})
-                    combined_figure.layout[i].update({'type': 'category'})
-            # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
-            # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
-            combined_figure.layout.update(dict(title='Combined scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
-            py.plot(combined_figure, filename=os.path.join(self.plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+        # TODO - add protein expression and combined plot
+        # # Protein expression heatmap
+        # protein_file = os.path.join('data', 'GEP00001', 'expression_data.csv')
+        # if os.path.exists(protein_file):
+        #     df_protein_expression = pandas.read_csv(protein_file)
+        #     df_protein_expression['norm_protein_abundance'] = 1 - (df_protein_expression['protein_abundance'] - df_protein_expression['protein_abundance'].min())/(df_protein_expression['protein_abundance'].max() - df_protein_expression['protein_abundance'].min())
+        #     df_protein_expression = df_protein_expression.merge(df_all_koscores, left_on=['plate_id', 'well', 'sample_id'], right_on=['plate_id', 'well', 'sample_id'], how='left')
+        #     df_protein_expression.fillna(value=0, inplace=True)
+        #     df_protein_expression['combined_score'] = df_protein_expression['norm_protein_abundance']*df_protein_expression['koscore']
+        #     df_protein_expression.to_csv(os.path.join(self.plots_folder, 'expression_data_normalised_and_combined.csv'), index=False)
+        #     df_protein_expression_groupby = df_protein_expression.groupby(['plate_id'])
+        #     # construct the list of data plots
+        #     dataplots = []
+        #     combined_dataplots = []
+        #     nloop = 0
+        #     for i, grouped_data in df_protein_expression_groupby:
+        #         grouped_data = grouped_data.merge(template, left_on='well', right_on='ref_well', how='right')
+        #         grouped_data = grouped_data[['plate_id', 'sample_id', 'norm_protein_abundance', 'ref_well', 'combined_score']].copy()
+        #         grouped_data.fillna(value={'plate_id': i, 'sample_id': 'no-sample', 'norm_protein_abundance': 0, 'combined_score': 0}, inplace=True)
+        #         grouped_data['row'] = grouped_data['ref_well'].str[1:]
+        #         grouped_data['row'] = grouped_data['row'].astype(int)
+        #         grouped_data['column'] = grouped_data['ref_well'].str[0]
+        #         grouped_data.sort_values(by=['column', 'row'], ascending=[True, True], inplace=True)
+        #         nloop += 1  # by default, one scale is created per each trace.
+        #         # create hover text to add to the scatter data structure
+        #         hovertext = []
+        #         for index, rows in grouped_data.iterrows():
+        #             hovertext.append('{}, {}, protein={}'.format(rows.ref_well, rows.sample_id, rows.norm_protein_abundance))
+        #         # create scatter plot data structure for protein expression
+        #         scatter = go.Scatter(
+        #             x=grouped_data['row'].tolist(),
+        #             y=grouped_data['column'].tolist(),
+        #             name=i,  # i is the plate_id
+        #             mode='markers',
+        #             marker=dict(
+        #                 size=20,  # dot size
+        #                 color=grouped_data['norm_protein_abundance'].tolist(),  # assign a color based on score
+        #                 showscale=True, # if nloop == 1 else False,
+        #                 colorscale='Greens',
+        #                 cmin=0,  # min value of the colorscale
+        #                 cmax=1,  # max value of the colorscale
+        #             ),
+        #             # hover text
+        #             text=hovertext,
+        #             hoverinfo='text'
+        #         )
+        #         dataplots.append(scatter)
+        #
+        #         # create scatter plot data structure for combined scores
+        #         # create hover text to add to the scatter data structure
+        #         hovertext = []
+        #         for index, rows in grouped_data.iterrows():
+        #             hovertext.append('{}, {}, score={}'.format(rows.ref_well, rows.sample_id, rows.combined_score))
+        #         # create plot
+        #         scatter = go.Scatter(
+        #             x=grouped_data['row'].tolist(),
+        #             y=grouped_data['column'].tolist(),
+        #             name=i,  # i is the plate_id
+        #             mode='markers',
+        #             marker=dict(
+        #                 size=20,  # dot size
+        #                 color=grouped_data['combined_score'].tolist(),  # assign a color based on score
+        #                 showscale=True, # if nloop == 1 else False,
+        #                 colorscale='Reds',
+        #                 cmin=0,  # min value of the colorscale
+        #                 cmax=1,  # max value of the colorscale
+        #             ),
+        #             # hover text
+        #             text=hovertext,
+        #             hoverinfo='text'
+        #         )
+        #         combined_dataplots.append(scatter)
+        #
+        #     # create plot layout in a grid of two columns and n rows
+        #     numberofplates = len(set(df_protein_expression['plate_id']))
+        #     plotheight = numberofplates*400  # calculation of total plot height, see comment further down
+        #     # create figure for protein expression
+        #     subplottitles = [i for i, j in df_protein_expression_groupby]
+        #     figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        #     i = 0
+        #     for dataplot in dataplots:
+        #         i += 1
+        #         figure.append_trace(dataplot, i, 1)
+        #     # update layout construction. In the scatter subplots, each plot has an independent axis
+        #     # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
+        #     for i in figure.layout:
+        #         if i.find('xaxis') == 0:
+        #             figure.layout[i].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
+        #             figure.layout[i].update({'type': 'category'})
+        #         elif i.find('yaxis') == 0:
+        #             figure.layout[i].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
+        #             figure.layout[i].update({'type': 'category'})
+        #             figure.layout[i].update({'type': 'category'})
+        #     # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
+        #     # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
+        #     figure.layout.update(dict(title='Protein expression scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
+        #     py.plot(figure, filename=os.path.join(self.plots_folder, 'heatmap_protein_expression.html'), auto_open=False, show_link=False, include_plotlyjs=True)
+        #
+        #     # create figure for combined plot
+        #     combined_figure = subplots.make_subplots(rows=numberofplates, cols=1, subplot_titles=subplottitles, print_grid=False)
+        #     i = 0
+        #     for dataplot in combined_dataplots:
+        #         i += 1
+        #         combined_figure.append_trace(dataplot, i, 1)
+        #     # update layout construction. In the scatter subplots, each plot has an independent axis
+        #     # (xaxis, xaxis2... xaxisN, and the same for yaxis). Each layout for each subplot must be built independently.
+        #     for i in combined_figure.layout:
+        #         if i.find('xaxis') == 0:
+        #             combined_figure.layout[i].update({'categoryorder': 'array', 'categoryarray': list(range(1, 13))})  # this is to show all xaxis values in the plot, in this order
+        #             combined_figure.layout[i].update({'type': 'category'})
+        #         elif i.find('yaxis') == 0:
+        #             combined_figure.layout[i].update({'categoryorder': 'array', 'categoryarray': ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']})  # this is to show all yaxis values in the plot, in this order
+        #             combined_figure.layout[i].update({'type': 'category'})
+        #             combined_figure.layout[i].update({'type': 'category'})
+        #     # with this layout.update below, width and height are set in the plot. Perhaps you can set them directly on the plotting area on the web page
+        #     # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
+        #     combined_figure.layout.update(dict(title='Combined scores', autosize=False, width=600, height=plotheight, hovermode='closest', showlegend=False))
+        #     py.plot(combined_figure, filename=os.path.join(self.plots_folder, 'heatmap_combined_data.html'), auto_open=False, show_link=False, include_plotlyjs=True)
