@@ -413,8 +413,8 @@ class ProjectDataLoader(Loader):
                 layout.geid = row.layout_id
                 self.dbsession.add(layout)
                 self.log.info('Layout {} in project {} created.'.format(layout.geid, self.project.geid))
-            # Empty layout content when no guide_name, nor sequencing_barcode
-            if not self.get_value(row.guide_name) and not self.get_value(row.sequencing_barcode):
+            # Empty layout content when no sequencing_barcode
+            if not self.get_value(row.sequencing_barcode):
                 layout_content = LayoutContent(layout=layout)
                 layout_content.row = row.well_position[0]
                 layout_content.column = int(row.well_position[1:])
@@ -423,15 +423,8 @@ class ProjectDataLoader(Loader):
                 self.log.info('Empty LayoutContent in position {}{} in layout {} created'.format(layout_content.row, layout_content.column, layout_content.layout.geid))
             # Layout content
             else:
-                if ((self.get_value(row.guide_name) and not self.get_value(row.sequencing_barcode))
-                    or (not self.get_value(row.guide_name) and self.get_value(row.sequencing_barcode))):
-                    raise LoaderException('Both guide_name and sequencing_barcode need a value in Layout tab, row {} when not empty'.format(i))
-                guide = self.dbsession.query(Guide)\
-                                      .filter(Guide.project == self.project)\
-                                      .filter(Guide.name == row.guide_name)\
-                                      .one()
-                if not guide:
-                    raise LoaderException('Guide {} not found (Layout tab, row {})'.format(row.guide_name, i))
+                if not self.get_value(row.sequencing_barcode):
+                    raise LoaderException('sequencing_barcode need a value in Layout tab, row {} when not empty'.format(i))
                 # Clone
                 clone = None
                 if self.get_value(row.clone_name):
@@ -448,7 +441,7 @@ class ProjectDataLoader(Loader):
                         self.dbsession.add(clone)
                         self.log.info('Clone {} in cell line {} pool {}'.format(clone.name, clone.cell_line_name, clone.cell_pool))
                 # Layout content
-                layout_content = LayoutContent(layout=layout, guide=guide)
+                layout_content = LayoutContent(layout=layout)
                 layout_content.clone = clone
                 layout_content.row = row.well_position[0]
                 layout_content.column = int(row.well_position[1:])

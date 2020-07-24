@@ -188,7 +188,7 @@ class Plotter:
                         ibase_stop = 0
                         variant_results = []
                         for ibase in range(1, len(alignments[0][0])-1):
-                            chr, ref_start = amplicon_id.split('_')
+                            name, chr, ref_start = amplicon_id.split('_')
                             contig = chr[3:]
                             top_effect_consequence = ''
                             top_effect_type = ''
@@ -398,7 +398,7 @@ class Plotter:
         titles = []
         for plate in plates:
             for amplicon in amplicons:
-                titles.append('KO scores for {} on {}'.format(amplicon, plate))
+                titles.append('{} on {}'.format(amplicon, plate))
 
         # Initialize figure with subplots
         fig = subplots.make_subplots(rows=len(plates), cols=len(amplicons), subplot_titles=titles, print_grid=False)

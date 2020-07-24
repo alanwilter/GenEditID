@@ -135,7 +135,7 @@ class AmpliconFinder():
                             fprimer = found_amplicon['fprimer_seq']
                             rprimer = found_amplicon['rprimer_seq']
                             seq = found_amplicon['seq']
-                            out.write("chr{}_{},{},{},{},{},{}\n".format(amplicon['chr'], found_amplicon['start'], fprimer, rprimer, seq, found_amplicon['coord'], found_amplicon['info']))
+                            out.write("{}_chr{}_{},{},{},{},{},{}\n".format(amplicon['target_name'], amplicon['chr'], found_amplicon['start'], fprimer, rprimer, seq, found_amplicon['coord'], found_amplicon['info']))
                 except FinderException as e:
                     self.log.error('--- Amplicon #{}'.format(amplicon['name']))
                     self.log.error('Target name\t{}'.format(amplicon['target_name']))

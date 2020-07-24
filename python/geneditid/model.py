@@ -229,10 +229,6 @@ class LayoutContent(Base):
     layout = relationship(
         Layout,
         backref=backref('layout_contents', uselist=True, cascade='delete,all'))
-    guide_id = Column(Integer, ForeignKey('guide.id', name="layout_content_guide_fk", ondelete='CASCADE'))
-    guide = relationship(
-        Guide,
-        backref=backref('layout_contents', uselist=True, cascade='delete,all'))
     clone_id = Column(Integer, ForeignKey('clone.id', name='layout_content_clone_fk', ondelete='CASCADE'))
     clone = relationship(
         Clone,
