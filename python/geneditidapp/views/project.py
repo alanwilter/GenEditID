@@ -165,7 +165,6 @@ class ProjectViews(object):
         headers = [
             "layout id",
             "well position",
-            "guide name",
             "sequencing barcode",
             "sequencing dna source",
             "sequencing project id",
@@ -184,10 +183,6 @@ class ProjectViews(object):
                 row = []
                 row.append(layout.geid)
                 row.append(content.position)
-                if content.guide:
-                    row.append(content.guide.name)
-                else:
-                    row.append('')
                 row.append(content.sequencing_barcode)
                 row.append(content.sequencing_dna_source)
                 row.append(content.sequencing_project_id)
