@@ -148,3 +148,4 @@ class AmpliconFinder():
                     self.log.error(e)
                     self.log.error('---')
                     raise FinderException('Unexpected error for Amplicon {} on target {}'.format(mplicon['name'], amplicon['target_name']))
+        self.log.info('{} created'.format(self.config_file))
