@@ -87,6 +87,8 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
 def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension, targets, quality_threshold):
     filename, ext = os.path.splitext(outputfile)
     with open(outputfile, 'w') as out:
+        # TODO update output to match the other case and be able to display in webapp
+        #out.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
         out.write("sample_id,target_id,total_reads,target_reads,target_filtered_reads,target_low_quality_reads,sequence\n")
         for filename in sorted(os.listdir(fastq_dir)):
             if filename.endswith(fastq_extension):
@@ -125,6 +127,18 @@ def count_reads_for_target_sequences(log, outputfile, fastq_dir, fastq_extension
                 for target_id in target_reads.keys():
                     for i, target in targets.iterrows():
                         if target_reads[target_id] > 0 and target_id == target['id']:
+                            # TODO update output to match the other case
+                            # out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
+                            #                                                           amplicon_id,
+                            #                                                           total_reads,
+                            #                                                           amplicon_reads[amplicon_id],
+                            #                                                           amplicon_filtered_reads[amplicon_id],
+                            #                                                           amplicon_low_quality_reads[amplicon_id],
+                            #                                                           amplicon_primer_dimer_reads[amplicon_id],
+                            #                                                           amplicon_low_abundance_reads[amplicon_id],
+                            #                                                           variant_reads[amplicon_id][seq],
+                            #                                                           (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                            #                                                           seq))
                             out.write("{},{},{},{},{},{},{}\n".format(sample_id,
                                                                       target_id,
                                                                       total_reads,
@@ -143,12 +157,12 @@ def main():
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
     parser.add_argument("--output", dest="output", action="store", help="The output file", default='amplicount.csv', required=False)
-    parser.add_argument("--with_seq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", required=False)
+    parser.add_argument("--withseq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", default='amplicount_sequences.csv', required=False)
     options = parser.parse_args()
 
     log = logger.get_custom_logger('amplicount.log')
 
-    if not options.sequences:
+    if not os.path.exists(options.sequences):
         log.info('>>> Getting list of amplicons...')
         amplicons = pd.read_csv(options.config)
         if amplicons.empty:
@@ -182,8 +196,8 @@ def main():
             log.info('Done.')
 
     else:
-        # count reads for target sequences provided
-        log.info('>>> Getting list of target sequences...')
+        # count reads for list of desire edited sequences provided
+        log.info('>>> Getting list of desire edited sequences...')
         targets = pd.read_csv(options.sequences)
         if targets.empty:
             log.warning('No target found in file {}'.format(options.sequences))
@@ -191,7 +205,7 @@ def main():
             for i, target in targets.iterrows():
                 log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
 
-            log.info('>>> Counting reads per target sequences...')
+            log.info('>>> Counting reads per desire edited sequences...')
             log.info('FastQ file directory: {}'.format(options.fastq_dir))
             log.info('FastQ extension: {}'.format(options.fastq_extension))
             log.info('Read quality Threshold: {}'.format(options.quality_threshold))

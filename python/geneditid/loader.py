@@ -256,6 +256,7 @@ class ProjectDataLoader(Loader):
         self.load_layout()
         self.load_plates()
         self.finder.write_amplicount_config_file()
+        self.write_amplicon_sequences_file()
 
     def check_mandatory_fields(self, sheet_name, sheet, mandatory_fields):
         for field in mandatory_fields:
@@ -484,6 +485,19 @@ class ProjectDataLoader(Loader):
             plate.description = row.plate_description
             self.dbsession.add(plate)
             self.log.info('Plate {} in layout {} created'.format(plate.name, plate.layout.geid))
+
+    def write_amplicon_sequences_file(self):
+        sheet = self.xls.parse('DesireEditedSequences')
+        mandatory_fields = ['sequence_name',
+                            'sequence']
+        if not sheet.empty:
+            self.check_mandatory_fields('DesireEditedSequences', sheet, mandatory_fields)
+
+            with open(os.path.join(self.project.project_folder, "amplicount_sequences.csv"), "w") as out:
+                out.write("id,sequence\n")
+                for i, row in enumerate(sheet.itertuples(), 1):
+                    out.write("{},{}\n".format(row.sequence_name, row.sequence))
+            self.log.info('{} created'.format(os.path.join(self.project.project_folder, "amplicount_sequences.csv")))
 
 
 # --------------------------------------------------------------------------------
