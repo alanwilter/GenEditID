@@ -130,7 +130,10 @@ class GuideMismatch(Base):
 
 class Amplicon(Base):
     __tablename__ = 'amplicon'
+    __table_args__ = ( UniqueConstraint('geid', 'project_id', name='unique_amplicon_in_project'),
+                     )
     id = Column(Integer, primary_key=True)
+    geid = Column(String(8), nullable=False, index=True)
     project_id = Column(Integer, ForeignKey('project.id', name='amplicon_project_fk', ondelete='CASCADE'), nullable=False)
     project = relationship(
         Project,
