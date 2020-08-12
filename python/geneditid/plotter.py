@@ -60,7 +60,8 @@ class Plotter:
 
             if self.df_variants_is_valid():
                 # Filter out low-frequency variants
-                self.df_variants = self.df_variants[(self.df_variants['variant_frequency'] > 5)]
+                if len(self.df_variants[(self.df_variants['variant_frequency'] > 5)]) > 0:
+                    self.df_variants = self.df_variants[(self.df_variants['variant_frequency'] > 5)]
 
                 # List of sample ids
                 self.samples = self.df_variants[['sample_id']].copy()
@@ -124,7 +125,9 @@ class Plotter:
     # Check Variants dataframe is not empty and has the expected columns
     def df_variants_is_valid(self):
         try:
-            if not self.df_variants.empty:
+            if self.df_variants.empty:
+                return False
+            else:
                 for col in ['variant_frequency', 'sample_id', 'sequence', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
                     if col not in self.df_variants.columns:
                         self.log.debug('Missing column {} in amplicount.csv'.format(col))
@@ -233,9 +236,10 @@ class Plotter:
                         score = top_effect_scores[0]
                     name = '{}_{}'.format(variant_id, ','.join(top_effect_consequences))
                     out.write(">{}_{}\n{}\n".format(amplicon_id, name, variant['sequence']))
-                    out.write(pairwise2.format_alignment(*alignments[0]))
-                    out.write('CHROM\tPOS\tREF\tALT\tTOP_EFFECT\n')
-                    out.write('{}\n'.format('\n'.join(variant_results)))
+                    if variant['sequence'] != ref_sequence:
+                        out.write(pairwise2.format_alignment(*alignments[0]))
+                        out.write('CHROM\tPOS\tREF\tALT\tTOP_EFFECT\n')
+                        out.write('{}\n'.format('\n'.join(variant_results)))
                     self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_id'] = variant_id
                     self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_type'] = '_'.join(top_effect_types)
                     self.df_variants.loc[((self.df_variants['amplicon_id'] == amplicon_id) & (self.df_variants['sequence'] == variant['sequence'])), 'variant_consequence'] = top_effect_consequence
@@ -252,7 +256,6 @@ class Plotter:
     def coverage_plot(self, plot_file='coverage.html'):
         if not self.df_variants_is_valid():
             return
-
         COLORS = {
             'amplicon_filtered_reads': 'rgb(12,100,201)',
             'amplicon_low_quality_reads': 'rgb(204,204,204)',

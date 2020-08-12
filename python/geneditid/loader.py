@@ -341,7 +341,8 @@ class ProjectDataLoader(Loader):
         sheet = self.xls.parse('Amplicon')
         if sheet.empty:
             raise LoaderException('Amplicon tab is empty, it must be filled')
-        mandatory_fields = ['guide_name',
+        mandatory_fields = ['amplicon_name',
+                            'guide_name',
                             'experiment_type',
                             'guide_location',
                             'is_on_target',
@@ -363,6 +364,7 @@ class ProjectDataLoader(Loader):
                 raise LoaderException('Guide {} not found (Amplicon tab, row {})'.format(row.guide_name, i))
             # create the amplicon
             amplicon = Amplicon(project=self.project, genome=self.genome, guide=guide)
+            amplicon.geid = str(row.amplicon_name)
             amplicon.dna_feature = self.to_dna_feature(row.dna_feature, i)
             amplicon.chromosome = str(row.chrom)
             amplicon.start = int(row.forward_primer_start)
@@ -488,15 +490,22 @@ class ProjectDataLoader(Loader):
 
     def write_amplicon_sequences_file(self):
         sheet = self.xls.parse('DesireEditedSequences')
-        mandatory_fields = ['sequence_name',
+        mandatory_fields = ['amplicon_name',
+                            'sequence_name',
                             'sequence']
         if not sheet.empty:
             self.check_mandatory_fields('DesireEditedSequences', sheet, mandatory_fields)
 
             with open(os.path.join(self.project.project_folder, "amplicount_sequences.csv"), "w") as out:
-                out.write("id,sequence\n")
+                out.write("amplicon_id,id,sequence\n")
                 for i, row in enumerate(sheet.itertuples(), 1):
-                    out.write("{},{}\n".format(row.sequence_name, row.sequence))
+                    amplicon = self.dbsession.query(Amplicon)\
+                                             .filter(Amplicon.geid == row.amplicon_name)\
+                                             .filter(Amplicon.project == self.project)\
+                                             .first()
+                    if not amplicon:
+                        raise LoaderException('Amplicon {} not found (DesireEditedSequences tab, row {})'.format(row.amplicon_name, i))
+                    out.write("{},{},{}\n".format(amplicon.name, row.sequence_name, row.sequence))
             self.log.info('{} created'.format(os.path.join(self.project.project_folder, "amplicount_sequences.csv")))
 
 

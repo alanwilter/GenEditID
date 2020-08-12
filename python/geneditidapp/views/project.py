@@ -233,6 +233,7 @@ class ProjectViews(object):
                 'impactplot': plotter.variant_impact_plot(),
                 'heatmapplot': plotter.heatmap_plot(),
             }
+        self.logger.debug('project return_map')
         if 'submit_project_data' in self.request.params:
             file_path = None
             try:
