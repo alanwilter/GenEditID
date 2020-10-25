@@ -10,13 +10,13 @@ import geneditid.log as logger
 from geneditid.config import cfg
 
 
-def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold, targets=None):
+def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold, targets=pd.DataFrame()):
     filename, ext = os.path.splitext(outputfile)
     outputfile_desired_edits = '{}_desired_edits{}'.format(filename, ext)
     with open(outputfile, 'w') as out, open(outputfile_desired_edits, 'w') as out_desired_edits:
         out.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
         if not targets.empty:
-            out_desired_edits.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
+            out_desired_edits.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,desired_seq_id\n")
         for filename in sorted(os.listdir(fastq_dir)):
             if filename.endswith(fastq_extension):
                 splited_filename = filename.split('.')
@@ -52,8 +52,6 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                     # count reads with low-quality over a window of 5 bases above the quality_threshold
                                     qualities = pd.DataFrame(data={'quality': rec.letter_annotations["phred_quality"][fprimer_pos:rprimer_pos]})
                                     rolling_quality_means = qualities.rolling(window=5, min_periods=1, on='quality').mean()
-                                    #rolling_quality_means.dropna(inplace=True)
-                                    #log.debug(rolling_quality_means)
                                     if min(rolling_quality_means['quality']) >= int(quality_threshold):
                                         variant_reads[amplicon['id']][variant_seq] = variant_reads[amplicon['id']].get(variant_seq, 0) + 1
                                         amplicon_filtered_reads[amplicon['id']] = amplicon_filtered_reads.get(amplicon['id'], 0) + 1
@@ -70,67 +68,40 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                         if variant_reads[amplicon_id][seq] <= abundance_threshold:
                             amplicon_low_abundance_reads[amplicon['id']] = amplicon_low_abundance_reads.get(amplicon['id'], 0) + variant_reads[amplicon_id][seq]
 
-                # write output
+                # write outputs
                 for amplicon_id in variant_reads.keys():
-                    if targets.empty:
-                        # without target sequences
-                        for seq in variant_reads[amplicon_id].keys():
-                            if variant_reads[amplicon_id][seq] > abundance_threshold:
-                                out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                          amplicon_id,
-                                                                                          total_reads,
-                                                                                          amplicon_reads[amplicon_id],
-                                                                                          amplicon_filtered_reads[amplicon_id],
-                                                                                          amplicon_low_quality_reads[amplicon_id],
-                                                                                          amplicon_primer_dimer_reads[amplicon_id],
-                                                                                          amplicon_low_abundance_reads[amplicon_id],
-                                                                                          variant_reads[amplicon_id][seq],
-                                                                                          (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                          seq))
-                    else:
+                    # write 'amplicount.csv' if above a certain abundance threshold
+                    for seq in variant_reads[amplicon_id].keys():
+                        if variant_reads[amplicon_id][seq] > abundance_threshold:
+                            out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
+                                                                                      amplicon_id,
+                                                                                      total_reads,
+                                                                                      amplicon_reads[amplicon_id],
+                                                                                      amplicon_filtered_reads[amplicon_id],
+                                                                                      amplicon_low_quality_reads[amplicon_id],
+                                                                                      amplicon_primer_dimer_reads[amplicon_id],
+                                                                                      amplicon_low_abundance_reads[amplicon_id],
+                                                                                      variant_reads[amplicon_id][seq],
+                                                                                      (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                                                                                      seq))
+                    # write 'amplicount_desired_edits.csv' if sequence in list of desired sequences
+                    if not targets.empty:
                         for i, target in targets.iterrows():
                             if target['amplicon_id'] == amplicon_id:
-                                # with target sequences
-                                out_desired_edits.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                          amplicon_id,
-                                                                                          total_reads,
-                                                                                          amplicon_reads[amplicon_id],
-                                                                                          amplicon_filtered_reads[amplicon_id],
-                                                                                          amplicon_low_quality_reads[amplicon_id],
-                                                                                          amplicon_primer_dimer_reads[amplicon_id],
-                                                                                          amplicon_low_abundance_reads[amplicon_id],
-                                                                                          variant_reads[amplicon_id].get(target['sequence'], 0),
-                                                                                          (variant_reads[amplicon_id].get(target['sequence'], 0) * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                          seq))
                                 for seq in variant_reads[amplicon_id].keys():
-                                    if (seq != target['sequence']) and variant_reads[amplicon_id][seq] > abundance_threshold:
-                                        out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                                  amplicon_id,
-                                                                                                  total_reads,
-                                                                                                  amplicon_reads[amplicon_id],
-                                                                                                  amplicon_filtered_reads[amplicon_id],
-                                                                                                  amplicon_low_quality_reads[amplicon_id],
-                                                                                                  amplicon_primer_dimer_reads[amplicon_id],
-                                                                                                  amplicon_low_abundance_reads[amplicon_id],
-                                                                                                  variant_reads[amplicon_id][seq],
-                                                                                                  (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                                  seq))
-
-                            else:
-                                # without target sequences
-                                for seq in variant_reads[amplicon_id].keys():
-                                    if variant_reads[amplicon_id][seq] > abundance_threshold:
-                                        out.write("{},{},{},{},{},{},{},{},{},{:.2f},{}\n".format(sample_id,
-                                                                                                  amplicon_id,
-                                                                                                  total_reads,
-                                                                                                  amplicon_reads[amplicon_id],
-                                                                                                  amplicon_filtered_reads[amplicon_id],
-                                                                                                  amplicon_low_quality_reads[amplicon_id],
-                                                                                                  amplicon_primer_dimer_reads[amplicon_id],
-                                                                                                  amplicon_low_abundance_reads[amplicon_id],
-                                                                                                  variant_reads[amplicon_id][seq],
-                                                                                                  (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                                  seq))
+                                    if seq.count(target['sequence']) > 0:
+                                        out_desired_edits.write("{},{},{},{},{},{},{},{},{},{:.2f},{},{}\n".format(sample_id,
+                                                                                                                   amplicon_id,
+                                                                                                                   total_reads,
+                                                                                                                   amplicon_reads[amplicon_id],
+                                                                                                                   amplicon_filtered_reads[amplicon_id],
+                                                                                                                   amplicon_low_quality_reads[amplicon_id],
+                                                                                                                   amplicon_primer_dimer_reads[amplicon_id],
+                                                                                                                   amplicon_low_abundance_reads[amplicon_id],
+                                                                                                                   variant_reads[amplicon_id][seq],
+                                                                                                                   (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                                                                                                                   seq,
+                                                                                                                   target['id']))
 
 
 def main():
@@ -142,84 +113,52 @@ def main():
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
     parser.add_argument("--output", dest="output", action="store", help="The output file", default='amplicount.csv', required=False)
-    parser.add_argument("--withseq", dest="sequences", action="store", help="The 2 columns input sequence file: 'id,sequence'", default='amplicount_sequences.csv', required=False)
+    parser.add_argument("--withseq", dest="sequences", action="store", help="The 3 columns input sequence file: 'amplicon_id,id,sequence'", default='amplicount_sequences.csv', required=False)
     options = parser.parse_args()
 
     log = logger.get_custom_logger('amplicount.log')
 
-    if not os.path.exists(options.sequences):
-        log.info('>>> Getting list of amplicons...')
-        amplicons = pd.read_csv(options.config)
-        if amplicons.empty:
-            log.warning('No amplicon found in file {}'.format(options.config))
-        else:
-            for i, amplicon in amplicons.iterrows():
-                log.info('Amplicon: {}'.format(amplicon['id']))
-                log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
-                log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
-                log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
-                log.info('----------')
-
-            log.info('>>> Counting reads per variant per amplicon...')
-            log.info('FastQ file directory: {}'.format(options.fastq_dir))
-            log.info('FastQ extension: {}'.format(options.fastq_extension))
-            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-            log.info('Read abundance Threshold: {}'.format(options.abundance_threshold))
-            log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
-            log.info('Report only variants with amplicon read counts which are above the read count threshold for this amplicon.')
-            log.info('and report only variants with variant read counts which are above the frequency threshold for this amplicon.')
-
-            # count reads associated with each variant for each amplicon
-            count_reads(log,
-                        options.output,
-                        options.fastq_dir,
-                        options.fastq_extension,
-                        amplicons,
-                        options.quality_threshold,
-                        options.abundance_threshold)
-
-            log.info('Done.')
-
+    log.info('>>> Getting list of amplicons...')
+    amplicons = pd.read_csv(options.config)
+    if amplicons.empty:
+        log.warning('No amplicon found in file {}'.format(options.config))
     else:
-        # count reads for list of desire edited sequences provided
-        log.info('>>> Getting list of amplicons...')
-        amplicons = pd.read_csv(options.config)
-        if amplicons.empty:
-            log.warning('No amplicon found in file {}'.format(options.config))
-        else:
-            for i, amplicon in amplicons.iterrows():
-                log.info('Amplicon: {}'.format(amplicon['id']))
-                log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
-                log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
-                log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
-                log.info('----------')
+        for i, amplicon in amplicons.iterrows():
+            log.info('Amplicon: {}'.format(amplicon['id']))
+            log.info('Forward primer: {} {}'.format(len(amplicon['fprimer']), amplicon['fprimer']))
+            log.info('Reverse primer: {} {}'.format(len(amplicon['rprimer']), amplicon['rprimer']))
+            log.info('Ref amplicon seq: {} {}'.format(len(amplicon['amplicon']), amplicon['amplicon']))
+            log.info('----------')
+
+    targets = pd.DataFrame()
+    if os.path.exists(options.sequences):
         log.info('>>> Getting list of desire edited sequences...')
         targets = pd.read_csv(options.sequences)
         if targets.empty:
             log.warning('No target found in file {}'.format(options.sequences))
         else:
             for i, target in targets.iterrows():
-                log.info('Target sequence: {} {}'.format(target['id'], target['sequence']))
+                log.info('Desire edited sequence: {} {}'.format(target['amplicon_id'], target['id'], target['sequence']))
 
-            log.info('>>> Counting reads per desire edited sequences...')
-            log.info('FastQ file directory: {}'.format(options.fastq_dir))
-            log.info('FastQ extension: {}'.format(options.fastq_extension))
-            log.info('Read quality Threshold: {}'.format(options.quality_threshold))
-            log.info('Count reads with a minimum base quality score above the read quality threshold within the amplicon.')
-            log.info('Report only variants with amplicon read counts which are above the read count threshold for the amplicon without target sequences,')
-            log.info('and report only variants with variant read counts which are above the frequency threshold for the amplicon without target sequences;')
-            log.info('and report only variants with sequence that matches the target sequence provided for the amplicon with target sequences.')
-            # count reads associated with each target sequence
-            count_reads(log,
-                        options.output,
-                        options.fastq_dir,
-                        options.fastq_extension,
-                        amplicons,
-                        options.quality_threshold,
-                        options.abundance_threshold,
-                        targets)
+    log.info('>>> Counting reads...')
+    log.info('FastQ file directory: {}'.format(options.fastq_dir))
+    log.info('FastQ extension: {}'.format(options.fastq_extension))
+    log.info('Read quality Threshold: {}'.format(options.quality_threshold))
+    log.info('Abundance threshold: {}'.format(options.abundance_threshold))
+    log.info('Count reads with a minimum base quality score above the read quality threshold.')
+    log.info('Report only variants with variant read counts which is above the aboundance threshold.')
+    log.info('Report also variants with sequence that matches the desire edited sequence if provided.')
 
-            log.info('Done.')
+    count_reads(log,
+                options.output,
+                options.fastq_dir,
+                options.fastq_extension,
+                amplicons,
+                options.quality_threshold,
+                options.abundance_threshold,
+                targets)
+
+    log.info('Done.')
 
 if __name__ == '__main__':
     main()
