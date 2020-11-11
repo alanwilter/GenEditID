@@ -59,7 +59,7 @@ class Plotter:
             self.df_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config.csv'))
             self.df_variants = pandas.read_csv(os.path.join(self.project_folder, 'amplicount.csv'))
             if self.targeted_search_data_exists():
-                self.df_tsearch = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_desired_edits.csv'))
+                self.df_tsearch = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_tsearch.csv'))
 
             if self.df_variants_is_valid():
                 # Filter out low-frequency variants
@@ -127,10 +127,10 @@ class Plotter:
 
     # Check if desired edits data exists
     def targeted_search_data_exists(self):
-        if not os.path.exists(os.path.join(self.project_folder, 'amplicount_desired_edits.csv')):
+        if not os.path.exists(os.path.join(self.project_folder, 'amplicount_tsearch.csv')):
             return False
         else:
-            if os.stat(os.path.join(self.project_folder, 'amplicount_desired_edits.csv')).st_size == 0:
+            if os.stat(os.path.join(self.project_folder, 'amplicount_tsearch.csv')).st_size == 0:
                 return False
         return True
 
@@ -156,9 +156,9 @@ class Plotter:
             if self.df_tsearch.empty:
                 return False
             else:
-                for col in ['sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_reads', 'variant_frequency', 'sequence', 'desired_seq_id']:
+                for col in ['sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_reads', 'variant_frequency', 'sequence', 'tsearch_id']:
                     if col not in self.df_tsearch.columns:
-                        self.log.debug('Missing column {} in amplicount_desired_edits.csv'.format(col))
+                        self.log.debug('Missing column {} in amplicount_tsearch.csv'.format(col))
                         return False
                 return True
         except Exception:
@@ -500,15 +500,15 @@ class Plotter:
         amplicons.reset_index(inplace=True)
 
         # List of targeted search ids
-        tsearches = self.df_tsearch[['desired_seq_id']].copy()
+        tsearches = self.df_tsearch[['tsearch_id']].copy()
         tsearches.drop_duplicates(inplace=True)
         tsearches.reset_index(inplace=True)
 
-        df_tcoverage_frequency = self.df_tsearch[['sample_id', 'amplicon_id', 'variant_frequency', 'desired_seq_id']].copy()
+        df_tcoverage_frequency = self.df_tsearch[['sample_id', 'amplicon_id', 'variant_frequency', 'tsearch_id']].copy()
         gby_tcoverage_frequency = df_tcoverage_frequency.groupby(
-                                        ['sample_id', 'amplicon_id', 'desired_seq_id'],
+                                        ['sample_id', 'amplicon_id', 'tsearch_id'],
                                         as_index=False).agg({'variant_frequency' : sum })
-        gby_tcoverage_frequency = gby_tcoverage_frequency.loc[:, ['sample_id', 'amplicon_id', 'desired_seq_id', 'variant_frequency']]
+        gby_tcoverage_frequency = gby_tcoverage_frequency.loc[:, ['sample_id', 'amplicon_id', 'tsearch_id', 'variant_frequency']]
 
         # Plot titles
         titles = []
@@ -521,11 +521,11 @@ class Plotter:
         # Loop over all amplicons
         for i, amplicon in amplicons.iterrows():
             gby_tcoverage_per_amplicon = gby_tcoverage_frequency[gby_tcoverage_frequency['amplicon_id'] == amplicon['amplicon_id']].copy()
-            pivot_gby_tcoverage_per_amplicon = gby_tcoverage_per_amplicon.pivot(index='sample_id', columns='desired_seq_id', values='variant_frequency').reset_index()
+            pivot_gby_tcoverage_per_amplicon = gby_tcoverage_per_amplicon.pivot(index='sample_id', columns='tsearch_id', values='variant_frequency').reset_index()
             pivot_gby_tcoverage_per_amplicon.fillna(value=0, inplace=True)
             pivot_gby_tcoverage_per_amplicon['Others'] = 100 - pivot_gby_tcoverage_per_amplicon.iloc[:, 1:].sum(axis=1)
             pivot_gby_tcoverage_per_amplicon.sort_values(by=['Others'], ascending=[False], inplace=True)
-            for name in tsearches['desired_seq_id'].tolist():
+            for name in tsearches['tsearch_id'].tolist():
                 if name not in pivot_gby_tcoverage_per_amplicon.columns:
                     pivot_gby_tcoverage_per_amplicon[name] = 0
 
@@ -534,7 +534,7 @@ class Plotter:
             if i == 0:
                 showlegend=True
             j = 0
-            for name in tsearches['desired_seq_id'].tolist():
+            for name in tsearches['tsearch_id'].tolist():
                 trace = go.Bar(x=pivot_gby_tcoverage_per_amplicon[name],
                                y=pivot_gby_tcoverage_per_amplicon['sample_id'],
                                name=name,
