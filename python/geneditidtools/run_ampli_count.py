@@ -12,10 +12,10 @@ from geneditid.config import cfg
 
 def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold, targets=pd.DataFrame()):
     filename, ext = os.path.splitext(outputfile)
-    outputfile_desired_edits = '{}_desired_edits{}'.format(filename, ext)
-    with open(outputfile, 'w') as out, open(outputfile_desired_edits, 'w') as out_desired_edits:
+    outputfile_tsearch = '{}_tsearch{}'.format(filename, ext)
+    with open(outputfile, 'w') as out, open(outputfile_tsearch, 'w') as out_tsearch:
         out.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
-        out_desired_edits.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,desired_seq_id\n")
+        out_tsearch.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,tsearch_id\n")
         for filename in sorted(os.listdir(fastq_dir)):
             if filename.endswith(fastq_extension):
                 splited_filename = filename.split('.')
@@ -83,24 +83,24 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                                                                                       variant_reads[amplicon_id][seq],
                                                                                       (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
                                                                                       seq))
-                    # write 'amplicount_desired_edits.csv' if sequence in list of desired sequences
+                    # write 'amplicount_tsearch.csv' if sequence in list of desired sequences
                     if not targets.empty:
                         for i, target in targets.iterrows():
                             if target['amplicon_id'] == amplicon_id:
                                 for seq in variant_reads[amplicon_id].keys():
                                     if seq.count(target['sequence']) > 0:
-                                        out_desired_edits.write("{},{},{},{},{},{},{},{},{},{:.2f},{},{}\n".format(sample_id,
-                                                                                                                   amplicon_id,
-                                                                                                                   total_reads,
-                                                                                                                   amplicon_reads[amplicon_id],
-                                                                                                                   amplicon_filtered_reads[amplicon_id],
-                                                                                                                   amplicon_low_quality_reads[amplicon_id],
-                                                                                                                   amplicon_primer_dimer_reads[amplicon_id],
-                                                                                                                   amplicon_low_abundance_reads[amplicon_id],
-                                                                                                                   variant_reads[amplicon_id][seq],
-                                                                                                                   (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
-                                                                                                                   seq,
-                                                                                                                   target['id']))
+                                        out_tsearch.write("{},{},{},{},{},{},{},{},{},{:.2f},{},{}\n".format(sample_id,
+                                                                                                             amplicon_id,
+                                                                                                             total_reads,
+                                                                                                             amplicon_reads[amplicon_id],
+                                                                                                             amplicon_filtered_reads[amplicon_id],
+                                                                                                             amplicon_low_quality_reads[amplicon_id],
+                                                                                                             amplicon_primer_dimer_reads[amplicon_id],
+                                                                                                             amplicon_low_abundance_reads[amplicon_id],
+                                                                                                             variant_reads[amplicon_id][seq],
+                                                                                                             (variant_reads[amplicon_id][seq] * 100) / amplicon_filtered_reads[amplicon_id],
+                                                                                                             seq,
+                                                                                                             target['id']))
 
 
 def main():
@@ -112,7 +112,7 @@ def main():
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
     parser.add_argument("--output", dest="output", action="store", help="The output file", default='amplicount.csv', required=False)
-    parser.add_argument("--withseq", dest="sequences", action="store", help="The 3 columns input sequence file: 'amplicon_id,id,sequence'", default='amplicount_sequences.csv', required=False)
+    parser.add_argument("--withseq", dest="sequences", action="store", help="The 3 columns input sequence file: 'amplicon_id,id,sequence'", default='amplicount_config_tsearch.csv', required=False)
     options = parser.parse_args()
 
     log = logger.get_custom_logger('amplicount.log')
