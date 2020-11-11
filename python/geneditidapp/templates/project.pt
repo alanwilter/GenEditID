@@ -42,6 +42,7 @@
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="reads" href="#reads">Reads</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="variants" href="#variants">Variants</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="scores" href="#scores">Scores</a></li>
+        <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="tsearch" href="#tsearch">Targeted Search</a></li>
       </ul>
 
       <div class="tab-content">
@@ -176,6 +177,16 @@
               ${structure: heatmapplot}
           </div>
           <h4>Scores in table</h4>
+        </div>
+
+        <!-- Scores section ************************************************ -->
+        <div role="tabpanel" class="tab-pane" id="tsearch">
+          <h3>Targeted Search</h3>
+          <h4>Targeted Search Frequency plot(s)</h4>
+          <div tal:condition="tsearch">
+              ${structure: tsearch}
+          </div>
+          <h4>Targeted search in table</h4>
         </div>
       </div>
     </div>

@@ -15,8 +15,7 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
     outputfile_desired_edits = '{}_desired_edits{}'.format(filename, ext)
     with open(outputfile, 'w') as out, open(outputfile_desired_edits, 'w') as out_desired_edits:
         out.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence\n")
-        if not targets.empty:
-            out_desired_edits.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,desired_seq_id\n")
+        out_desired_edits.write("sample_id,amplicon_id,total_reads,amplicon_reads,amplicon_filtered_reads,amplicon_low_quality_reads,amplicon_primer_dimer_reads,amplicon_low_abundance_reads,variant_reads,variant_frequency,sequence,desired_seq_id\n")
         for filename in sorted(os.listdir(fastq_dir)):
             if filename.endswith(fastq_extension):
                 splited_filename = filename.split('.')

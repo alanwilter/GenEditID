@@ -232,6 +232,7 @@ class ProjectViews(object):
                 'coverageplot': plotter.coverage_plot(),
                 'impactplot': plotter.variant_impact_plot(),
                 'heatmapplot': plotter.heatmap_plot(),
+                'tsearch': plotter.targeted_search_plot(),
             }
         self.logger.debug('project return_map')
         if 'submit_project_data' in self.request.params:
@@ -267,6 +268,7 @@ class ProjectViews(object):
                         'coverageplot': plotter.coverage_plot(),
                         'impactplot': plotter.variant_impact_plot(),
                         'heatmapplot': plotter.heatmap_plot(),
+                        'tsearch': plotter.targeted_search_plot(),
                     }
                 return HTTPFound(self.request.route_url('project', gepid=project.geid))
             except FinderException as e:

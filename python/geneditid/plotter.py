@@ -12,6 +12,7 @@ from pyensembl import ensembl_grch38   # pyensembl install --release 95 --specie
 import plotly.offline as py
 import plotly.graph_objs as go
 from plotly import subplots
+import plotly.express as px
 
 from geneditid.config import cfg
 from geneditid.model import Base
@@ -57,6 +58,8 @@ class Plotter:
         if self.amplicount_data_exists():
             self.df_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config.csv'))
             self.df_variants = pandas.read_csv(os.path.join(self.project_folder, 'amplicount.csv'))
+            if self.targeted_search_data_exists():
+                self.df_tsearch = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_desired_edits.csv'))
 
             if self.df_variants_is_valid():
                 # Filter out low-frequency variants
@@ -122,6 +125,16 @@ class Plotter:
         return True
 
 
+    # Check if desired edits data exists
+    def targeted_search_data_exists(self):
+        if not os.path.exists(os.path.join(self.project_folder, 'amplicount_desired_edits.csv')):
+            return False
+        else:
+            if os.stat(os.path.join(self.project_folder, 'amplicount_desired_edits.csv')).st_size == 0:
+                return False
+        return True
+
+
     # Check Variants dataframe is not empty and has the expected columns
     def df_variants_is_valid(self):
         try:
@@ -131,6 +144,21 @@ class Plotter:
                 for col in ['variant_frequency', 'sample_id', 'sequence', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']:
                     if col not in self.df_variants.columns:
                         self.log.debug('Missing column {} in amplicount.csv'.format(col))
+                        return False
+                return True
+        except Exception:
+            return False
+
+
+    # Check TargetedSearch dataframe is not empty and has the expected columns
+    def df_targeted_search_data_is_valid(self):
+        try:
+            if self.df_tsearch.empty:
+                return False
+            else:
+                for col in ['sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_reads', 'variant_frequency', 'sequence', 'desired_seq_id']:
+                    if col not in self.df_tsearch.columns:
+                        self.log.debug('Missing column {} in amplicount_desired_edits.csv'.format(col))
                         return False
                 return True
         except Exception:
@@ -454,6 +482,80 @@ class Plotter:
                 # with this layout.update below, width and height are set in the plot
                 # hovermode = closest shows the values for the hover point, otherwise by default ('compare' mode) you only see one coordinate
         fig.layout.update(dict(autosize=False, width=plotwidth, height=plotheight, hovermode='closest', showlegend=False))
+        fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
+        return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
+
+
+    def targeted_search_plot(self, plot_file='targeted_search.html'):
+        if not self.targeted_search_data_exists():
+            return
+        if not self.df_targeted_search_data_is_valid():
+            return
+
+        MAX_READS = self.df_tsearch.loc[self.df_tsearch['amplicon_filtered_reads'].idxmax()]['amplicon_filtered_reads']
+
+        # List of amplicon ids
+        amplicons = self.df_tsearch[['amplicon_id']].copy()
+        amplicons.drop_duplicates(inplace=True)
+        amplicons.reset_index(inplace=True)
+
+        # List of targeted search ids
+        tsearches = self.df_tsearch[['desired_seq_id']].copy()
+        tsearches.drop_duplicates(inplace=True)
+        tsearches.reset_index(inplace=True)
+
+        df_tcoverage_frequency = self.df_tsearch[['sample_id', 'amplicon_id', 'variant_frequency', 'desired_seq_id']].copy()
+        gby_tcoverage_frequency = df_tcoverage_frequency.groupby(
+                                        ['sample_id', 'amplicon_id', 'desired_seq_id'],
+                                        as_index=False).agg({'variant_frequency' : sum })
+        gby_tcoverage_frequency = gby_tcoverage_frequency.loc[:, ['sample_id', 'amplicon_id', 'desired_seq_id', 'variant_frequency']]
+
+        # Plot titles
+        titles = []
+        for i, amplicon in amplicons.iterrows():
+            titles.append('Targeted Search for Amplicon {}'.format(amplicon['amplicon_id']))
+
+        # Initialize figure with subplots
+        fig = subplots.make_subplots(rows=len(amplicons), cols=1, subplot_titles=titles)
+
+        # Loop over all amplicons
+        for i, amplicon in amplicons.iterrows():
+            gby_tcoverage_per_amplicon = gby_tcoverage_frequency[gby_tcoverage_frequency['amplicon_id'] == amplicon['amplicon_id']].copy()
+            pivot_gby_tcoverage_per_amplicon = gby_tcoverage_per_amplicon.pivot(index='sample_id', columns='desired_seq_id', values='variant_frequency').reset_index()
+            pivot_gby_tcoverage_per_amplicon.fillna(value=0, inplace=True)
+            pivot_gby_tcoverage_per_amplicon['Others'] = 100 - pivot_gby_tcoverage_per_amplicon.iloc[:, 1:].sum(axis=1)
+            pivot_gby_tcoverage_per_amplicon.sort_values(by=['Others'], ascending=[False], inplace=True)
+            for name in tsearches['desired_seq_id'].tolist():
+                if name not in pivot_gby_tcoverage_per_amplicon.columns:
+                    pivot_gby_tcoverage_per_amplicon[name] = 0
+
+            # Only show legend once
+            showlegend=False
+            if i == 0:
+                showlegend=True
+            j = 0
+            for name in tsearches['desired_seq_id'].tolist():
+                trace = go.Bar(x=pivot_gby_tcoverage_per_amplicon[name],
+                               y=pivot_gby_tcoverage_per_amplicon['sample_id'],
+                               name=name,
+                               orientation='h',
+                               marker={'color': px.colors.qualitative.Antique[j%10]},
+                               showlegend=showlegend,
+                              )
+                fig.append_trace(trace, i+1, 1)
+                j += 1
+            trace = go.Bar(x=pivot_gby_tcoverage_per_amplicon['Others'],
+                           y=pivot_gby_tcoverage_per_amplicon['sample_id'],
+                           name='Others',
+                           orientation='h',
+                           marker={'color': 'rgb(204,204,204)'},  # grey for Others
+                           showlegend=showlegend,
+                          )
+            fig.append_trace(trace, i+1, 1)
+
+        fig.update_layout(barmode='stack', height=1200*len(amplicons), width=1200, font=dict(size=8),)
+        fig.update_xaxes({'title': 'frequency of filtered reads'})
+        fig.update_yaxes({'title': 'samples', 'dtick': 1})
         fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
