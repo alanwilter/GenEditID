@@ -30,8 +30,8 @@ class HomeViews(object):
                                          "creation date",
                                          "data location",
                                          "sequencing data",
-                                         "abundance data",
-                                         "growth data",
+                                         #"abundance data",
+                                         #"growth data",
                                          ]
                         }
         try:
@@ -46,8 +46,8 @@ class HomeViews(object):
                              project.start_date,
                              project.project_folder,
                              project.is_sequencing_data_available,
-                             project.is_abundance_data_available,
-                             project.is_growth_data_available,
+                             #project.is_abundance_data_available,
+                             #project.is_growth_data_available,
                              ])
             return_map['rows'] = rows
             # New project creation form
@@ -96,8 +96,8 @@ class HomeViews(object):
                                      project.start_date,
                                      project.project_folder,
                                      project.is_sequencing_data_available,
-                                     project.is_abundance_data_available,
-                                     project.is_growth_data_available,
+                                     #project.is_abundance_data_available,
+                                     #project.is_growth_data_available,
                                      ])
                     return_map['rows'] = rows
                     return return_map

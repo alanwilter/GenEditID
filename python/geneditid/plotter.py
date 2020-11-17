@@ -57,8 +57,10 @@ class Plotter:
         # Load amplicount files (configuration and variants) into pandas dataframe for analysis and ploting
         if self.amplicount_data_exists():
             self.df_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config.csv'))
-            self.df_variants = pandas.read_csv(os.path.join(self.project_folder, 'amplicount.csv'))
+            self.df_amplicount = pandas.read_csv(os.path.join(self.project_folder, 'amplicount.csv'))
+            self.df_variants = self.df_amplicount.copy()
             if self.targeted_search_data_exists():
+                self.df_tsearch_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config_tsearch.csv'))
                 self.df_tsearch = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_tsearch.csv'))
 
             if self.df_variants_is_valid():
@@ -87,6 +89,10 @@ class Plotter:
                 # Amplicons dataframe
                 self.df_amplicons = self.df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']].copy()
                 self.df_amplicons.drop_duplicates(inplace=True)
+
+                # Impacts, AllKOScores dataframe
+                self.df_impacts = pandas.DataFrame()
+                self.df_all_koscores = pandas.DataFrame()
 
 
     def get_barcodes(self):
@@ -127,6 +133,8 @@ class Plotter:
 
     # Check if desired edits data exists
     def targeted_search_data_exists(self):
+        if not os.path.exists(os.path.join(self.project_folder, 'amplicount_config_tsearch.csv')):
+            return False
         if not os.path.exists(os.path.join(self.project_folder, 'amplicount_tsearch.csv')):
             return False
         else:
@@ -280,6 +288,29 @@ class Plotter:
             self.df_variants = pandas.read_csv(os.path.join(self.plots_folder, 'variantid.csv'))
 
 
+    def config_header(self):
+        return list(self.df_config.columns)
+
+
+    def config_rows(self):
+        return self.df_config.to_numpy().tolist()
+
+
+    def variant_header(self):
+        return list(self.df_variants.columns)
+
+
+    def variant_rows(self):
+        return self.df_variants.to_numpy().tolist()
+
+
+    def amplicount_header(self):
+        return list(self.df_amplicount.columns)
+
+
+    def amplicount_rows(self):
+        return self.df_amplicount.to_numpy().tolist()
+
 
     def coverage_plot(self, plot_file='coverage.html'):
         if not self.df_variants_is_valid():
@@ -327,6 +358,14 @@ class Plotter:
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
+    def coverage_header(self):
+        return list(self.df_amplicons.columns)
+
+
+    def coverage_rows(self):
+        return self.df_amplicons.to_numpy().tolist()
+
+
     def variant_impact_plot(self, plot_file='impacts.html'):
         if not self.df_variants_is_valid():
             return
@@ -343,12 +382,12 @@ class Plotter:
             self.df_variants.loc[(self.df_variants['variant_consequence'] == consequence), 'impact'] = self.CONSEQUENCE_CATEGORIES[consequence]
 
         self.df_variants.loc[(self.df_variants['variant_consequence'] != 'WildType') & (self.df_variants['variant_score'] == 0), 'impact'] = 'LowImpact'
-        df_impacts = self.df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']].copy()
-        grouped_impacts = df_impacts.groupby(['sample_id', 'amplicon_id', 'impact'])
-        df_impacts['impact_frequency'] = grouped_impacts.transform('sum')
-        df_impacts = df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
-        df_impacts.drop_duplicates(inplace=True)
-        df_impacts.to_csv(os.path.join(self.plots_folder, 'impacts.csv'), index=False)
+        self.df_impacts = self.df_variants[['sample_id', 'amplicon_id', 'impact', 'variant_frequency']].copy()
+        grouped_impacts = self.df_impacts.groupby(['sample_id', 'amplicon_id', 'impact'])
+        self.df_impacts['impact_frequency'] = grouped_impacts.transform('sum')
+        self.df_impacts = self.df_impacts.loc[:, ['sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
+        self.df_impacts.drop_duplicates(inplace=True)
+        self.df_impacts.to_csv(os.path.join(self.plots_folder, 'impacts.csv'), index=False)
 
         # Plot titles
         titles = []
@@ -363,7 +402,7 @@ class Plotter:
 
         # Loop over all amplicons
         for i, amplicon in self.amplicons.iterrows():
-            df_impacts_per_amplicon = df_impacts[df_impacts['amplicon_id'] == amplicon['amplicon_id']]
+            df_impacts_per_amplicon = self.df_impacts[self.df_impacts['amplicon_id'] == amplicon['amplicon_id']]
             pivot_df_impacts_per_amplicon = df_impacts_per_amplicon.pivot(index='sample_id', columns='impact', values='impact_frequency').reset_index()
             pivot_df_impacts_per_amplicon.fillna(value=0, inplace=True)
             pivot_df_impacts_per_amplicon['LowFrequency'] = 100 - pivot_df_impacts_per_amplicon.iloc[:, 1:].sum(axis=1)
@@ -398,27 +437,33 @@ class Plotter:
         fig.update_xaxes({'title': 'frequency'})
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
         fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
-        df_all_koscores = pandas.concat(all_df_koscores, ignore_index=True)
-        df_all_koscores.to_csv(os.path.join(self.plots_folder, 'koscores.csv'), index=False)
+        self.df_all_koscores = pandas.concat(all_df_koscores, ignore_index=True)
+        self.df_all_koscores.to_csv(os.path.join(self.plots_folder, 'koscores.csv'), index=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
+
+
+    def impact_header(self):
+        return list(self.df_impacts.columns)
+
+
+    def impact_rows(self):
+        return self.df_impacts.to_numpy().tolist()
 
 
     def heatmap_plot(self, plot_file='koscores.html'):
         if not self.df_variants_is_valid():
             return
-        if not os.path.exists(os.path.join(self.plots_folder, 'koscores.csv')):
+        if self.df_all_koscores.empty:
             return
 
         template = pandas.read_csv(os.path.join('data', 'templates', 'template_96wellplate.csv'))
 
-        df_all_koscores = pandas.read_csv(os.path.join(self.plots_folder, 'koscores.csv'))
-
         # plates
-        plates = list(set(df_all_koscores['plate_id']))
+        plates = list(set(self.df_all_koscores['plate_id']))
         plates.sort()
 
         # amplicons
-        amplicons = list(set(df_all_koscores['amplicon_id']))
+        amplicons = list(set(self.df_all_koscores['amplicon_id']))
         amplicons.sort()
 
         # calculate total plot size
@@ -437,7 +482,7 @@ class Plotter:
         # Loop over all amplicons and plates
         for i, amplicon in enumerate(amplicons, start=1):
             for j, plate in enumerate(plates, start=1):
-                df_koscores_on_plate = df_all_koscores[(df_all_koscores['amplicon_id'] == amplicon) & (df_all_koscores['plate_id'] == plate)]
+                df_koscores_on_plate = self.df_all_koscores[(self.df_all_koscores['amplicon_id'] == amplicon) & (self.df_all_koscores['plate_id'] == plate)]
                 df_koscores_on_plate = df_koscores_on_plate.merge(template, left_on='well', right_on='ref_well', how='right')
                 df_koscores_on_plate = df_koscores_on_plate[['plate_id', 'sample_id', 'koscore', 'ref_well']].copy()
                 df_koscores_on_plate.fillna(value={'plate_id': plate, 'sample_id': 'no-sample', 'koscore': 0}, inplace=True)
@@ -484,6 +529,14 @@ class Plotter:
         fig.layout.update(dict(autosize=False, width=plotwidth, height=plotheight, hovermode='closest', showlegend=False))
         fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
+
+
+    def koscores_header(self):
+        return list(self.df_all_koscores.columns)
+
+
+    def koscores_rows(self):
+        return self.df_all_koscores.to_numpy().tolist()
 
 
     def targeted_search_plot(self, plot_file='targeted_search.html'):
@@ -560,7 +613,22 @@ class Plotter:
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
-        # TODO - add protein expression and combined plot
+    def tsearch_config_header(self):
+        return list(self.df_tsearch_config.columns)
+
+
+    def tsearch_config_rows(self):
+        return self.df_tsearch_config.to_numpy().tolist()
+
+
+    def tsearch_header(self):
+        return list(self.df_tsearch.columns)
+
+
+    def tsearch_rows(self):
+        return self.df_tsearch.to_numpy().tolist()
+
+
         # # Protein expression heatmap
         # protein_file = os.path.join('data', 'GEP00001', 'expression_data.csv')
         # if os.path.exists(protein_file):
