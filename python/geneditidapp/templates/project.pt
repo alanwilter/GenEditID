@@ -39,6 +39,7 @@
       <ul class="nav nav-tabs" role="tablist" id="project-tabs">
         <li role="presentation" class="active"><a role="tab" data-toggle="tab" aria-controls="overview" href="#overview">Overview</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="setup" href="#setup">Setup</a></li>
+        <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="config" href="#config">Amplicons</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="reads" href="#reads">Reads</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="variants" href="#variants">Variants</a></li>
         <li role="presentation"><a role="tab" data-toggle="tab" aria-controls="scores" href="#scores">Scores</a></li>
@@ -52,7 +53,7 @@
           <h4>Project Details</h4>
           <table id="projecttable" class="table table-bordered table-condensed">
               <thead>
-                  <th tal:repeat="header project_headers">${header}</th>
+                  <th tal:repeat="header project_header">${header}</th>
               </thead>
               <tr tal:repeat="row project_rows">
                   <td tal:repeat="cell row">${cell}</td>
@@ -62,7 +63,7 @@
           <h4>Targets</h4>
           <table id="targettable" class="table table-bordered table-hover table-condensed">
               <thead>
-                  <th tal:repeat="header target_headers">${header}</th>
+                  <th tal:repeat="header target_header">${header}</th>
               </thead>
               <tr tal:repeat="row target_rows">
                   <td tal:repeat="cell row">${cell}</td>
@@ -72,7 +73,7 @@
           <h4>Guides</h4>
           <table id="guidetable" class="table table-bordered table-hover table-condensed">
               <thead>
-                  <th tal:repeat="header guide_headers">${header}</th>
+                  <th tal:repeat="header guide_header">${header}</th>
               </thead>
               <tr tal:repeat="row guide_rows">
                   <td tal:repeat="cell row">${cell}</td>
@@ -82,7 +83,7 @@
           <h4>Amplicons</h4>
           <table id="amplicontable" class="table table-bordered table-hover table-condensed">
               <thead>
-                  <th tal:repeat="header amplicon_headers">${header}</th>
+                  <th tal:repeat="header amplicon_header">${header}</th>
               </thead>
               <tr tal:repeat="row amplicon_rows">
                   <td tal:repeat="cell row">${cell}</td>
@@ -91,7 +92,7 @@
           <h4>Layout</h4>
           <table id="layouttable" class="table table-bordered table-hover table-condensed">
               <thead>
-                  <th tal:repeat="header layout_headers">${header}</th>
+                  <th tal:repeat="header layout_header">${header}</th>
               </thead>
               <tr tal:repeat="row layout_rows">
                   <td tal:repeat="cell row">${cell}</td>
@@ -146,47 +147,131 @@
               </div>
             </div>
           </div>
+        </div>
 
+        <!-- Config/Amplicons section ************************************** -->
+        <div role="tabpanel" class="tab-pane" id="config">
+          <h3>Amplicons</h3>
+          <h4>List of Amplicons used for the analysis</h4>
+          <table id="configtable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header config_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row config_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
 
         <!-- Reads section ************************************************* -->
         <div role="tabpanel" class="tab-pane" id="reads">
           <h3>Reads</h3>
           <h4>Amplicon Read Coverage plot(s)</h4>
-          <div tal:condition="coverageplot">
-              ${structure: coverageplot}
+          <div tal:condition="not coverage_plot">
+              No data available, please run the analysis or reload the page.
           </div>
-          <h4>Amplicon Read Coverage in table</h4>
+          <div tal:condition="coverage_plot">
+              ${structure: coverage_plot}
+          </div>
+          <h4>Amplicon Read Coverage table</h4>
+          <table id="coveragetable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header coverage_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row coverage_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
 
         <!-- Variants section ********************************************** -->
         <div role="tabpanel" class="tab-pane" id="variants">
           <h3>Variants</h3>
           <h4>Variant Impact Frequency plot(s)</h4>
-          <div tal:condition="impactplot">
-              ${structure: impactplot}
+          <div tal:condition="not impact_plot">
+              No data available, please run the analysis or reload the page.
           </div>
-          <h4>Variant Impact Frequency in table</h4>
+          <div tal:condition="impact_plot">
+              ${structure: impact_plot}
+          </div>
+          <h4>Variant Impact Frequency table</h4>
+          <table id="impacttable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header impact_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row impact_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
+          <h4>Filtered Variant Impact Classification table</h4>
+          <table id="varianttable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header variant_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row variant_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
+          <h4>Whole Variant output results from analysis</h4>
+          <table id="amplicounttable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header amplicount_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row amplicount_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
 
         <!-- Scores section ************************************************ -->
         <div role="tabpanel" class="tab-pane" id="scores">
           <h3>Scores</h3>
           <h4>KO Scores on plate(s)</h4>
-          <div tal:condition="heatmapplot">
-              ${structure: heatmapplot}
+          <div tal:condition="not heatmap_plot">
+              No data available, please run the analysis or reload the page.
           </div>
-          <h4>Scores in table</h4>
+          <div tal:condition="heatmap_plot">
+              ${structure: heatmap_plot}
+          </div>
+          <h4>KO Scores in table</h4>
+          <table id="koscorestable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header koscores_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row koscores_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
 
-        <!-- Scores section ************************************************ -->
+        <!-- Targeted search section *************************************** -->
         <div role="tabpanel" class="tab-pane" id="tsearch">
           <h3>Targeted Search</h3>
           <h4>Targeted Search Frequency plot(s)</h4>
-          <div tal:condition="tsearch">
-              ${structure: tsearch}
+          <div tal:condition="not tsearch_plot">
+              No data available.
           </div>
-          <h4>Targeted search in table</h4>
+          <div tal:condition="tsearch_plot">
+              ${structure: tsearch_plot}
+          </div>
+          <h4>List of Targeted search sequences used for the analysis</h4>
+          <table id="tsearchconfigtable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header tsearch_config_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row tsearch_config_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
+          <h4>Whole Targeted search output results from analysis</h4>
+          <table id="tsearchtable" class="table table-bordered table-hover table-condensed">
+              <thead>
+                  <th tal:repeat="header tsearch_header">${header}</th>
+              </thead>
+              <tr tal:repeat="row tsearch_rows">
+                  <td tal:repeat="cell row">${cell}</td>
+              </tr>
+          </table>
         </div>
       </div>
     </div>
@@ -196,71 +281,64 @@
   $(document).ready(
     function() {
         $('#projecttable').DataTable( {
-          "searching": false,
           "paging":    false,
           "ordering":  false,
           "info":      false,
-          "columnDefs": [ {
-            "targets": [ 8 ],
-            "visible": false,
-            "searchable": false
-            }, {
-            "targets": [ 9 ],
-            "visible": false,
-            "searchable": false
-            }, {
-            "targets": [ 10 ],
-            "visible": false,
-            "searchable": false
-            }, {
-            "targets": [ 11 ],
-            "visible": false,
-            "searchable": false
-            },
-          ]
+          "searching": false
         } );
 
         $('#targettable').DataTable({
-          "searching": false,
           "paging":    false,
+          "ordering":  false,
           "info":      false,
-          "columnDefs": [ {
-            "targets": [ 8 ],
-            "visible": false,
-            "searchable": false
-            },
-          ]
+          "searching": false
         } );
 
         $('#guidetable').DataTable({
-          "searching": false,
           "paging":    false,
+          "ordering":  false,
           "info":      false,
+          "searching": false
         } );
 
         $('#amplicontable').DataTable({
-          "searching": false,
           "paging":    false,
+          "ordering":  false,
           "info":      false,
-          "columnDefs": [ {
-            "targets": [ 11 ],
-            "visible": false,
-            "searchable": false
-            }, {
-            "targets": [ 12 ],
-            "visible": false,
-            "searchable": false
-            },
-          ]
+          "searching": false
         } );
 
         $('#layouttable').DataTable({
-          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         } );
 
+        $('#configtable').DataTable({
+        } );
+
+        $('#coveragetable').DataTable({
+        } );
+
+        $('#impacttable').DataTable({
+        } );
+
+        $('#varianttable').DataTable({
+        } );
+
+        $('#koscorestable').DataTable({
+        } );
+
+        $('#tsearchconfigtable').DataTable({
+        } );
+
+        $('#tsearchtable').DataTable({
+        } );
+
+        $('#amplicounttable').DataTable({
+        } );
+
+        <!--
         $('#guidemismatchtable').DataTable({
         } );
-        <!--
+
         $('#vvariantdatatable').DataTable({
           "aaSorting": [[4, 'asc']],
           "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],

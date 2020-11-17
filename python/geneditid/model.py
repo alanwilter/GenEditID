@@ -67,7 +67,7 @@ class Project(Base):
 
     @property
     def is_sequencing_data_available(self):
-        if glob.glob(os.path.join(self.project_folder, cfg['FASTQ_SUBFOLDER'], '*.fq.gz')):
+        if glob.glob(os.path.join(self.project_folder, cfg['FASTQ_SUBFOLDER'], '*.fq.gz')) or glob.glob(os.path.join(self.project_folder, cfg['FASTQ_SUBFOLDER'], '*.fqjoin.gz')):
             # TODO check that all samples have a fastq files on disk
             return True
         return False

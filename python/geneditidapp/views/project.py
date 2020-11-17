@@ -58,24 +58,18 @@ class ProjectViews(object):
             "creation date",
             "data location",
             "sequencing data",
-            "abundance data",
-            "growth data",
             "scientist",
             "group",
-            "description",
-            "comments",
+            "group leader"
             ]
         rows = [[project.geid,
                  project.name,
                  project.start_date,
                  project.project_folder,
                  project.is_sequencing_data_available,
-                 project.is_abundance_data_available,
-                 project.is_growth_data_available,
                  project.scientist,
                  project.group,
-                 project.description,
-                 project.comments
+                 project.group_leader,
                  ]]
         return headers, rows
 
@@ -88,8 +82,7 @@ class ProjectViews(object):
             "chromosome",
             "start",
             "end",
-            "strand",
-            "description"]
+            "strand",]
         rows = []
         for target in project.targets:
             row = []
@@ -101,7 +94,6 @@ class ProjectViews(object):
             row.append(target.start)
             row.append(target.end)
             row.append(target.strand)
-            row.append(target.description)
             rows.append(row)
         return headers, rows
 
@@ -141,7 +133,6 @@ class ProjectViews(object):
             "DNA feature",
             "chromosome",
             "score",
-            "description"
         ]
         rows = []
         for amplicon in project.amplicons:
@@ -157,7 +148,6 @@ class ProjectViews(object):
             row.append(amplicon.dna_feature)
             row.append(amplicon.chromosome)
             row.append(amplicon.score)
-            row.append(amplicon.description)
             rows.append(row)
         return headers, rows
 
@@ -208,31 +198,47 @@ class ProjectViews(object):
         project = self.dbsession.query(Project).filter(Project.geid == gepid).one()
         plotter = Plotter(self.dbsession, project.geid)
         # Tables
-        project_headers, project_rows = self.get_project_table(project)
-        target_headers, target_rows = self.get_target_table(project)
-        guide_headers, guide_rows = self.get_guide_table(project)
-        amplicon_headers, amplicon_rows = self.get_amplicon_table(project)
-        layout_headers, layout_rows = self.get_layout_table(project)
+        project_header, project_rows = self.get_project_table(project)
+        target_header, target_rows = self.get_target_table(project)
+        guide_header, guide_rows = self.get_guide_table(project)
+        amplicon_header, amplicon_rows = self.get_amplicon_table(project)
+        layout_header, layout_rows = self.get_layout_table(project)
 
         return_map = {'project': project,
                 'title': "GenEditID",
                 'subtitle': "Project: {}".format(project.geid),
                 'info': False,
                 'error': False,
-                'project_headers': project_headers,
+                'project_header': project_header,
                 'project_rows': project_rows,
-                'target_headers': target_headers,
+                'target_header': target_header,
                 'target_rows': target_rows,
-                'guide_headers': guide_headers,
+                'guide_header': guide_header,
                 'guide_rows': guide_rows,
-                'amplicon_headers': amplicon_headers,
+                'amplicon_header': amplicon_header,
                 'amplicon_rows': amplicon_rows,
-                'layout_headers': layout_headers,
+                'layout_header': layout_header,
                 'layout_rows': layout_rows,
-                'coverageplot': plotter.coverage_plot(),
-                'impactplot': plotter.variant_impact_plot(),
-                'heatmapplot': plotter.heatmap_plot(),
-                'tsearch': plotter.targeted_search_plot(),
+                'config_header': plotter.config_header(),
+                'config_rows': plotter.config_rows(),
+                'coverage_plot': plotter.coverage_plot(),
+                'coverage_header': plotter.coverage_header(),
+                'coverage_rows': plotter.coverage_rows(),
+                'impact_plot': plotter.variant_impact_plot(),
+                'impact_header': plotter.impact_header(),
+                'impact_rows': plotter.impact_rows(),
+                'variant_header': plotter.variant_header(),
+                'variant_rows': plotter.variant_rows(),
+                'amplicount_header': plotter.amplicount_header(),
+                'amplicount_rows': plotter.amplicount_rows(),
+                'heatmap_plot': plotter.heatmap_plot(),
+                'koscores_header': plotter.koscores_header(),
+                'koscores_rows': plotter.koscores_rows(),
+                'tsearch_plot': plotter.targeted_search_plot(),
+                'tsearch_config_header': plotter.tsearch_config_header(),
+                'tsearch_config_rows': plotter.tsearch_config_rows(),
+                'tsearch_header': plotter.tsearch_header(),
+                'tsearch_rows': plotter.tsearch_rows(),
             }
         self.logger.debug('project return_map')
         if 'submit_project_data' in self.request.params:
@@ -245,30 +251,46 @@ class ProjectViews(object):
                 loader.load()
                 self.dbsession.commit()
                 shutil.copyfile(file_path, os.path.join(project.project_folder, "{}.xlsx".format(project.geid)))
-                project_headers, project_rows = self.get_project_table(project)
-                target_headers, target_rows = self.get_target_table(project)
-                guide_headers, guide_rows = self.get_guide_table(project)
-                amplicon_headers, amplicon_rows = self.get_amplicon_table(project)
-                layout_headers, layout_rows = self.get_layout_table(project)
+                project_header, project_rows = self.get_project_table(project)
+                target_header, target_rows = self.get_target_table(project)
+                guide_header, guide_rows = self.get_guide_table(project)
+                amplicon_header, amplicon_rows = self.get_amplicon_table(project)
+                layout_header, layout_rows = self.get_layout_table(project)
                 return_map = {'project': project,
                         'title': "GenEditID",
                         'subtitle': "Project: {}".format(project.geid),
                         'info': "Project configuration file has been uploaded successfully.",
                         'error': False,
-                        'project_headers': project_headers,
+                        'project_header': project_header,
                         'project_rows': project_rows,
-                        'target_headers': target_headers,
+                        'target_header': target_header,
                         'target_rows': target_rows,
-                        'guide_headers': guide_headers,
+                        'guide_header': guide_header,
                         'guide_rows': guide_rows,
-                        'amplicon_headers': amplicon_headers,
+                        'amplicon_header': amplicon_header,
                         'amplicon_rows': amplicon_rows,
-                        'layout_headers': layout_headers,
+                        'layout_header': layout_header,
                         'layout_rows': layout_rows,
-                        'coverageplot': plotter.coverage_plot(),
-                        'impactplot': plotter.variant_impact_plot(),
-                        'heatmapplot': plotter.heatmap_plot(),
-                        'tsearch': plotter.targeted_search_plot(),
+                        'config_header': plotter.config_header(),
+                        'config_rows': plotter.config_rows(),
+                        'coverage_plot': plotter.coverage_plot(),
+                        'coverage_header': plotter.coverage_header(),
+                        'coverage_rows': plotter.coverage_rows(),
+                        'impact_plot': plotter.variant_impact_plot(),
+                        'impact_header': plotter.impact_header(),
+                        'impact_rows': plotter.impact_rows(),
+                        'variant_header': plotter.variant_header(),
+                        'variant_rows': plotter.variant_rows(),
+                        'amplicount_header': plotter.amplicount_header(),
+                        'amplicount_rows': plotter.amplicount_rows(),
+                        'heatmap_plot': plotter.heatmap_plot(),
+                        'koscores_header': plotter.koscores_header(),
+                        'koscores_rows': plotter.koscores_rows(),
+                        'tsearch_plot': plotter.targeted_search_plot(),
+                        'tsearch_config_header': plotter.tsearch_config_header(),
+                        'tsearch_config_rows': plotter.tsearch_config_rows(),
+                        'tsearch_header': plotter.tsearch_header(),
+                        'tsearch_rows': plotter.tsearch_rows(),
                     }
                 return HTTPFound(self.request.route_url('project', gepid=project.geid))
             except FinderException as e:
@@ -311,7 +333,7 @@ class ProjectViews(object):
     #     title = "GenEditID"
     #     subtitle = "Project: {}".format(project.geid)
     #     # Project table
-    #     project_headers, project_rows = self.get_project_table(project)
+    #     project_header, project_rows = self.get_project_table(project)
     #     comments_error = False
     #     upload_error_project_data = False
     #     upload_error = False
@@ -375,7 +397,7 @@ class ProjectViews(object):
     #                         subtitle=subtitle,
     #                         projectid=project.id,
     #                         project=project,
-    #                         project_headers=project_headers,
+    #                         project_header=project_header,
     #                         project_rows=project_rows,
     #                         comments_error=str(e.error),
     #                         plate_headers=plate_headers,
@@ -427,7 +449,7 @@ class ProjectViews(object):
     #                 subtitle=subtitle,
     #                 projectid=project.id,
     #                 project=project,
-    #                 project_headers=project_headers,
+    #                 project_header=project_header,
     #                 project_rows=project_rows,
     #                 comments_error=comments_error,
     #                 plate_headers=plate_headers,
