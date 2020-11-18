@@ -71,10 +71,13 @@ class Plotter:
         # Load amplicount files (configuration and variants) into pandas dataframe for analysis and ploting
         if self.amplicount_data_exists():
             self.df_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config.csv'))
+            self.df_config.rename(columns = {'id': 'amplicon_id', 'amplicon': 'sequence'}, inplace = True)
+            self.df_config = self.df_config[['amplicon_id', 'coord', 'info', 'fprimer', 'rprimer', 'sequence']]
             self.df_amplicount = pandas.read_csv(os.path.join(self.project_folder, 'amplicount.csv'))
             self.df_variants = self.df_amplicount.copy()
             if self.targeted_search_data_exists():
                 self.df_tsearch_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config_tsearch.csv'))
+                self.df_tsearch_config.rename(columns = {'id': 'tsearch_id'}, inplace = True)
                 self.df_tsearch = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_tsearch.csv'))
 
             if self.df_variants_is_valid():
@@ -217,7 +220,7 @@ class Plotter:
                 for i, variant in self.variants.iterrows():
                     # get reference sequence
                     amplicon_id = variant['amplicon_id']
-                    df_ref_sequence = self.df_config[(self.df_config['id'] == amplicon_id)]
+                    df_ref_sequence = self.df_config[(self.df_config['amplicon_id'] == amplicon_id)]
                     ref_sequence = df_ref_sequence.iloc[0]['amplicon']
                     variant_id = 'var{}'.format(i + 1)
                     data = []
@@ -229,7 +232,7 @@ class Plotter:
                         top_effect_types.add(type)
                         top_effect_consequences.add(type)
                         top_effect_scores.append(0)
-                        coord = self.df_config[(self.df_config['id'] == amplicon_id)].iloc[0]['coord']
+                        coord = self.df_config[(self.df_config['amplicon_id'] == amplicon_id)].iloc[0]['coord']
                         out.write(">{}_{}_{}_{}\n{}\n".format(amplicon_id, variant_id, type, coord, ref_sequence))
                     else:
                         alignments = pairwise2.align.globalms(ref_sequence, variant['sequence'], 5, -4, -3, -0.1)
@@ -306,20 +309,41 @@ class Plotter:
         return self.df_config.to_numpy().tolist()
 
 
+    def get_df_variants_with_barcodes(self):
+        df_variants_with_barcodes = pandas.DataFrame()
+        if not self.df_variants.empty and not self.df_barcodes.empty:
+            df_variants_with_barcodes = self.df_variants.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_variants_with_barcodes = df_variants_with_barcodes[['plate_id', 'well', 'sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_id', 'variant_reads', 'variant_frequency', 'variant_type', 'variant_consequence', 'variant_score', 'impact', 'sequence']]
+        return df_variants_with_barcodes
+
+
     def variant_header(self):
-        return list(self.df_variants.columns)
+        if not self.get_df_variants_with_barcodes().empty:
+            return list(self.get_df_variants_with_barcodes().columns)
 
 
     def variant_rows(self):
-        return self.df_variants.to_numpy().tolist()
+        if not self.get_df_variants_with_barcodes().empty:
+            return self.get_df_variants_with_barcodes().to_numpy().tolist()
+
+
+    def get_df_amplicount_with_barcodes(self):
+        df_amplicount_with_barcodes = pandas.DataFrame()
+        if not self.df_amplicount.empty and not self.df_barcodes.empty:
+            df_amplicount_with_barcodes = self.df_amplicount.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_amplicount_with_barcodes = df_amplicount_with_barcodes[['plate_id', 'well', 'sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'variant_reads', 'variant_frequency', 'sequence']]
+        return df_amplicount_with_barcodes
 
 
     def amplicount_header(self):
-        return list(self.df_amplicount.columns)
+        #HERE
+        if not self.get_df_amplicount_with_barcodes().empty:
+            return list(self.get_df_amplicount_with_barcodes().columns)
 
 
     def amplicount_rows(self):
-        return self.df_amplicount.to_numpy().tolist()
+        if not self.get_df_amplicount_with_barcodes().empty:
+            return self.get_df_amplicount_with_barcodes().to_numpy().tolist()
 
 
     def coverage_plot(self, plot_file='coverage.html'):
@@ -369,17 +393,21 @@ class Plotter:
 
 
     def get_df_amplicons_with_barcodes(self):
-        df_amplicons_with_barcodes = self.df_amplicons.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
-        df_amplicons_with_barcodes = df_amplicons_with_barcodes[['sample_id', 'amplicon_id', 'plate_id', 'well', 'impact', 'impact_frequency']]
-        return df_impacts_with_barcodes
+        df_amplicons_with_barcodes = pandas.DataFrame()
+        if not self.df_amplicons.empty and not self.df_barcodes.empty:
+            df_amplicons_with_barcodes = self.df_amplicons.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_amplicons_with_barcodes = df_amplicons_with_barcodes[['plate_id', 'well', 'sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']]
+        return df_amplicons_with_barcodes
 
 
     def coverage_header(self):
-        return list(self.df_amplicons.columns)
+        if not self.get_df_amplicons_with_barcodes().empty:
+            return list(self.get_df_amplicons_with_barcodes().columns)
 
 
     def coverage_rows(self):
-        return self.df_amplicons.to_numpy().tolist()
+        if not self.get_df_amplicons_with_barcodes().empty:
+            return self.get_df_amplicons_with_barcodes().to_numpy().tolist()
 
 
     def variant_impact_plot(self, plot_file='impacts.html'):
@@ -431,7 +459,7 @@ class Plotter:
             df_koscores = pivot_df_impacts_per_amplicon.copy()
             df_koscores = df_koscores.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
             df_koscores = df_koscores[['plate_id', 'well', 'sample_id', 'HighImpact', 'MediumImpact', 'LowImpact', 'WildType', 'LowFrequency', 'koscore']]
-            df_koscores.insert(0, 'amplicon_id', amplicon['amplicon_id'])
+            df_koscores.insert(3, 'amplicon_id', amplicon['amplicon_id'])
             all_df_koscores.append(df_koscores)
 
             # Only show legend once
@@ -459,19 +487,20 @@ class Plotter:
 
 
     def get_df_impacts_with_barcodes(self):
-        if not self.df_impacts.empty and self.df_barcodes.empty:
+        df_impacts_with_barcodes = pandas.DataFrame()
+        if not self.df_impacts.empty and not self.df_barcodes.empty:
             df_impacts_with_barcodes = self.df_impacts.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
-            df_impacts_with_barcodes = df_impacts_with_barcodes[['sample_id', 'amplicon_id', 'plate_id', 'well', 'impact', 'impact_frequency']]
-            return df_impacts_with_barcodes
+            df_impacts_with_barcodes = df_impacts_with_barcodes[['plate_id', 'well', 'sample_id', 'amplicon_id', 'impact', 'impact_frequency']]
+        return df_impacts_with_barcodes
 
 
     def impact_header(self):
-        if self.get_df_impacts_with_barcodes():
+        if not self.get_df_impacts_with_barcodes().empty:
             return list(self.get_df_impacts_with_barcodes().columns)
 
 
     def impact_rows(self):
-        if self.get_df_impacts_with_barcodes():
+        if not self.get_df_impacts_with_barcodes().empty:
             return self.get_df_impacts_with_barcodes().to_numpy().tolist()
 
 
@@ -650,14 +679,22 @@ class Plotter:
             return self.df_tsearch_config.to_numpy().tolist()
 
 
+    def get_df_tsearch_with_barcodes(self):
+        df_tsearch_with_barcodes = pandas.DataFrame()
+        if not self.df_tsearch.empty and not self.df_barcodes.empty:
+            df_tsearch_with_barcodes = self.df_tsearch.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_tsearch_with_barcodes = df_tsearch_with_barcodes[['plate_id', 'well', 'sample_id', 'amplicon_id', 'total_reads', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads', 'tsearch_id', 'variant_reads', 'variant_frequency', 'sequence']]
+        return df_tsearch_with_barcodes
+
+
     def tsearch_header(self):
-        if not self.df_tsearch.empty:
-            return list(self.df_tsearch.columns)
+        if not self.get_df_tsearch_with_barcodes().empty:
+            return list(self.get_df_tsearch_with_barcodes().columns)
 
 
     def tsearch_rows(self):
-        if not self.df_tsearch.empty:
-            return self.df_tsearch.to_numpy().tolist()
+        if not self.get_df_tsearch_with_barcodes().empty:
+            return self.get_df_tsearch_with_barcodes().to_numpy().tolist()
 
 
         # # Protein expression heatmap
