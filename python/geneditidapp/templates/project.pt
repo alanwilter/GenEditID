@@ -152,6 +152,9 @@
         <!-- Config/Amplicons section ************************************** -->
         <div role="tabpanel" class="tab-pane" id="config">
           <h3>Amplicons</h3>
+          <div class='alert alert-warning' tal:condition="not config_header">
+              No data available, please setup the project and run the analysis or reload the page.
+          </div>
           <h4>List of Amplicons used for the analysis</h4>
           <table id="configtable" class="table table-bordered table-hover table-condensed">
               <thead>
@@ -166,10 +169,10 @@
         <!-- Reads section ************************************************* -->
         <div role="tabpanel" class="tab-pane" id="reads">
           <h3>Reads</h3>
-          <h4>Amplicon Read Coverage plot(s)</h4>
-          <div tal:condition="not coverage_plot">
-              No data available, please run the analysis or reload the page.
+          <div class='alert alert-warning' tal:condition="not coverage_plot">
+              No data available, please setup the project and run the analysis or reload the page.
           </div>
+          <h4>Amplicon Read Coverage plot(s)</h4>
           <div tal:condition="coverage_plot">
               ${structure: coverage_plot}
           </div>
@@ -187,10 +190,10 @@
         <!-- Variants section ********************************************** -->
         <div role="tabpanel" class="tab-pane" id="variants">
           <h3>Variants</h3>
-          <h4>Variant Impact Frequency plot(s)</h4>
-          <div tal:condition="not impact_plot">
-              No data available, please run the analysis or reload the page.
+          <div class='alert alert-warning' tal:condition="not impact_plot">
+              No data available, please setup the project and run the analysis or reload the page.
           </div>
+          <h4>Variant Impact Frequency plot(s)</h4>
           <div tal:condition="impact_plot">
               ${structure: impact_plot}
           </div>
@@ -226,10 +229,10 @@
         <!-- Scores section ************************************************ -->
         <div role="tabpanel" class="tab-pane" id="scores">
           <h3>Scores</h3>
-          <h4>KO Scores on plate(s)</h4>
-          <div tal:condition="not heatmap_plot">
-              No data available, please run the analysis or reload the page.
+          <div class='alert alert-warning' tal:condition="not heatmap_plot">
+              No data available, please setup the project and run the analysis or reload the page.
           </div>
+          <h4>KO Scores on plate(s)</h4>
           <div tal:condition="heatmap_plot">
               ${structure: heatmap_plot}
           </div>
@@ -247,10 +250,10 @@
         <!-- Targeted search section *************************************** -->
         <div role="tabpanel" class="tab-pane" id="tsearch">
           <h3>Targeted Search</h3>
-          <h4>Targeted Search Frequency plot(s)</h4>
-          <div tal:condition="not tsearch_plot">
+          <div class='alert alert-warning' tal:condition="not tsearch_plot">
               No data available.
           </div>
+          <h4>Targeted Search Frequency plot(s)</h4>
           <div tal:condition="tsearch_plot">
               ${structure: tsearch_plot}
           </div>
