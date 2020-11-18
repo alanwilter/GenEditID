@@ -153,9 +153,9 @@ class ProjectViews(object):
 
     def get_layout_table(self, project):
         headers = [
-            "layout id",
-            "well position",
-            "sequencing barcode",
+            "plate id",
+            "well",
+            "sequencing barcode or sample id",
             "sequencing dna source",
             "sequencing project id",
             "sequencing sample name",
