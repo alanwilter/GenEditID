@@ -309,71 +309,67 @@
         } );
 
         $('#layouttable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#configtable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#coveragetable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#impacttable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#varianttable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#koscorestable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#tsearchconfigtable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#tsearchtable').DataTable({
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
+          ]
         } );
 
         $('#amplicounttable').DataTable({
-        } );
-
-        <!--
-        $('#guidemismatchtable').DataTable({
-        } );
-
-        $('#vvariantdatatable').DataTable({
-          "aaSorting": [[4, 'asc']],
-          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-          "dom": "<'row'<'col-sm-4'l><'col-sm-2'B><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-          "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ],
-          "columnDefs": [
-            { "targets": 7,
-              "data": "view_link",
-              "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">view</a>';
-              }
-            },
-            { "targets": 8,
-              "data": "download_link",
-              "render": function ( data, type, full, meta ) {
-                return '<a href="'+data+'">download</a>';
-              }
-            }
+          dom: "<'row'<'col-sm-4'l><'col-sm-4'B><'col-sm-4'f>><'row'<'col-sm-12'rt>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+          buttons: [
+              {text: 'Export to CSV', extend:'csv'},
           ]
         } );
-        -->
-        <!--
-        $('#sampledatatable').DataTable({
-          "aaSorting": [[14, 'desc']],
-          "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-          "dom": "<'row'<'col-sm-4'l><'col-sm-2'B><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-          "buttons": [ {text: 'Export to CSV', extend:'csvHtml5'} ]
-        } );
-        -->
-        <!--
-        $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
-          $($.fn.dataTable.tables(true)).DataTable()
-             .columns.adjust()
-             .responsive.recalc();
-        } );
-      -->
+
     } );
 </script>
