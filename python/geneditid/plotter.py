@@ -54,6 +54,20 @@ class Plotter:
         # barcodes information
         self.df_barcodes = self.get_barcodes()
 
+        # initialise dataframes
+        self.df_config = pandas.DataFrame()
+        self.df_amplicount = pandas.DataFrame()
+        self.df_variants = pandas.DataFrame()
+        self.df_tsearch_config = pandas.DataFrame()
+        self.df_tsearch = pandas.DataFrame()
+        self.samples = pandas.DataFrame()
+        self.amplicons = pandas.DataFrame()
+        self.variants = pandas.DataFrame()
+        self.df_amplicons = pandas.DataFrame()
+        self.df_impacts = pandas.DataFrame()
+        self.df_all_koscores = pandas.DataFrame()
+
+
         # Load amplicount files (configuration and variants) into pandas dataframe for analysis and ploting
         if self.amplicount_data_exists():
             self.df_config = pandas.read_csv(os.path.join(self.project_folder, 'amplicount_config.csv'))
@@ -89,10 +103,6 @@ class Plotter:
                 # Amplicons dataframe
                 self.df_amplicons = self.df_variants[['sample_id', 'amplicon_id', 'amplicon_reads', 'amplicon_filtered_reads', 'amplicon_low_quality_reads', 'amplicon_primer_dimer_reads', 'amplicon_low_abundance_reads']].copy()
                 self.df_amplicons.drop_duplicates(inplace=True)
-
-                # Impacts, AllKOScores dataframe
-                self.df_impacts = pandas.DataFrame()
-                self.df_all_koscores = pandas.DataFrame()
 
 
     def get_barcodes(self):
@@ -358,6 +368,12 @@ class Plotter:
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
+    def get_df_amplicons_with_barcodes(self):
+        df_amplicons_with_barcodes = self.df_amplicons.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+        df_amplicons_with_barcodes = df_amplicons_with_barcodes[['sample_id', 'amplicon_id', 'plate_id', 'well', 'impact', 'impact_frequency']]
+        return df_impacts_with_barcodes
+
+
     def coverage_header(self):
         return list(self.df_amplicons.columns)
 
@@ -442,12 +458,21 @@ class Plotter:
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 
 
+    def get_df_impacts_with_barcodes(self):
+        if not self.df_impacts.empty and self.df_barcodes.empty:
+            df_impacts_with_barcodes = self.df_impacts.merge(self.df_barcodes, left_on='sample_id', right_on='sequencing_barcode', how='left')
+            df_impacts_with_barcodes = df_impacts_with_barcodes[['sample_id', 'amplicon_id', 'plate_id', 'well', 'impact', 'impact_frequency']]
+            return df_impacts_with_barcodes
+
+
     def impact_header(self):
-        return list(self.df_impacts.columns)
+        if self.get_df_impacts_with_barcodes():
+            return list(self.get_df_impacts_with_barcodes().columns)
 
 
     def impact_rows(self):
-        return self.df_impacts.to_numpy().tolist()
+        if self.get_df_impacts_with_barcodes():
+            return self.get_df_impacts_with_barcodes().to_numpy().tolist()
 
 
     def heatmap_plot(self, plot_file='koscores.html'):
@@ -532,11 +557,13 @@ class Plotter:
 
 
     def koscores_header(self):
-        return list(self.df_all_koscores.columns)
+        if not self.df_all_koscores.empty:
+            return list(self.df_all_koscores.columns)
 
 
     def koscores_rows(self):
-        return self.df_all_koscores.to_numpy().tolist()
+        if not self.df_all_koscores.empty:
+            return self.df_all_koscores.to_numpy().tolist()
 
 
     def targeted_search_plot(self, plot_file='targeted_search.html'):
@@ -614,19 +641,23 @@ class Plotter:
 
 
     def tsearch_config_header(self):
-        return list(self.df_tsearch_config.columns)
+        if not self.df_tsearch_config.empty:
+            return list(self.df_tsearch_config.columns)
 
 
     def tsearch_config_rows(self):
-        return self.df_tsearch_config.to_numpy().tolist()
+        if not self.df_tsearch_config.empty:
+            return self.df_tsearch_config.to_numpy().tolist()
 
 
     def tsearch_header(self):
-        return list(self.df_tsearch.columns)
+        if not self.df_tsearch.empty:
+            return list(self.df_tsearch.columns)
 
 
     def tsearch_rows(self):
-        return self.df_tsearch.to_numpy().tolist()
+        if not self.df_tsearch.empty:
+            return self.df_tsearch.to_numpy().tolist()
 
 
         # # Protein expression heatmap
