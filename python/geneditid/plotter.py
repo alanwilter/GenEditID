@@ -221,7 +221,7 @@ class Plotter:
                     # get reference sequence
                     amplicon_id = variant['amplicon_id']
                     df_ref_sequence = self.df_config[(self.df_config['amplicon_id'] == amplicon_id)]
-                    ref_sequence = df_ref_sequence.iloc[0]['amplicon']
+                    ref_sequence = df_ref_sequence.iloc[0]['amplicon_id']
                     variant_id = 'var{}'.format(i + 1)
                     data = []
                     top_effect_types = set()
