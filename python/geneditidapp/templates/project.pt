@@ -174,6 +174,9 @@
           </div>
           <h4>Amplicon Read Coverage plot(s)</h4>
           <div tal:condition="coverage_plot">
+              <p>Only reads with average phred quality above 10 across a window
+                of 5 bases over the amplicon sequence are taken into account, as well as
+                reads with an abundance per variant above 60 are reported.</p>
               ${structure: coverage_plot}
           </div>
           <h4>Amplicon Read Coverage table</h4>
@@ -195,6 +198,9 @@
           </div>
           <h4>Variant Impact Frequency plot(s)</h4>
           <div tal:condition="impact_plot">
+              <p>Only variants with read frequency above 5% are taken into account.
+                If you are looking for a specific sequence, consider entering it into
+                the 'TargetedSearch' tab of the submission spreadsheet.</p>
               ${structure: impact_plot}
           </div>
           <h4>Variant Impact Frequency table</h4>
@@ -216,6 +222,9 @@
               </tr>
           </table>
           <h4>Whole Variant output results from analysis</h4>
+          <p>Only reads with average phred quality above 10 across a window
+            of 5 bases over the amplicon sequence are taken into account, as well as
+            reads with an abundance per variant above 60 are reported.</p>
           <table id="amplicounttable" class="table table-bordered table-hover table-condensed">
               <thead>
                   <th tal:repeat="header amplicount_header">${header}</th>
