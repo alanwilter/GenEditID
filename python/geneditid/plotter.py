@@ -336,7 +336,6 @@ class Plotter:
 
 
     def amplicount_header(self):
-        #HERE
         if not self.get_df_amplicount_with_barcodes().empty:
             return list(self.get_df_amplicount_with_barcodes().columns)
 
@@ -517,7 +516,7 @@ class Plotter:
         plates.sort()
 
         # amplicons
-        amplicons = list(set(self.df_all_koscores['amplicon_id']))
+        amplicons = list(set(self.df_config['amplicon_id']))
         amplicons.sort()
 
         # calculate total plot size
@@ -539,7 +538,7 @@ class Plotter:
                 df_koscores_on_plate = self.df_all_koscores[(self.df_all_koscores['amplicon_id'] == amplicon) & (self.df_all_koscores['plate_id'] == plate)]
                 df_koscores_on_plate = df_koscores_on_plate.merge(template, left_on='well', right_on='ref_well', how='right')
                 df_koscores_on_plate = df_koscores_on_plate[['plate_id', 'sample_id', 'koscore', 'ref_well']].copy()
-                df_koscores_on_plate.fillna(value={'plate_id': plate, 'sample_id': 'no-sample', 'koscore': 0}, inplace=True)
+                df_koscores_on_plate.fillna(value={'plate_id': plate, 'sample_id': 'no-data', 'koscore': 0}, inplace=True)
                 df_koscores_on_plate['row'] = df_koscores_on_plate['ref_well'].str[1:]
                 df_koscores_on_plate['row'] = df_koscores_on_plate['row'].astype(int)
                 df_koscores_on_plate['column'] = df_koscores_on_plate['ref_well'].str[0]
