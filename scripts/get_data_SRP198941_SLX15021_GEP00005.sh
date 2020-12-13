@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-DIR=PROJECTS/SRP198941
+DIR=PROJECTS/SRP198941_GEP00005
 mkdir ${DIR}
 cd ${DIR}
 echo 'Data will be downloaded into' ${DIR}
+set -x
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/005/SRR9091255/SRR9091255_1.fastq.gz -o SLX-15021.FLD0069.000000000-BJ8JD.s_1.r_1.fq.gz
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/005/SRR9091255/SRR9091255_2.fastq.gz -o SLX-15021.FLD0069.000000000-BJ8JD.s_1.r_2.fq.gz
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/003/SRR9091253/SRR9091253_1.fastq.gz -o SLX-15021.FLD0067.000000000-BJ8JD.s_1.r_1.fq.gz
@@ -195,4 +196,5 @@ curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/002/SRR9091162/SRR9091162_1.fa
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/002/SRR9091162/SRR9091162_2.fastq.gz -o SLX-15021.FLD0059.000000000-BJ8JD.s_1.r_2.fq.gz
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/003/SRR9091163/SRR9091163_1.fastq.gz -o SLX-15021.FLD0056.000000000-BJ8JD.s_1.r_1.fq.gz
 curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR909/003/SRR9091163/SRR9091163_2.fastq.gz -o SLX-15021.FLD0056.000000000-BJ8JD.s_1.r_2.fq.gz
+set +x
 echo 'Done'
