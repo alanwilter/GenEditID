@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.2'
+version = '0.3'
 
 print("""
 -----------------------------------
@@ -10,32 +10,32 @@ print("""
 
 install_requires = [
     # configuration
-    'pyyaml',
+    'pyyaml==5.3.1',
     # database
     # 'psycopg2',  # for production only
-    'sqlalchemy',
+    'sqlalchemy==1.3.20',
     # test
-    'pytest',
+    'pytest==6.2.0',
     # data
-    'xlrd',
-    'pandas',
+    'xlrd==1.2.0',
+    'pandas==1.1.5',
     # plots
     'plotly==4.6.0',
-    'colorlover',
+    'colorlover==0.3.0',
     # geneditidapp
-    'pyramid',
-    'pyramid_chameleon',
-    'pyramid_jinja2',
-    'pyramid_debugtoolbar',
-    'pyramid_tm',
-    'deform',
-    'transaction',
-    'zope.sqlalchemy',
-    'waitress',
+    'pyramid==1.10.5',
+    'pyramid_chameleon==0.3',
+    'pyramid_jinja2==2.8',
+    'pyramid_debugtoolbar==4.9',
+    'pyramid_tm==2.4',
+    'deform==2.0.15',
+    'transaction==3.0.1',
+    'zope.sqlalchemy==1.3',
+    'waitress==1.4.4',
     # amplicount and variantid analysis
-    'pyfaidx',
-    'biopython',
-    'varcode'
+    'pyfaidx==0.5.8',
+    'biopython==1.78',
+    'varcode==1.0.3'
 ]
 
 setup(
