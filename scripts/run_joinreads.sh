@@ -6,7 +6,6 @@
 
 echo 'Joining paired reads'
 
-cd fastq
 echo `pwd`
 
 for f in *.s_1.r_1.fq.gz
