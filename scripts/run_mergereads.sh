@@ -6,7 +6,6 @@
 
 echo 'Merging paired reads'
 
-cd fastq
 echo `pwd`
 
 # reverse complement R2
