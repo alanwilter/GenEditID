@@ -11,14 +11,15 @@ echo `pwd`
 for f in *.s_1.r_1.fq.gz
   do
     echo $f
-    fastq-join $f `echo $f | cut -d'.' -f1-4`.r_2.fq.gz -o `echo $f | cut -d'.' -f1-4`.fq
+    pear -f $f -r `echo $f | cut -d'.' -f1-4`.r_2.fq.gz -o `echo $f | cut -d'.' -f1-4`
   done
 
-for f in *.fqjoin
+for f in *.assembled.fastq
   do
     gzip $f
+    mv $f.gz `echo $f | cut -d'.' -f1-4`.fqjoin.gz
   done
 
-rm *.fqun?
+rm *.discarded.* *.unassembled.*
 
 echo 'Job done'
