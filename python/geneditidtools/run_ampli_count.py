@@ -153,8 +153,8 @@ def main():
                 options.fastq_dir,
                 options.fastq_extension,
                 amplicons,
-                options.quality_threshold,
-                options.abundance_threshold,
+                float(options.quality_threshold),
+                int(options.abundance_threshold),
                 targets)
 
     log.info('Done.')
