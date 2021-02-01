@@ -10,7 +10,7 @@ import geneditid.log as logger
 from geneditid.config import cfg
 
 
-def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold, targets=pd.DataFrame()):
+def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_threshold, abundance_threshold, reverse_flag, targets=pd.DataFrame()):
     filename, ext = os.path.splitext(outputfile)
     outputfile_tsearch = '{}_tsearch{}'.format(filename, ext)
     with open(outputfile, 'w') as out, open(outputfile_tsearch, 'w') as out_tsearch:
@@ -36,7 +36,11 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                 # classifying and filtering reads
                 with gzip.open(os.path.join(fastq_dir, filename), "rt") as handle:
                     log.info('Counting reads in file {}'.format(filename))
-                    for rec in SeqIO.parse(handle, "fastq"):
+                    for r in SeqIO.parse(handle, "fastq"):
+                        if reverse_flag:
+                            rec = r.reverse_complement(id="REVCOMP")
+                        else:
+                            rec = r
                         total_reads += 1
                         for i, amplicon in amplicons.iterrows():
                             fprimer_pos = str(rec.seq).find(amplicon['fprimer'])
@@ -111,6 +115,7 @@ def main():
     parser.add_argument("--fastqext", dest="fastq_extension", action="store", help="Fastq file extension", default='.fqjoin.gz', required=False)
     parser.add_argument("--quality", dest="quality_threshold", action="store", help="Quality threshold for average phred quality across a window over the amplicon sequence", default=10, required=False)
     parser.add_argument("--abundance", dest="abundance_threshold", action="store", help="Abundance threshold for min number of reads to report per variant", default=60, required=False)
+    parser.add_argument("--reverse", dest="reverse_complement", action="store_true", help="Reverse complement all reads", required=False)
     parser.add_argument("--output", dest="output", action="store", help="The output file", default='amplicount.csv', required=False)
     parser.add_argument("--withseq", dest="sequences", action="store", help="The 3 columns input sequence file: 'amplicon_id,id,sequence'", default='amplicount_config_tsearch.csv', required=False)
     options = parser.parse_args()
@@ -155,6 +160,7 @@ def main():
                 amplicons,
                 float(options.quality_threshold),
                 int(options.abundance_threshold),
+                options.reverse_complement,
                 targets)
 
     log.info('Done.')
