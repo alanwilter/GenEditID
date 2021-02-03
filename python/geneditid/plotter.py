@@ -240,7 +240,9 @@ class Plotter:
                         ibase_stop = 0
                         variant_results = []
                         for ibase in range(1, len(alignments[0][0])-1):
-                            name, chr, ref_start = amplicon_id.split('_')
+                            split_amplicon_id = amplicon_id.split('_')
+                            joined_name = "_".join(split_amplicon_id[:-2])
+                            name, chr, ref_start = joined_name, split_amplicon_id[-2], split_amplicon_id[-1]
                             contig = chr[3:]
                             top_effect_consequence = ''
                             top_effect_type = ''
