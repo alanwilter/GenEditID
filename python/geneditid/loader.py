@@ -505,7 +505,7 @@ class ProjectDataLoader(Loader):
                                              .filter(Amplicon.project == self.project)\
                                              .first()
                     if not amplicon:
-                        raise LoaderException('Amplicon {} not found (TargetedSearch tab, row {})'.format(row.amplicon_name, i))
+                        raise LoaderException('Amplicon {} not found (TargetedSearch tab, row {}) - Check the name match exactly (case sensitive) amplicon_name in Amplicon tab.'.format(row.amplicon_name, i))
                     out.write("{},{},{}\n".format(amplicon.name, row.sequence_name, row.sequence))
             self.log.info('{} created'.format(os.path.join(self.project.project_folder, "amplicount_config_tsearch.csv")))
 
