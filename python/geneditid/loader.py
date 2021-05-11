@@ -374,6 +374,7 @@ class ProjectDataLoader(Loader):
             amplicon.is_on_target = bool(row.is_on_target)
             if pandas.notnull(row.score):
                 amplicon.score = int(row.score)
+            amplicon.refseq_orientation_match = bool(row.refseq_orientation_match)
             amplicon.description = self.get_string(row.description, 1024)
             self.dbsession.add(amplicon)
             self.log.info('Amplicon {} created'.format(amplicon.name))

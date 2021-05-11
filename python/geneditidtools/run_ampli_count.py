@@ -37,12 +37,14 @@ def count_reads(log, outputfile, fastq_dir, fastq_extension, amplicons, quality_
                 with gzip.open(os.path.join(fastq_dir, filename), "rt") as handle:
                     log.info('Counting reads in file {}'.format(filename))
                     for r in SeqIO.parse(handle, "fastq"):
+                        rec = r
                         if reverse_flag:
                             rec = r.reverse_complement(id="REVCOMP")
-                        else:
-                            rec = r
                         total_reads += 1
                         for i, amplicon in amplicons.iterrows():
+                            rec = r
+                            if amplicon['reverse'] == 'yes':
+                                rec = r.reverse_complement(id="REVCOMP")
                             fprimer_pos = str(rec.seq).find(amplicon['fprimer'])
                             rprimer_pos = str(rec.seq).find(amplicon['rprimer'])
                             # classify reads per amplicon based on forward and reverse primer sequences
@@ -162,8 +164,9 @@ def main():
                 int(options.abundance_threshold),
                 options.reverse_complement,
                 targets)
-
     log.info('Done.')
+    log.info('----------')
+    log.info('>>> Do not forget to RESTART GenEditID WebApp to visualise results <<<')
 
 if __name__ == '__main__':
     main()

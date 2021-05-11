@@ -51,7 +51,8 @@ class AmpliconFinder():
                                'guide_loc': amplicon.guide_location,
                                'chr': int(amplicon.chromosome),
                                'amplicon_len': amplicon.end-amplicon.start+1,
-                               'target_name': amplicon.guide.target.name}
+                               'target_name': amplicon.guide.target.name,
+                               'refseq_orientation_match': amplicon.refseq_orientation_match}
             results.append(amplicon_result)
         return results
 
@@ -122,7 +123,7 @@ class AmpliconFinder():
 
     def write_amplicount_config_file(self):
         with open(self.config_file, "w") as out:
-            out.write("id,fprimer,rprimer,amplicon,coord,info\n")
+            out.write("id,fprimer,rprimer,amplicon,reverse,coord,info\n")
             found_amplicon_unique_list = []
             for amplicon in self.get_amplicons():
                 try:
@@ -135,7 +136,10 @@ class AmpliconFinder():
                             fprimer = found_amplicon['fprimer_seq']
                             rprimer = found_amplicon['rprimer_seq']
                             seq = found_amplicon['seq']
-                            out.write("{}_chr{}_{},{},{},{},{},{}\n".format(amplicon['target_name'], amplicon['chr'], found_amplicon['start'], fprimer, rprimer, seq, found_amplicon['coord'], found_amplicon['info']))
+                            reverse = 'no'
+                            if not amplicon['refseq_orientation_match']:
+                                reverse = 'yes'
+                            out.write("{}_chr{}_{},{},{},{},{},{},{}\n".format(amplicon['target_name'], amplicon['chr'], found_amplicon['start'], fprimer, rprimer, seq, reverse, found_amplicon['coord'], found_amplicon['info']))
                 except FinderException as e:
                     self.log.error('--- Amplicon #{}'.format(amplicon['name']))
                     self.log.error('Target name\t{}'.format(amplicon['target_name']))
