@@ -2,6 +2,7 @@ import os
 import glob
 import math
 import pandas
+import numpy
 import sqlalchemy
 import logging
 
@@ -483,6 +484,8 @@ class Plotter:
         fig.update_yaxes({'title': 'samples', 'dtick': 1})
         fig.write_html(file=os.path.join(self.plots_folder, plot_file), auto_play=False)
         self.df_all_koscores = pandas.concat(all_df_koscores, ignore_index=True)
+        self.df_all_koscores['plate_id'].replace('', numpy.nan, inplace=True)
+        self.df_all_koscores.dropna(subset=['plate_id'], inplace=True)
         self.df_all_koscores.to_csv(os.path.join(self.plots_folder, 'koscores.csv'), index=False)
         return fig.to_html(include_plotlyjs=self.include_js, full_html=False)
 

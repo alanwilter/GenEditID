@@ -151,6 +151,7 @@ class Amplicon(Base):
     experiment_type = Column(Enum('knock-in', 'knock-out', name='experiment_type'), nullable=False)
     guide_location = Column(Integer, nullable=False)
     is_on_target = Column(Boolean, nullable=False)
+    refseq_orientation_match = Column(Boolean, nullable=False, default=True)
     score = Column(Integer)
     description = Column(String(1024))
 
