@@ -10,7 +10,7 @@ print("""
 
 install_requires = [
     # configuration
-    'pyyaml==5.3.1',
+    'pyyaml==5.4',
     # database
     # 'psycopg2',  # for production only
     'sqlalchemy==1.3.20',
