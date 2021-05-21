@@ -139,7 +139,7 @@ class AmpliconFinder():
                             reverse = 'no'
                             if not amplicon['refseq_orientation_match']:
                                 reverse = 'yes'
-                            out.write("{}_chr{}_{},{},{},{},{},{},{}\n".format(amplicon['target_name'], amplicon['chr'], found_amplicon['start'], fprimer, rprimer, seq, reverse, found_amplicon['coord'], found_amplicon['info']))
+                            out.write("{},{},{},{},{},{},{}\n".format(amplicon['name'], fprimer, rprimer, seq, reverse, found_amplicon['coord'], found_amplicon['info']))
                 except FinderException as e:
                     self.log.error('--- Amplicon #{}'.format(amplicon['name']))
                     self.log.error('Target name\t{}'.format(amplicon['target_name']))
