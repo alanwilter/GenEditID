@@ -21,7 +21,9 @@ python python/geneditidtools/load_ref_data.py
 echo 'Installing Homo Sapiens reference genome'
 pyensembl install --release 95 --species homo_sapiens
 
-echo 'Create symlink to template file for accessing it from the WebApp'
 cd python/geneditidapp/static/
-ln -s ../../../data/templates/GEPXXXXX.xlsx
+if [ ! -h GEPXXXXX.xlsx ]; then
+  echo 'Create symlink to template file for accessing it from the WebApp'
+  ln -s ../../../data/templates/GEPXXXXX.xlsx
+fi
 cd $BASEDIR
