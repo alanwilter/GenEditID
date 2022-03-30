@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #BASEDIR=$(dirname "$0")/..
 BASEDIR="$( cd "$(dirname "$0")" ; pwd -P )"/..
 cd $BASEDIR
@@ -23,5 +24,5 @@ pyensembl install --release 95 --species homo_sapiens
 
 echo 'Create symlink to template file for accessing it from the WebApp'
 cd python/geneditidapp/static/
-ln -s ../../../data/templates/GEPXXXXX.xlsx
+ln -vfs ../../../data/templates/GEPXXXXX.xlsx
 cd $BASEDIR
