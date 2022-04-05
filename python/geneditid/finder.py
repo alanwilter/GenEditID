@@ -46,7 +46,7 @@ class AmpliconFinder():
         for amplicon in amplicons:
             self.log.info('Amplicon {} retrieved'.format(amplicon.name))
             amplicon_result = {'name': amplicon.name,
-                               'refgenome': amplicon.guide.genome.fa_file,
+                               'refgenome': amplicon.guide.genome.name,
                                'fprimer_seq': amplicon.fprimer.sequence,
                                'rprimer_seq': amplicon.rprimer.sequence,
                                'guide_loc': amplicon.guide_location,
@@ -65,7 +65,7 @@ class AmpliconFinder():
             primer_loc = sequence.find(primer_seq)
         return primer_loc, primer_seq
 
-    def _get_sequence_from_ensembl(self, chr:str, start:int, end:int, species:str = 'human') -> str:
+    def _get_sequence_from_ensembl(self, chr:str, start:int, end:int, species:str = 'Homo_sapiens') -> str:
         # https://rest.ensembl.org/documentation/info/sequence_region
         # https://rest.ensembl.org/sequence/region/human/1:10011..12211:1?content-type=text/plain
         # https://grch37.rest.ensembl.org/sequence/region/human/1:10011..12211:1?content-type=text/plain
@@ -86,7 +86,7 @@ class AmpliconFinder():
         # else:
         #     self.log.info('fai file for {} do not exist, it will take a while to generate it'.format(refgenome))
         #     sequence = Fasta(refgenome, read_ahead=10000)['{}'.format(chr)][start:end].seq
-        ensembl_sequence = self._get_sequence_from_ensembl(chr, start, end)
+        ensembl_sequence = self._get_sequence_from_ensembl(chr, start, end, refgenome)
         if not ensembl_sequence.ok:
             self.log.error('Ensembl REST API failed')
         sequence = ensembl_sequence.text

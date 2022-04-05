@@ -108,3 +108,33 @@ class TestProjectDataLoader:
             except sqlalchemy.exc.IntegrityError as e:
                 dbsession.rollback()
                 raise
+
+    def test_load_mouse(self):
+        loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_mouse.xlsx')
+        assert not loader.xls.parse('Target').empty
+        assert not loader.xls.parse('Guide').empty
+        assert not loader.xls.parse('Amplicon').empty
+        assert not loader.xls.parse('Layout').empty
+        loader.load()
+        dbsession.commit()
+        target = dbsession.query(Target)\
+                          .join(Project)\
+                          .filter(Project.geid == self.project.geid)\
+                          .filter(Target.name == 'test_mouse_target').one()
+        assert target
+        assert target.genome.name == 'Mus_musculus'
+
+    # def test_load_zebrafish(self):
+    #     loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_zebrafish.xlsx')
+    #     assert not loader.xls.parse('Target').empty
+    #     assert not loader.xls.parse('Guide').empty
+    #     assert not loader.xls.parse('Amplicon').empty
+    #     assert not loader.xls.parse('Layout').empty
+    #     loader.load()
+    #     dbsession.commit()
+    #     target = dbsession.query(Target)\
+    #                       .join(Project)\
+    #                       .filter(Project.geid == self.project.geid)\
+    #                       .filter(Target.name == 'test_mouse_target').one()
+    #     assert target
+    #     assert target.genome.name == 'Danio_rerio'

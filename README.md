@@ -21,6 +21,12 @@ A flexible, open-access workflow to facilitate the identification of cell clones
 - [Get help with Git](https://geneditid.github.io/help-git.html)
 - [Get help with Python](https://geneditid.github.io/help-python.html)
 - [Get help with SQLAlchemy](https://geneditid.github.io/help-sqlalchemy.html)
+- Run the tests
+  ```
+  conda activate geneditid
+  source venv/bin/activate
+  PYENV=test pytest
+  ```
 
 
 ## Editors
