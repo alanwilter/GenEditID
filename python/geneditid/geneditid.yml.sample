@@ -29,6 +29,8 @@ FASTQ_SUBFOLDER: "fastq"
 ### reference data
 ################################################################################
 GENOMES:
-  - 'Homo sapiens [GRCh37]'
   - 'Homo sapiens [GRCh38]'
-  - 'Mus musculus [GRCm38]'
+  - 'Mus musculus [GRCm39]'
+  - 'Rattus norvegicus [mRatBN7]'
+  - 'Danio rerio [GRCz11]'
+  - 'Drosophila melanogaster [BDGP6]'

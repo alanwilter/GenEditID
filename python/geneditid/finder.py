@@ -46,7 +46,7 @@ class AmpliconFinder():
         for amplicon in amplicons:
             self.log.info('Amplicon {} retrieved'.format(amplicon.name))
             amplicon_result = {'name': amplicon.name,
-                               'refgenome': amplicon.guide.genome.fa_file,
+                               'refgenome': amplicon.guide.genome.name,
                                'fprimer_seq': amplicon.fprimer.sequence,
                                'rprimer_seq': amplicon.rprimer.sequence,
                                'guide_loc': amplicon.guide_location,
@@ -65,31 +65,31 @@ class AmpliconFinder():
             primer_loc = sequence.find(primer_seq)
         return primer_loc, primer_seq
 
-    def _get_seq_ensembl_rest_api(self, chr:str, start:int, end:int, species:str = 'human') -> str:
+    def _get_sequence_from_ensembl(self, chr:str, start:int, end:int, species:str = 'Homo_sapiens') -> str:
         # https://rest.ensembl.org/documentation/info/sequence_region
         # https://rest.ensembl.org/sequence/region/human/1:10011..12211:1?content-type=text/plain
         # https://grch37.rest.ensembl.org/sequence/region/human/1:10011..12211:1?content-type=text/plain
 
         server = "https://rest.ensembl.org"
-        ext = f"/sequence/region/{species}/{chr}:{start}..{end}:1?"        
+        ext = f"/sequence/region/{species}/{chr}:{start}..{end}:1?"
         seq = requests.get(server+ext, headers={ "Content-Type" : "text/plain"})
         return seq
- 
+
     def find_amplicon_sequence(self, refgenome, amplicon_name, guide_loc, chr, fprimer_seq, rprimer_seq):
         self.log.info("Search amplicon sequence +/- 1000bp around guide location {} on chrom {}".format(guide_loc, chr))
         start = guide_loc - 1100 + 1
         end = guide_loc + 1100
-        seq_api = self._get_seq_ensembl_rest_api(chr, start, end)
+        # previous version using on disk reference genome files located in data/reference/
         # if os.path.exists(refgenome + '.fai'):
         #     self.log.info('fai file for {} already exists, there is no need to rebuild indexes'.format(refgenome))
         #     sequence = Fasta(refgenome, rebuild=False, build_index=False, read_ahead=10000)['{}'.format(chr)][start:end].seq
         # else:
         #     self.log.info('fai file for {} do not exist, it will take a while to generate it'.format(refgenome))
         #     sequence = Fasta(refgenome, read_ahead=10000)['{}'.format(chr)][start:end].seq
-        if not seq_api.ok:
+        ensembl_sequence = self._get_sequence_from_ensembl(chr, start, end, refgenome)
+        if not ensembl_sequence.ok:
             self.log.error('Ensembl REST API failed')
-        # assert sequence in seq_api.text
-        sequence = seq_api.text
+        sequence = ensembl_sequence.text
         self.log.info(sequence)
         submitted_fprimer_seq = fprimer_seq
         submitted_rprimer_seq = rprimer_seq

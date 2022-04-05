@@ -23,6 +23,10 @@ class Genome(Base):
     def fa_file(self):
         return os.path.join(cfg['DATA_FOLDER'], cfg['REF_SUBFOLDER'], '{}.{}.dna.toplevel.fa.gz'.format(self.species.replace(' ', '_'), self.assembly))
 
+    @property
+    def name(self):
+        return self.species.replace(' ', '_')
+
 
 class Project(Base):
     __tablename__ = 'project'
