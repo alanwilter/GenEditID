@@ -14,6 +14,8 @@ from geneditid.model import Guide
 from geneditid.model import Amplicon
 from geneditid.model import Primer
 
+from geneditid.plotter import Plotter
+
 class TestProjectDataLoader:
     def setup_method(self):
         project_loader = ProjectLoader(dbsession)
@@ -123,6 +125,18 @@ class TestProjectDataLoader:
                           .filter(Target.name == 'test_mouse_target').one()
         assert target
         assert target.genome.name == 'Mus_musculus'
+
+    @pytest.mark.parametrize(
+        ("type_tuple", "input"),
+        (
+            (('Mismatch', 'Substitution', 0.7),('5',66153585,'C','T')),
+            (('Insertion', 'FrameShift', 1.0),('5',66178781,'A','AA')))
+        )
+    def test_get_variant_classification(self, type_tuple, input):
+        p = Plotter(dbsession, self.project.geid)
+        v = p.get_variant_classification(*input)
+        assert type_tuple[1] in v
+        assert v == type_tuple
 
     # def test_load_zebrafish(self):
     #     loader = ProjectDataLoader(dbsession, self.project.geid, 'python/tests/pytest_zebrafish.xlsx')
