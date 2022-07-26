@@ -3,6 +3,7 @@ import glob
 import math
 import pandas
 import numpy
+import requests
 import sqlalchemy
 import logging
 
@@ -193,6 +194,27 @@ class Plotter:
             var = Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)
             top_effect = var.effects().top_priority_effect()
             consequence = top_effect.__class__.__name__
+            weight = self.CONSEQUENCE_WEIGHTING.get(consequence, 0)
+        except Exception:
+            consequence = 'Unclassified'
+            weight = 0
+        finally:
+            if len(ref) > len(alt):
+                return 'Deletion', consequence, weight
+            elif len(ref) < len(alt):
+                return 'Insertion', consequence, weight
+            else:
+                return 'Mismatch', consequence, weight
+
+    def get_variant_classification1(self, contig, start, ref, alt, genome='',species='human'):
+        # https://rest.ensembl.org/vep/human/region/5:66153585-66153585:1/T?content-type=application/json
+        # No need for ref
+        if genome == 'grch37':
+            genome = 'grch37.'
+        vep_url = f"https://{genome}rest.ensembl.org/vep/{species}/region/{contig}:{start}-{start}:1/{alt}?content-type=application/json"
+        try:
+            vep_json = requests.get(vep_url, headers={ "Content-Type" : "application/json"})
+            consequence = vep_json.json()[0].get('most_severe_consequence')
             weight = self.CONSEQUENCE_WEIGHTING.get(consequence, 0)
         except Exception:
             consequence = 'Unclassified'

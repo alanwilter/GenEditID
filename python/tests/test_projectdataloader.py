@@ -129,12 +129,14 @@ class TestProjectDataLoader:
     @pytest.mark.parametrize(
         ("type_tuple", "input"),
         (
-            (('Mismatch', 'Substitution', 0.7),('5',66153585,'C','T')),
-            (('Insertion', 'FrameShift', 1.0),('5',66178781,'A','AA')))
+            # (('Mismatch', 'Substitution', 0.7),('5',66153585,'C','T')),
+            # (('Insertion', 'FrameShift', 1.0),('5',66178781,'A','AA')))
+            (('Mismatch', 'missense_variant', 0),('5',66153585,'C','T')),
+            (('Insertion', 'frameshift_variant', 0),('5',66178781,'A','AA')))
         )
     def test_get_variant_classification(self, type_tuple, input):
         p = Plotter(dbsession, self.project.geid)
-        v = p.get_variant_classification(*input)
+        v = p.get_variant_classification1(*input)
         assert type_tuple[1] in v
         assert v == type_tuple
 
