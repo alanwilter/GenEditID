@@ -189,7 +189,7 @@ class Plotter:
 
 
     # Get variant classification using https://github.com/openvax/varcode and https://github.com/openvax/pyensembl
-    def get_variant_classification(self, contig, start, ref, alt, genome=ensembl_grch38):
+    def get_variant_classification0(self, contig, start, ref, alt, genome=ensembl_grch38):
         try:
             var = Variant(contig=contig, start=start, ref=ref, alt=alt, ensembl=genome)
             top_effect = var.effects().top_priority_effect()
@@ -206,27 +206,37 @@ class Plotter:
             else:
                 return 'Mismatch', consequence, weight
 
-    def get_variant_classification1(self, contig, start, ref, alt, genome='',species='human'):
-        # https://rest.ensembl.org/vep/human/region/5:66153585-66153585:1/T?content-type=application/json
-        # No need for ref
-        if genome == 'grch37':
-            genome = 'grch37.'
-        vep_url = f"https://{genome}rest.ensembl.org/vep/{species}/region/{contig}:{start}-{start}:1/{alt}?content-type=application/json"
-        try:
-            vep_json = requests.get(vep_url, headers={ "Content-Type" : "application/json"})
-            consequence = vep_json.json()[0].get('most_severe_consequence')
-            weight = self.CONSEQUENCE_WEIGHTING.get(consequence, 0)
-        except Exception:
-            consequence = 'Unclassified'
-            weight = 0
-        finally:
-            if len(ref) > len(alt):
-                return 'Deletion', consequence, weight
-            elif len(ref) < len(alt):
-                return 'Insertion', consequence, weight
-            else:
-                return 'Mismatch', consequence, weight
-
+    def get_variant_classification(self, contig, start, ref, alt, genome="", species="human"):
+            # https://rest.ensembl.org/vep/human/region/5:66153585-66153585:1/T?content-type=application/json
+            if genome == 'grch37':
+                genome = 'grch37.'
+            vep_url = f"https://{genome}rest.ensembl.org/vep/{species}/region/{contig}:{start}-{start}:1/{alt}?content-type=application/json"
+            self.log.info(vep_url)
+            try:
+                vep_json = requests.get(vep_url, headers={ "Content-Type" : "application/json"})
+                consequence = vep_json.json()[0].get('most_severe_consequence')
+                self.log.info(consequence)
+                # list of possible consequences:
+                # https://grch37.ensembl.org/info/genome/variation/prediction/predicted_data.html
+                weight = self.CONSEQUENCE_WEIGHTING.get(consequence, 0)
+            except Exception:
+                try:
+                    vep_url = f"https://{genome}rest.ensembl.org/vep/{species}/region/{contig}:{start}-{start}:-1/{alt}?content-type=application/json"
+                    self.log.info(vep_url)
+                    vep_json = requests.get(vep_url, headers={ "Content-Type" : "application/json"})
+                    consequence = vep_json.json()[0].get('most_severe_consequence')
+                    self.log.info(consequence)
+                    weight = self.CONSEQUENCE_WEIGHTING.get(consequence, 0)
+                except Exception:
+                    consequence = 'Unclassified'
+                    weight = 0
+            finally:
+                if len(ref) > len(alt):
+                    return 'Deletion', consequence, weight
+                elif len(ref) < len(alt):
+                    return 'Insertion', consequence, weight
+                else:
+                    return 'Mismatch', consequence, weight
 
     # Calculate KO score
     def calculate_score(self, row):
